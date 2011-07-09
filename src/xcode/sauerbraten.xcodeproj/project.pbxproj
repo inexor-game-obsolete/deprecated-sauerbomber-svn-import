@@ -195,7 +195,7 @@
 		D11B024A0F830BA400334D69 /* ai.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ai.cpp; sourceTree = "<group>"; };
 		D11B024B0F830BA400334D69 /* ai.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai.h; sourceTree = "<group>"; };
 		D11B024C0F830BA400334D69 /* aiman.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aiman.h; sourceTree = "<group>"; };
-		D11B024D0F830BA400334D69 /* waypoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = waypoint.cpp; sourceTree = "<group>"; };
+		D11B024D0F830BA400334D69 /* waypoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = waypoint.cpp; path = ../fpsgame/waypoint.cpp; sourceTree = "<group>"; };
 		D123F95A0DA8B312001DB09F /* ctf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ctf.h; sourceTree = "<group>"; };
 		D13E4D46111E42A100E8E19D /* Development.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Development.h; sourceTree = "<group>"; };
 		D13E4D47111E42A100E8E19D /* Development.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Development.m; sourceTree = "<group>"; };
@@ -410,6 +410,7 @@
 				B9AC7AA50D06DB44005506F8 /* sound.cpp */,
 				B9AC7AA60D06DB44005506F8 /* texture.cpp */,
 				B9AC7AA90D06DB44005506F8 /* water.cpp */,
+				D11B024D0F830BA400334D69 /* waypoint.cpp */,
 				B9AC7AAA0D06DB44005506F8 /* world.cpp */,
 				B9AC7AAC0D06DB44005506F8 /* worldio.cpp */,
 				B91D401E0D525FD3004EF78A /* animmodel.h */,
@@ -454,7 +455,6 @@
 				D1D07EFA0F645590007098A8 /* render.cpp */,
 				D1D07EFB0F645590007098A8 /* scoreboard.cpp */,
 				D1D07EFC0F645590007098A8 /* server.cpp */,
-				D11B024D0F830BA400334D69 /* waypoint.cpp */,
 				D1D07EFD0F645590007098A8 /* weapon.cpp */,
 				B9AC7AB10D06DB44005506F8 /* fps.cpp */,
 				D11B024B0F830BA400334D69 /* ai.h */,
@@ -534,7 +534,14 @@
 			isa = PBXProject;
 			buildConfigurationList = B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "sauerbraten" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* sauerbraten */;
 			projectDirPath = "";
 			projectRoot = ../..;
