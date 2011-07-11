@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		31E9CD6A13CA7DC200E3EA26 /* weapon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 31E9CD6913CA7DC200E3EA26 /* weapon.cpp */; };
 		666E40F00B67D87F005B491F /* macutils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 666E40EF0B67D87F005B491F /* macutils.mm */; };
 		B90ADD4509B344D800A5B00B /* callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = B90ADD0009B344D800A5B00B /* callbacks.c */; };
 		B90ADD5709B344D800A5B00B /* host.c in Sources */ = {isa = PBXBuildFile; fileRef = B90ADD1309B344D800A5B00B /* host.c */; };
@@ -82,7 +83,6 @@
 		D1D07F020F645590007098A8 /* render.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1D07EFA0F645590007098A8 /* render.cpp */; };
 		D1D07F030F645590007098A8 /* scoreboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1D07EFB0F645590007098A8 /* scoreboard.cpp */; };
 		D1D07F040F645590007098A8 /* server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1D07EFC0F645590007098A8 /* server.cpp */; };
-		D1D07F050F645590007098A8 /* weapon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1D07EFD0F645590007098A8 /* weapon.cpp */; };
 		D1D6C6AE0EAEA703009B1A5C /* blob.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1D6C6AC0EAEA703009B1A5C /* blob.cpp */; };
 		D1E605B90E2416150045244E /* sauerbraten.icns in Resources */ = {isa = PBXBuildFile; fileRef = B97E99CE085F4B3E002F9BC6 /* sauerbraten.icns */; };
 		D1ECACF71129213900F58615 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1ECACF41129213900F58615 /* SDL.framework */; };
@@ -113,6 +113,7 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		31E9CD6913CA7DC200E3EA26 /* weapon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = weapon.cpp; path = Projects/Sauerbraten/clientmods/bomberman/trunk/src/fpsgame/weapon.cpp; sourceTree = SYSTEM_DEVELOPER_DIR; };
 		666E40EF0B67D87F005B491F /* macutils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = macutils.mm; sourceTree = "<group>"; };
 		B2F67ED704C74A3F00A80002 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		B90ADD0009B344D800A5B00B /* callbacks.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = callbacks.c; sourceTree = "<group>"; };
@@ -235,7 +236,6 @@
 		D1D07EFA0F645590007098A8 /* render.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render.cpp; sourceTree = "<group>"; };
 		D1D07EFB0F645590007098A8 /* scoreboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scoreboard.cpp; sourceTree = "<group>"; };
 		D1D07EFC0F645590007098A8 /* server.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = server.cpp; sourceTree = "<group>"; };
-		D1D07EFD0F645590007098A8 /* weapon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weapon.cpp; sourceTree = "<group>"; };
 		D1D6C6AC0EAEA703009B1A5C /* blob.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = blob.cpp; sourceTree = "<group>"; };
 		D1D6C6AD0EAEA703009B1A5C /* depthfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = depthfx.h; sourceTree = "<group>"; };
 		D1DB53E50D70F1C3003AE25C /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -455,7 +455,7 @@
 				D1D07EFA0F645590007098A8 /* render.cpp */,
 				D1D07EFB0F645590007098A8 /* scoreboard.cpp */,
 				D1D07EFC0F645590007098A8 /* server.cpp */,
-				D1D07EFD0F645590007098A8 /* weapon.cpp */,
+				31E9CD6913CA7DC200E3EA26 /* weapon.cpp */,
 				B9AC7AB10D06DB44005506F8 /* fps.cpp */,
 				D11B024B0F830BA400334D69 /* ai.h */,
 				D11B024C0F830BA400334D69 /* aiman.h */,
@@ -647,7 +647,6 @@
 				D1D07F020F645590007098A8 /* render.cpp in Sources */,
 				D1D07F030F645590007098A8 /* scoreboard.cpp in Sources */,
 				D1D07F040F645590007098A8 /* server.cpp in Sources */,
-				D1D07F050F645590007098A8 /* weapon.cpp in Sources */,
 				D1B87D600F7F57C80063BD1C /* crypto.cpp in Sources */,
 				D1B87D610F7F57C80063BD1C /* stream.cpp in Sources */,
 				D1B87D620F7F57C80063BD1C /* zip.cpp in Sources */,
@@ -658,6 +657,7 @@
 				D10F2F54111E23680004BCB9 /* Launcher.m in Sources */,
 				D10F2F55111E236C0004BCB9 /* main.m in Sources */,
 				D13E4D48111E42A100E8E19D /* Development.m in Sources */,
+				31E9CD6A13CA7DC200E3EA26 /* weapon.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
