@@ -32,6 +32,8 @@ namespace entities
 
     float dropheight(entity &e) { return e.type==ET_MAPMODEL ? 0 : 4; }
 
+    bool hasmapmodel(extentity &e) {return e.type==ET_MAPMODEL; }
+
     int extraentinfosize() { return SPAWNNAMELEN; }
     void writeent(entity &e, char *buf) { memcpy(buf, ((rpgentity &)e).name, SPAWNNAMELEN); }
     void readent (entity &e, char *buf, int ver) 
