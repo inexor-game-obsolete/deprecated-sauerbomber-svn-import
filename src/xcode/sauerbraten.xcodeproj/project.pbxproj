@@ -113,6 +113,10 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		3178DEAC13E6443D0054077A /* bomb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bomb.h; path = Projects/Sauerbraten/clientmods/bomberman/trunk/src/fpsgame/bomb.h; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		3178DEAD13E6443D0054077A /* pch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pch.cpp; path = Projects/Sauerbraten/clientmods/bomberman/trunk/src/fpsgame/pch.cpp; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		3178DEB013E6447B0054077A /* master.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = master.cpp; path = Projects/Sauerbraten/clientmods/bomberman/trunk/src/engine/master.cpp; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		3178DEB113E6447B0054077A /* pch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pch.cpp; path = Projects/Sauerbraten/clientmods/bomberman/trunk/src/engine/pch.cpp; sourceTree = SYSTEM_DEVELOPER_DIR; };
 		31E9CD6913CA7DC200E3EA26 /* weapon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = weapon.cpp; path = Projects/Sauerbraten/clientmods/bomberman/trunk/src/fpsgame/weapon.cpp; sourceTree = SYSTEM_DEVELOPER_DIR; };
 		666E40EF0B67D87F005B491F /* macutils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = macutils.mm; sourceTree = "<group>"; };
 		B2F67ED704C74A3F00A80002 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
@@ -389,10 +393,12 @@
 				B9AC7A8C0D06DB44005506F8 /* grass.cpp */,
 				B9AC7A8D0D06DB44005506F8 /* lightmap.cpp */,
 				B9AC7A8F0D06DB44005506F8 /* main.cpp */,
+				3178DEB013E6447B0054077A /* master.cpp */,
 				B9AC7A900D06DB44005506F8 /* material.cpp */,
 				B9AC7A930D06DB44005506F8 /* menus.cpp */,
 				B9AC7A950D06DB44005506F8 /* normal.cpp */,
 				B9AC7A960D06DB44005506F8 /* octa.cpp */,
+				3178DEB113E6447B0054077A /* pch.cpp */,
 				B9AC7A9A0D06DB44005506F8 /* physics.cpp */,
 				D1C660C90D5467C8002E52C1 /* pvs.cpp */,
 				B9AC7A980D06DB44005506F8 /* octaedit.cpp */,
@@ -452,6 +458,7 @@
 				D1D07EF70F645590007098A8 /* entities.cpp */,
 				D1D07EF80F645590007098A8 /* monster.cpp */,
 				D1D07EF90F645590007098A8 /* movable.cpp */,
+				3178DEAD13E6443D0054077A /* pch.cpp */,
 				D1D07EFA0F645590007098A8 /* render.cpp */,
 				D1D07EFB0F645590007098A8 /* scoreboard.cpp */,
 				D1D07EFC0F645590007098A8 /* server.cpp */,
@@ -459,6 +466,7 @@
 				B9AC7AB10D06DB44005506F8 /* fps.cpp */,
 				D11B024B0F830BA400334D69 /* ai.h */,
 				D11B024C0F830BA400334D69 /* aiman.h */,
+				3178DEAC13E6443D0054077A /* bomb.h */,
 				D1DE11180E21986800FA387C /* extinfo.h */,
 				D123F95A0DA8B312001DB09F /* ctf.h */,
 				B9AC7AAE0D06DB44005506F8 /* capture.h */,
@@ -516,6 +524,7 @@
 				B94198C209207E810029DAD1 /* Frameworks */,
 				B9D19B900FB4C8150020B7FC /* CopyFiles */,
 				B94199400920820E0029DAD1 /* ShellScript */,
+				318BEF1813E35A4800A9A41E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -571,6 +580,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		318BEF1813E35A4800A9A41E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "";
+		};
 		B94199400920820E0029DAD1 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
@@ -714,6 +736,7 @@
 				INFOPLIST_FILE = sauerbraten.plist;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = sauerbraten;
+				VERSION_INFO_SUFFIX = "";
 			};
 			name = Debug;
 		};
@@ -744,6 +767,7 @@
 				);
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = sauerbraten;
+				VERSION_INFO_SUFFIX = "";
 			};
 			name = Release;
 		};
@@ -774,6 +798,7 @@
 				);
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = sauerbraten;
+				VERSION_INFO_SUFFIX = "";
 			};
 			name = "Release-Deployment";
 		};
