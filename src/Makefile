@@ -4,7 +4,7 @@ override CXXFLAGS+= -Wall -fsigned-char -fno-exceptions -fno-rtti
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX= native
 
-INCLUDES= -Ishared -Iengine -Ifpsgame -Ienet/include
+INCLUDES= -Ishared -Iengine -Ifpsgame -Iservices -Ienet/include
 
 STRIP=
 ifeq (,$(findstring -g,$(CXXFLAGS)))
@@ -20,8 +20,8 @@ WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -Iinclude
 CLIENT_LIBS= -mwindows -Llib -lSDL -lSDL_image -lSDL_mixer -lzdll -lopengl32 -lenet -lws2_32 -lwinmm -static
 else	
-CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags`
-CLIENT_LIBS= -Lenet/.libs -lenet -L/usr/X11R6/lib -lX11 `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL
+CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` `apr-1-config --includes`
+CLIENT_LIBS= -Lenet/.libs -lenet -L/usr/X11R6/lib -lX11 `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL `apr-1-config --ldflags --link-ld`
 endif
 ifeq ($(PLATFORM),Linux)
 CLIENT_LIBS+= -lrt
@@ -70,6 +70,7 @@ CLIENT_OBJS= \
 	engine/water.o \
 	engine/world.o \
 	engine/worldio.o \
+	services/contentrepo.o \
 	fpsgame/ai.o \
 	fpsgame/client.o \
 	fpsgame/entities.o \
@@ -100,6 +101,7 @@ SERVER_OBJS= \
 	engine/command-standalone.o \
 	engine/server-standalone.o \
 	engine/worldio-standalone.o \
+	services/contentrepo.o \
 	fpsgame/entities-standalone.o \
 	fpsgame/server-standalone.o
 
@@ -132,8 +134,8 @@ clean:
 	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) $(MASTER_OBJS) sauer_client sauer_server sauer_master
 
 %.h.gch: %.h
-	$(CXX) $(CXXFLAGS) -o $@.tmp $(subst .h.gch,.h,$@)
-	$(MV) $@.tmp $@
+	$(CXX) $(CXXFLAGS) -o $(subst .h.gch,.tmp.h.gch,$@) $(subst .h.gch,.h,$@)
+	$(MV) $(subst .h.gch,.tmp.h.gch,$@) $@
 
 %-standalone.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst -standalone.o,.cpp,$@)
@@ -169,6 +171,12 @@ server:	libenet $(SERVER_OBJS)
 master: libenet $(MASTER_OBJS)
 	$(CXX) $(CXXFLAGS) -o sauer_master $(MASTER_OBJS) $(MASTER_LIBS)  
 
+shared/cube2font.o: shared/cube2font.c
+	$(CXX) $(CXXFLAGS) -c -o $@ $< `freetype-config --cflags`
+
+cube2font: shared/cube2font.o
+	$(CXX) $(CXXFLAGS) -o cube2font shared/cube2font.o `freetype-config --libs` -lz -lpng
+
 install: all
 	cp sauer_client	../bin_unix/$(PLATFORM_PREFIX)_client
 	cp sauer_server	../bin_unix/$(PLATFORM_PREFIX)_server
@@ -179,10 +187,10 @@ endif
 endif
 
 depend:
-	makedepend -Y -Ishared -Iengine -Ifpsgame $(subst .o,.cpp,$(CLIENT_OBJS))
-	makedepend -a -o.h.gch -Y -Ishared -Iengine -Ifpsgame $(subst .h.gch,.h,$(CLIENT_PCH))
-	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame $(subst -standalone.o,.cpp,$(SERVER_OBJS))
-	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
+	makedepend -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst .o,.cpp,$(CLIENT_OBJS))
+	makedepend -a -o.h.gch -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst .h.gch,.h,$(CLIENT_PCH))
+	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst -standalone.o,.cpp,$(SERVER_OBJS))
+	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
 
 engine/engine.h.gch: shared/cube.h.gch
 fpsgame/game.h.gch: shared/cube.h.gch
