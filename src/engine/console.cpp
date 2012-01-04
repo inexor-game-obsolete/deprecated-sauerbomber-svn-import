@@ -815,8 +815,12 @@ void writecompletions(stream *f)
     {
         char *k = cmds[i];
         filesval *v = completions[k];
-        if(v->type==FILES_LIST) f->printf("listcomplete \"%s\" [%s]\n", k, v->dir);
-        else f->printf("complete \"%s\" \"%s\" \"%s\"\n", k, v->dir, v->ext ? v->ext : "*");
+        if(v->type==FILES_LIST) 
+        {
+            if(validateblock(v->dir)) f->printf("listcomplete %s [%s]\n", escapeid(k), v->dir);
+            else f->printf("listcomplete %s %s\n", escapeid(k), escapestring(v->dir));
+        }
+        else f->printf("complete %s %s %s\n", escapeid(k), escapestring(v->dir), escapestring(v->ext ? v->ext : "*"));
     }
 }
 
