@@ -358,6 +358,35 @@ const char *addpackagedir(const char *dir)
 	return packagedirs.add(newstring(pdir));
 }
 
+// SVARP(repositoriesdir, "repositories");
+
+void addrepositories(const char *repositories) {
+    addpackagedir(".");
+#ifdef WIN32
+    DIR *dirp;
+    dirent *dp;
+    dirp = opendir(repositories);
+    while ((dp = readdir(dirp)) != NULL) {
+        if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0) {
+            defformatstring(relpath)("%s/%s", repositories, dp->d_name);
+            addpackagedir(relpath);
+        }
+    }
+    closedir(dirp);
+#else
+    DIR *dirp;
+    dirent *dp;
+    dirp = opendir(repositories);
+    while ((dp = readdir(dirp)) != NULL) {
+        if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0) {
+            defformatstring(relpath)("%s/%s", repositories, dp->d_name);
+            addpackagedir(relpath);
+        }
+    }
+    closedir(dirp);
+#endif
+}
+
 const char *findfile(const char *filename, const char *mode)
 {
     static string s;

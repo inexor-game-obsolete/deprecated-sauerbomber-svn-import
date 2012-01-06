@@ -1,5 +1,6 @@
 CXXFLAGS= -O3 -fomit-frame-pointer
-override CXXFLAGS+= -Wall -fsigned-char -fno-exceptions -fno-rtti
+override CXXFLAGS+= -Wall -fsigned-char -fexceptions -fno-rtti
+# -fno-exceptions
 
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX= native
@@ -20,8 +21,8 @@ WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -Iinclude
 CLIENT_LIBS= -mwindows -Llib -lSDL -lSDL_image -lSDL_mixer -lzdll -lopengl32 -lenet -lws2_32 -lwinmm -static
 else	
-CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` `apr-1-config --includes`
-CLIENT_LIBS= -Lenet/.libs -lenet -L/usr/X11R6/lib -lX11 `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL `apr-1-config --ldflags --link-ld`
+CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` -I/usr/include/svncpp -I/usr/include/subversion-1 `apr-1-config --includes`
+CLIENT_LIBS= -Lenet/.libs -lenet -L/usr/X11R6/lib -lX11 `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1
 endif
 ifeq ($(PLATFORM),Linux)
 CLIENT_LIBS+= -lrt
@@ -71,6 +72,7 @@ CLIENT_OBJS= \
 	engine/world.o \
 	engine/worldio.o \
 	services/contentrepo.o \
+	services/svn.o \
 	fpsgame/ai.o \
 	fpsgame/client.o \
 	fpsgame/entities.o \
@@ -90,8 +92,8 @@ SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -Iinclude
 SERVER_LIBS= -mwindows -Llib -lzdll -lenet -lws2_32 -lwinmm
 MASTER_LIBS= -Llib -lzdll -lenet -lws2_32 -lwinmm
 else
-SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -Lenet/.libs -lenet -lz
+SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I/usr/include/svncpp -I/usr/include/subversion-1 -I/usr/include/apr-1.0
+SERVER_LIBS= -Lenet/.libs -lenet -lz -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1
 MASTER_LIBS= $(SERVER_LIBS)
 endif
 SERVER_OBJS= \
@@ -102,6 +104,7 @@ SERVER_OBJS= \
 	engine/server-standalone.o \
 	engine/worldio-standalone.o \
 	services/contentrepo.o \
+	services/svn.o \
 	fpsgame/entities-standalone.o \
 	fpsgame/server-standalone.o
 

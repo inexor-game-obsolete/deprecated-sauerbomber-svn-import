@@ -984,6 +984,8 @@ int main(int argc, char **argv)
 
     setlogfile(NULL);
 
+    addrepositories("repositories");
+
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
 
