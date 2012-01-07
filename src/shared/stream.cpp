@@ -358,10 +358,13 @@ const char *addpackagedir(const char *dir)
 	return packagedirs.add(newstring(pdir));
 }
 
-// SVARP(repositoriesdir, "repositories");
+SVARP(defaultrepository, "repositories/sauerbomber-base");
 
 void addrepositories(const char *repositories) {
-    addpackagedir(".");
+    // search in default repository first
+    addpackagedir(defaultrepository);
+    // compatibility till license cleanup is done
+    // addpackagedir(".");
 #ifdef WIN32
     DIR *dirp;
     dirent *dp;
@@ -381,6 +384,7 @@ void addrepositories(const char *repositories) {
         if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0) {
             defformatstring(relpath)("%s/%s", repositories, dp->d_name);
             addpackagedir(relpath);
+            logoutf("Adding content repository: %s", relpath);
         }
     }
     closedir(dirp);
