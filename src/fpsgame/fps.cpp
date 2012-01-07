@@ -881,9 +881,9 @@ namespace game
     {
         switch(index)
         {
-            case 2: return "data/hit.png";
-            case 1: return "data/teammate.png";
-            default: return "data/crosshair.png";
+            case 2: return "packages/skins/sauerbomber/hit.png";
+            case 1: return "packages/skins/sauerbomber/teammate.png";
+            default: return "packages/skins/sauerbomber/crosshair.png";
         }
     }
 
