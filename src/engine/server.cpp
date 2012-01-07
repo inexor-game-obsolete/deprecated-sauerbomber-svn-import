@@ -1135,7 +1135,10 @@ void initserver(bool listen, bool dedicated)
     if(listen)
     {
         updatemasterserver();
-        if(dedicated) rundedicatedserver(); // never returns
+        if(dedicated) {
+            execfile("data/cubescript/startup_dedicated.cfg");
+            rundedicatedserver(); // never returns
+        }
 #ifndef STANDALONE
         else conoutf("listen server started");
 #endif
