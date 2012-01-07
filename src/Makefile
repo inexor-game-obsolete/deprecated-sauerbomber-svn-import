@@ -73,6 +73,7 @@ CLIENT_OBJS= \
 	engine/worldio.o \
 	services/contentrepo.o \
 	services/svn.o \
+	services/callbacklistener.o \
 	fpsgame/ai.o \
 	fpsgame/client.o \
 	fpsgame/entities.o \
@@ -93,7 +94,7 @@ SERVER_LIBS= -mwindows -Llib -lzdll -lenet -lws2_32 -lwinmm
 MASTER_LIBS= -Llib -lzdll -lenet -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I/usr/include/svncpp -I/usr/include/subversion-1 -I/usr/include/apr-1.0
-SERVER_LIBS= -Lenet/.libs -lenet -lz -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1
+SERVER_LIBS= -Lenet/.libs -lenet -lz `sdl-config --libs` -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1
 MASTER_LIBS= $(SERVER_LIBS)
 endif
 SERVER_OBJS= \
@@ -105,6 +106,7 @@ SERVER_OBJS= \
 	engine/worldio-standalone.o \
 	services/contentrepo.o \
 	services/svn.o \
+	services/callbacklistener.o \
 	fpsgame/entities-standalone.o \
 	fpsgame/server-standalone.o
 
@@ -394,6 +396,8 @@ engine/worldio.o: shared/ents.h shared/command.h shared/iengine.h
 engine/worldio.o: shared/igame.h engine/world.h engine/octa.h
 engine/worldio.o: engine/lightmap.h engine/bih.h engine/texture.h
 engine/worldio.o: engine/model.h engine/varray.h
+services/svn.o: services/callbacklistener.h
+services/callbacklistener.o: services/callbacklistener.h
 fpsgame/ai.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/ai.o: shared/ents.h shared/command.h shared/iengine.h shared/igame.h
 fpsgame/ai.o: fpsgame/ai.h
