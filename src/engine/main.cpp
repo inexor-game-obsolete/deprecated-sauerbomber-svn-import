@@ -132,6 +132,7 @@ static void getbackgroundres(int &w, int &h)
     h = int(ceil(h*hk));
 }
 
+string backgroundimg = "";
 string backgroundcaption = "";
 Texture *backgroundmapshot = NULL;
 string backgroundmapname = "";
@@ -163,7 +164,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     glEnable(GL_TEXTURE_2D);
 
     static int lastupdate = -1, lastw = -1, lasth = -1;
-    static float backgroundu = 0, backgroundv = 0, detailu = 0, detailv = 0;
+    // static float backgroundu = 0, backgroundv = 0, detailu = 0, detailv = 0;
     static int numdecals = 0;
     static struct decal { float x, y, size; int side; } decals[12];
     if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
@@ -172,10 +173,12 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         lastw = w;
         lasth = h;
 
+        /*
         backgroundu = rndscale(1);
         backgroundv = rndscale(1);
         detailu = rndscale(1);
         detailv = rndscale(1);
+        */
         numdecals = sizeof(decals)/sizeof(decals[0]);
         numdecals = numdecals/3 + rnd((numdecals*2)/3 + 1);
         float maxsize = min(w, h)/16.0f;
@@ -187,11 +190,34 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     }
     else if(lastupdate != lastmillis) lastupdate = lastmillis;
 
+    copystring(backgroundimg, !force ? "packages/skins/sauerbomber/background_blured.png" : "packages/skins/sauerbomber/background.png");
     loopi(restore ? 1 : 3)
     {
         glColor3f(1, 1, 1);
+        if(force) {
+            settexture(backgroundimg, 0);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0,  0);  glVertex2f(0, 0);
+            glTexCoord2f(1.0f, 0);  glVertex2f(w, 0);
+            glTexCoord2f(1.0f, 1.0f); glVertex2f(w, h);
+            glTexCoord2f(0,    1.0f); glVertex2f(0, h);
+            glEnd();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        glEnable(GL_BLEND);
+
+        settexture("packages/skins/sauerbomber/background_detail.png", 0);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0,  0);  glVertex2f(0, 0);
+        glTexCoord2f(1.0f, 0);  glVertex2f(w, 0);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(w, h);
+        glTexCoord2f(0,    1.0f); glVertex2f(0, h);
+        glEnd();
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        /*
+        glColor3f(1, 1, 1);
         settexture("data/background.png", 0);
-        float bu = w*0.67f/256.0f + backgroundu, bv = h*0.67f/256.0f + backgroundv;
+        float bu = w*0.67f/1920.0f + backgroundu, bv = h*0.67f/1200.0f + backgroundv;
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0,  0);  glVertex2f(0, 0);
         glTexCoord2f(bu, 0);  glVertex2f(w, 0);
@@ -200,6 +226,8 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         glEnd();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
+        */
+        /*
         settexture("data/background_detail.png", 0);
         float du = w*0.8f/512.0f + detailu, dv = h*0.8f/512.0f + detailv;
         glBegin(GL_TRIANGLE_STRIP);
@@ -208,6 +236,8 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         glTexCoord2f(0,  dv); glVertex2f(0, h);
         glTexCoord2f(du, dv); glVertex2f(w, h);
         glEnd();
+        */
+        /*
         settexture("data/background_decal.png", 3);
         glBegin(GL_QUADS);
         loopj(numdecals)
@@ -219,9 +249,10 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
             glTexCoord2f(side,   1); glVertex2f(hx-hsz, hy+hsz);
         }
         glEnd();
+        */
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screen->w > 1280 || screen->h > 800) ? "data/logo_1024.png" : "data/logo.png", 3);
+        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screen->w > 1280 || screen->h > 800) ? "packages/skins/sauerbomber/logo_1024.png" : "packages/skins/sauerbomber/logo.png", 3);
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(lx,    ly);
         glTexCoord2f(1, 0); glVertex2f(lx+lw, ly);
@@ -272,7 +303,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
                 glPopMatrix();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }        
-            settexture("data/mapshot_frame.png", 3);
+            settexture("packages/skins/sauerbomber/mapshot_frame.png", 3);
             glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0, 0); glVertex2f(x,    y);
             glTexCoord2f(1, 0); glVertex2f(x+sz, y);
@@ -355,7 +386,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
           fy = renderedframe ? fh/4 : h - fh*1.5f,
           fu1 = 0/512.0f, fu2 = 511/512.0f,
           fv1 = 0/64.0f, fv2 = 52/64.0f;
-    settexture("data/loading_frame.png", 3);
+    settexture("packages/skins/sauerbomber/loading_frame.png", 3);
     glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(fu1, fv1); glVertex2f(fx,    fy);
     glTexCoord2f(fu2, fv1); glVertex2f(fx+fw, fy);
@@ -375,7 +406,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
           ex = bx+sw + max(mw*bar, fw*7/511.0f);
     if(bar > 0)
     {
-        settexture("data/loading_bar.png", 3);
+        settexture("packages/skins/sauerbomber/loading_bar.png", 3);
         glBegin(GL_QUADS);
         glTexCoord2f(su1, bv1); glVertex2f(bx,    by);
         glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
@@ -421,7 +452,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        settexture("data/mapshot_frame.png", 3);
+        settexture("packages/skins/sauerbomber/mapshot_frame.png", 3);
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(x,    y);
         glTexCoord2f(1, 0); glVertex2f(x+sz, y);
@@ -691,14 +722,12 @@ void resetgl()
     extern void reloadshaders();
     inbetweenframes = false;
     if(!reloadtexture(*notexture) ||
-       !reloadtexture("data/logo.png") ||
-       !reloadtexture("data/logo_1024.png") || 
-       !reloadtexture("data/background.png") ||
-       !reloadtexture("data/background_detail.png") ||
-       !reloadtexture("data/background_decal.png") ||
-       !reloadtexture("data/mapshot_frame.png") ||
-       !reloadtexture("data/loading_frame.png") ||
-       !reloadtexture("data/loading_bar.png"))
+       !reloadtexture("packages/skins/sauerbomber/logo.png") ||
+       !reloadtexture("packages/skins/sauerbomber/logo_1024.png") ||
+       !reloadtexture("packages/skins/sauerbomber/background.png") ||
+       !reloadtexture("packages/skins/sauerbomber/mapshot_frame.png") ||
+       !reloadtexture("packages/skins/sauerbomber/loading_frame.png") ||
+       !reloadtexture("packages/skins/sauerbomber/loading_bar.png"))
         fatal("failed to reload core texture");
     reloadfonts();
     inbetweenframes = true;
