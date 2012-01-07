@@ -984,7 +984,9 @@ int main(int argc, char **argv)
 
     setlogfile(NULL);
 
+    logoutf("init: repositories");
     addrepositories("repositories");
+    execfile("data/cubescript/repositories.cfg");
 
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
@@ -1110,6 +1112,7 @@ int main(int argc, char **argv)
     initsound();
 
     logoutf("init: cfg");
+    execfile("data/cubescript/guis.cfg");
     execfile("data/keymap.cfg");
     execfile("data/stdedit.cfg");
     execfile("data/menus.cfg");
