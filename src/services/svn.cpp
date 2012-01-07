@@ -8,9 +8,11 @@ using namespace std;
 namespace engine {
 
     char* svn_lastmessage = new char[255];
+    int svn_workers = 0;
 
     void set_lastmessage(const char* message) {
         sprintf(svn_lastmessage, "  %s", message);
+        cout << svn_lastmessage;
     }
 
     /**
@@ -41,7 +43,7 @@ namespace engine {
      */
     int svn_update(void *folderPtr) {
         char *folder = (char*)folderPtr;
-        cout << "svn_update: \"" << folder << "\"" << endl;
+        // cout << "svn_update: \"" << folder << "\"" << endl;
         svn::Context* context = new svn::Context(std::string(".svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
         callbacklistener* l = new callbacklistener(&set_lastmessage);
