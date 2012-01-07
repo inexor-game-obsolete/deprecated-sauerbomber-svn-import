@@ -30,7 +30,11 @@ namespace engine {
         defformatstring(packagespath)("%s/packages", localpath);
         // defformatstring(msg)("checkout repository %s from %s", (checkoutinfo*)checkoutinfos->repositoryname, (checkoutinfo*)checkoutinfos->url);
         // conoutf(msg);
-        mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
+        #ifdef WIN32
+            CreateDirectory(path, NULL);
+        #else
+            mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
+        #endif
         if (svn_checkout(datapath, dataurl) && svn_checkout(packagespath, packagesurl)) {
             addpackagedir(localpath);
         } else {

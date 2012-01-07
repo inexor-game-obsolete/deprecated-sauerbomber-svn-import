@@ -187,6 +187,7 @@ done:
 
 #ifdef WIN32
 #include <shlobj.h>
+#include <dirent.h>
 #else
 #include <unistd.h>
 #include <sys/stat.h>
