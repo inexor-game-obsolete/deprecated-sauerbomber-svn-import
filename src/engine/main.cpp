@@ -1191,6 +1191,8 @@ int main(int argc, char **argv)
 
     inputgrab(grabinput = true);
 
+    execfile("data/cubescript/started.cfg");
+
     for(;;)
     {
         static int frames = 0;
