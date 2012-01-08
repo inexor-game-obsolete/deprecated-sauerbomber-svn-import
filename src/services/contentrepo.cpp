@@ -31,7 +31,7 @@ namespace engine {
         // defformatstring(msg)("checkout repository %s from %s", (checkoutinfo*)checkoutinfos->repositoryname, (checkoutinfo*)checkoutinfos->url);
         // conoutf(msg);
         #ifdef WIN32
-            CreateDirectory(path, NULL);
+            CreateDirectory(localpath, NULL);
         #else
             mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
         #endif
@@ -66,7 +66,7 @@ namespace engine {
         // defformatstring(checkoutinfos->repositoryname)("%s", repositoryname);
         checkoutinfos->repositoryname = repositoryname;
         checkoutinfos->url = url;
-        SDL_Thread *thread_repositoryupdate = SDL_CreateThread(repositorycheckoutworker, (void*) checkoutinfos);
+        SDL_Thread *thread_repositorycheckout = SDL_CreateThread(repositorycheckoutworker, (void*) checkoutinfos);
         SDL_Delay(500);
     }
     ICOMMAND(repositorycheckout, "ss", (char *repositoryname, char *url), repositorycheckout(repositoryname, url));
