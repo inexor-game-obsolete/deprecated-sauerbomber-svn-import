@@ -25,10 +25,14 @@ namespace engine {
         svn_revnum_t revnum
     ) {
         std::stringstream message;
-        message << actionToStr(action) << ": '" << path << "', Revision " << revnum;
+        message << actionToStr(action) << ": '" << path << "', Revision ";
+        if (revnum == -1) {
+            message << "HEAD";
+        } else {
+            message << revnum;
+        }
         callback(message.str().c_str());
     }
-
 
     std::string callbacklistener::actionToStr(svn_wc_notify_action_t action) {
         std::string result;
