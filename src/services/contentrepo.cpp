@@ -10,6 +10,7 @@ namespace engine {
 
     extern bool svn_checkout(char *folder, char *url);
     extern int svn_update(void *folderPtr);
+    extern int svn_unlock(char *folder);
     extern char* svn_lastmessage;
     extern int svn_workers;
 
