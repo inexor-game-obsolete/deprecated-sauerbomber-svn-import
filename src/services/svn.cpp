@@ -63,4 +63,23 @@ namespace engine {
         return true;
     }
 
+    /**
+     * Unlocking a repository
+     */
+    int svn_unlock(char *folder) {
+        svn::Context* context = new svn::Context(std::string(".svnconfig"));
+        svn::Client* svnClient = new svn::Client(context);
+        callbacklistener* l = new callbacklistener(&set_lastmessage);
+        context->setListener(l);
+        svn::Path destFolder(folder);
+        try {
+            // TODO: svn::unlock
+        } catch(svn::ClientException& err) {
+            sprintf(svn_lastmessage, "unlock of %s failed: %s", folder, err.message());
+        } catch(...) {
+            sprintf(svn_lastmessage, "unlock of %s failed: unknown", folder);
+        }
+        delete svnClient;
+        delete context;
+    }
 }

@@ -16,8 +16,6 @@ namespace engine {
     struct checkoutinfo {
         char *repositoryname;
         char *url;
-        // char repositoryname[255];
-        // char url[255];
     };
 
     int repositorycheckoutworker(void *checkoutinfosPtr) {
@@ -28,8 +26,6 @@ namespace engine {
         defformatstring(localpath)("%s/%s", repositoriesdir, (checkoutinfo*)checkoutinfos->repositoryname);
         defformatstring(datapath)("%s/data", localpath);
         defformatstring(packagespath)("%s/packages", localpath);
-        // defformatstring(msg)("checkout repository %s from %s", (checkoutinfo*)checkoutinfos->repositoryname, (checkoutinfo*)checkoutinfos->url);
-        // conoutf(msg);
         #ifdef WIN32
             CreateDirectory(localpath, NULL);
         #else
@@ -44,26 +40,8 @@ namespace engine {
         svn_workers--;
     }
 
-    /*
-    void repositorycheckout(char *repositoryname, char *url) {
-        defformatstring(localpath)("%s/%s", repositoriesdir, repositoryname);
-        defformatstring(datapath)("%s/data", localpath);
-        defformatstring(packagespath)("%s/packages", localpath);
-        defformatstring(dataurl)("%s/data", url);
-        defformatstring(packagesurl)("%s/packages", url);
-        defformatstring(msg)("checkout repository %s from %s", repositoryname, url);
-        conoutf(msg);
-        mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
-        if (svn_checkout(datapath, dataurl) && svn_checkout(packagespath, packagesurl)) {
-            addpackagedir(localpath);
-        } else {
-            conoutf("svn checkout failed");
-        }
-    }
-    */
     void repositorycheckout(char *repositoryname, char *url) {
         checkoutinfo *checkoutinfos = new checkoutinfo;
-        // defformatstring(checkoutinfos->repositoryname)("%s", repositoryname);
         checkoutinfos->repositoryname = repositoryname;
         checkoutinfos->url = url;
         SDL_Thread *thread_repositorycheckout = SDL_CreateThread(repositorycheckoutworker, (void*) checkoutinfos);
@@ -76,8 +54,6 @@ namespace engine {
         defformatstring(localpath)("%s/%s", repositoriesdir, repositoryname);
         defformatstring(datapath)("%s/data", localpath);
         defformatstring(packagespath)("%s/packages", localpath);
-        // defformatstring(msg)("updating repositories in \"%s\" and \"%s\"", datapath, packagespath);
-        // conoutf(msg);
 
         SDL_Thread *thread_data, *thread_packages;
         int thread_data_result, thread_packages_result;
@@ -111,6 +87,15 @@ namespace engine {
         // mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
     }
     ICOMMAND(repositorydelete, "s", (char *repositoryname), repositorydelete(repositoryname));
+
+    void repositoryunlock(char *repositoryname) {
+        defformatstring(localpath)("%s/%s", repositoriesdir, repositoryname);
+        defformatstring(datapath)("%s/data", localpath);
+        defformatstring(packagespath)("%s/packages", localpath);
+        svn_unlock(datapath);
+        svn_unlock(packagespath);
+    }
+    ICOMMAND(repositoryunlock, "s", (char *repositoryname), repositoryunlock(repositoryname));
 
     void getrepositorymsg() {
         commandret->setstr(newstring(svn_lastmessage));
