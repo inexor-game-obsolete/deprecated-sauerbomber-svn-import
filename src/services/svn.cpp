@@ -12,7 +12,7 @@ namespace engine {
 
     void set_lastmessage(const char* message) {
         sprintf(svn_lastmessage, "  %s", message);
-        cout << svn_lastmessage;
+        cout << svn_lastmessage << endl;
     }
 
     /**
