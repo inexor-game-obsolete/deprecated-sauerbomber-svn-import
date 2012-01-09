@@ -3,9 +3,6 @@
  */
 
 #include "callbacklistener.h"
-#include <svncpp/context.hpp>
-#include <svncpp/context_listener.hpp>
-#include <svn_client.h>
 
 using namespace std;
 
