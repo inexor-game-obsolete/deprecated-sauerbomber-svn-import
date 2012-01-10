@@ -300,6 +300,32 @@ void altmapsound(char *name, int *vol)
 }
 COMMAND(altmapsound, "si");
 
+SVARP(soundsetsdir, "packages/sounds/sets");
+SVARP(soundset, "sauerbomber");
+
+void unregistersounds()
+{
+    gameslots.setsize(0);
+    gamesounds.setsize(0);
+}
+COMMAND(unregistersounds, "");
+
+void registersoundset(char *name)
+{
+    unregistersounds();
+    defformatstring(soundsetconfig)("%s/%s/sounds.cfg", soundsetsdir, name);
+    execfile(soundsetconfig);
+    copystring(soundset, name);
+}
+COMMAND(registersoundset, "s");
+
+void loadsoundset()
+{
+    unregistersounds();
+    defformatstring(soundsetconfig)("%s/%s/sounds.cfg", soundsetsdir, soundset);
+    execfile(soundsetconfig);
+}
+
 void resetchannels()
 {
     loopv(channels) if(channels[i].inuse) freechannel(i);

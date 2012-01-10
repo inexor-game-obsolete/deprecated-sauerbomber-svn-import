@@ -572,6 +572,7 @@ extern void g3d_mainmenu();
 extern void clearmapsounds();
 extern void checkmapsounds();
 extern void updatesounds();
+extern void loadsoundset();
 
 extern void initmumble();
 extern void closemumble();
