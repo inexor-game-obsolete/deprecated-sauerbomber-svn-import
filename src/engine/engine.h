@@ -143,6 +143,7 @@ extern font *curfont;
 // texture
 extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize;
 
+extern Texture *skinnedtextureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
 extern Texture *textureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
 extern int texalign(void *data, int w, int bpp);
 extern void cleanuptexture(Texture *t);
@@ -163,6 +164,8 @@ extern GLuint lookupenvmap(ushort emid);
 extern GLuint lookupenvmap(Slot &slot);
 extern bool reloadtexture(Texture &tex);
 extern bool reloadtexture(const char *name);
+extern bool reloadskinnedtexture(const char *name);
+extern bool setskinnedtexture(const char *name, int clamp);
 extern void setuptexcompress();
 extern void clearslots();
 extern void compacteditvslots();

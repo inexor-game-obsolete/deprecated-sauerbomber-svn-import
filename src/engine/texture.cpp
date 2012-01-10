@@ -1245,6 +1245,15 @@ void loadalphamask(Texture *t)
     }
 }
 
+SVARP(skinsdir, "packages/skins");
+SVARP(skin, "sauerbomber");
+
+Texture *skinnedtextureload(const char *name, int clamp, bool mipit, bool msg)
+{
+    defformatstring(texturefile)("%s/%s/%s", skinsdir, skin, name);
+    return textureload(texturefile, clamp, mipit, msg);
+}
+
 Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
 {
     string tname;
@@ -1255,6 +1264,12 @@ Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
     ImageData s;
     if(texturedata(s, tname, NULL, msg, &compress)) return newtexture(NULL, tname, s, clamp, mipit, false, false, compress);
     return notexture;
+}
+
+bool setskinnedtexture(const char *name, int clamp)
+{
+    defformatstring(texturefile)("%s/%s/%s", skinsdir, skin, name);
+    return settexture(texturefile, clamp);
 }
 
 bool settexture(const char *name, int clamp)
@@ -2471,6 +2486,12 @@ void cleanuptextures()
     loopv(vslots) vslots[i]->cleanup();
     loopi(MATF_VOLUME+1) materialslots[i].cleanup();
     enumerate(textures, Texture, tex, cleanuptexture(&tex));
+}
+
+bool reloadskinnedtexture(const char *name)
+{
+    defformatstring(texturefile)("%s/%s/%s", skinsdir, skin, name);
+    return reloadtexture(texturefile);
 }
 
 bool reloadtexture(const char *name)

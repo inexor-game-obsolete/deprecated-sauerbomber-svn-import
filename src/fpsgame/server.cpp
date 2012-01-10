@@ -1677,14 +1677,9 @@ namespace server
                               // 1 means player x has won;
                               // n < 1 means that the game should end, but there is now winner (probatly only,
                               // if the two last players killed them self at the same time)
-            int clfound = -1; // The index of the client whose player is last found as alive, the winner. IF $plalive == 1
-                              // It is currently not used
             // Get player check if players are alive; if yes set plfound and increase plalive
             for (int clnum = 0; clnum < clients.length() && plalive < 2; clnum++)
-                if (clients[clnum]->state.state == CS_ALIVE) {
-                    plalive++;
-                    clfound = clnum;
-                }
+                if (clients[clnum]->state.state == CS_ALIVE) plalive++;
             // Stop game if less than 2 players are alive
             if (plalive < 2) startintermission();
         }

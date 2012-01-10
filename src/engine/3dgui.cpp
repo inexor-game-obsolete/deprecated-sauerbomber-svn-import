@@ -496,7 +496,7 @@ struct gui : g3d_gui
 
         if(overlaid)
         {
-            if(!overlaytex) overlaytex = textureload("packages/skins/sauerbomber/guioverlay.png", 3);
+            if(!overlaytex) overlaytex = skinnedtextureload("guioverlay.png", 3);
             glBindTexture(GL_TEXTURE_2D, overlaytex->id);
             glColor3fv(light.v);
             rect_(x, y, xs, ys, 0);
@@ -584,7 +584,7 @@ struct gui : g3d_gui
         defaultshader->set();
         if(overlaid) 
         {
-            if(!overlaytex) overlaytex = textureload("packages/skins/sauerbomber/guioverlay.png", 3);
+            if(!overlaytex) overlaytex = skinnedtextureload("guioverlay.png", 3);
             glBindTexture(GL_TEXTURE_2D, overlaytex->id);
             glColor3fv(light.v);
             rect_(x, y, xs, ys, 0);
@@ -595,7 +595,7 @@ struct gui : g3d_gui
     {		
         if(visible())
         {
-            if(!slidertex) slidertex = textureload("packages/skins/sauerbomber/guislider.png", 3);
+            if(!slidertex) slidertex = skinnedtextureload("guislider.png", 3);
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, slidertex->id);
             if(percent < 0.99f) 
@@ -646,8 +646,8 @@ struct gui : g3d_gui
                 if(icon[0] != ' ')
                 {
                     const char *ext = strrchr(icon, '.');
-                    defformatstring(tname)("packages/skins/sauerbomber/icons/%s%s", icon, ext ? "" : ".jpg");
-                    icon_(textureload(tname, 3), false, x, cury, ICON_SIZE, clickable && hit);
+                    defformatstring(tname)("icons/%s%s", icon, ext ? "" : ".jpg");
+                    icon_(skinnedtextureload(tname, 3), false, x, cury, ICON_SIZE, clickable && hit);
                 }
                 x += ICON_SIZE;
             }
@@ -663,7 +663,7 @@ struct gui : g3d_gui
 
     static void drawskin(int x, int y, int gapw, int gaph, int start, int n, int passes = 1, const vec &light = vec(1, 1, 1), float alpha = 0.80f)//int vleft, int vright, int vtop, int vbottom, int start, int n) 
     {
-        if(!skintex) skintex = textureload("packages/skins/sauerbomber/guiskin.png", 3);
+        if(!skintex) skintex = skinnedtextureload("guiskin.png", 3);
         glBindTexture(GL_TEXTURE_2D, skintex->id);
         int gapx1 = INT_MAX, gapy1 = INT_MAX, gapx2 = INT_MAX, gapy2 = INT_MAX;
         float wscale = 1.0f/(SKIN_W*SKIN_SCALE), hscale = 1.0f/(SKIN_H*SKIN_SCALE);
