@@ -222,7 +222,7 @@ namespace game
         generation--;
         if(generation<1) return;
         vec to(vel);
-        float fac = ((d->bombradius*d->bombradius)+30.0f)*(d->bombradius-generation+1);
+        float fac = ((d->bombradius*d->bombradius)+BOMB_DAMRAD)*(d->bombradius-generation+1);
         to.x = (to.x * fac);// + (rnd(60)-15.0f);
         to.y = (to.y * fac) + (((float)rnd(120))-60.0f);
         to.z+=5.0f;
@@ -232,10 +232,10 @@ namespace game
 
     void spawnsplinters(const vec &p, fpsent *d)
     {
-        for(int i=1; i<=36; i++) // je fortgeschrittener, desto weniger verzweigungen
+        for(int i=1; i<=48; i++) // je fortgeschrittener, desto weniger verzweigungen
         {
-            vec to(sin(36.0f/((float) i)), cos(36.0f/((float) i)), 5);
-            float fac = (d->bombradius*d->bombradius)+30.0f;
+            vec to(sin(48.0f/((float) i)), cos(48.0f/((float) i)), 5);
+            float fac = (d->bombradius*d->bombradius)+BOMB_DAMRAD;
             to.x*=fac;
             to.y*=fac;
             to.add(p);
@@ -296,7 +296,7 @@ namespace game
                 {
                     hits.setsize(0);
                     explode(bnc.local, bnc.owner, bnc.o, NULL, guns[GUN_BOMB].damage, GUN_BOMB);
-                    adddecal(DECAL_SCORCH, bnc.o, vec(0, 0, 1), bnc.owner->bombradius*RL_DAMRAD/2);
+                    adddecal(DECAL_SCORCH, bnc.o, vec(0, 0, 1), bnc.owner->bombradius*BOMB_DAMRAD/2);
                     spawnsplinters(bnc.o, bnc.owner); // starts with 3+x generations
                     if(bnc.local)
                         addmsg(N_EXPLODE, "rci3iv", bnc.owner, lastmillis-maptime, GUN_BOMB, bnc.id-maptime,
@@ -456,11 +456,11 @@ namespace game
         switch(gun)
         {
             case GUN_BOMB:
-                if(dist<RL_DAMRAD)
+                if(dist<BOMB_DAMRAD)
                     hit(guns[gun].damage, o, at, dir, gun, dist); // damage does not depend on the distance
                 break;
             case GUN_SPLINTER:
-                if(dist<RL_DAMRAD)
+                if(dist<BOMB_DAMRAD)
                     hit(guns[gun].damage, o, at, dir, gun, dist); // damage does not depend on the distance
                 break;
             default:
@@ -481,15 +481,15 @@ namespace game
         float dist = b->o.dist(v, dir);
         dir.div(dist);
         if(dist<0) dist = 0;
-        if(dist < RL_DAMRAD) b->lifetime = 100; // TODO: maybe RL_DAMRAD is too big!
+        if(dist < BOMB_DAMRAD) b->lifetime = 100;
     }
 
     void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int damage, int gun)
     {
         int rfactor = 1,
-            maxsize = RL_DAMRAD * rfactor,
+            maxsize = (gun!=GUN_BOMB && gun!=GUN_SPLINTER ? RL_DAMRAD : BOMB_DAMRAD) * rfactor,
             size = 4.0f * rfactor,
-            fade = gun!=GUN_BOMB && gun!=GUN_SPLINTER ? -1 : int((maxsize-size)*7), // explosion speed, lower=faster
+            fade = gun!=GUN_BOMB && gun!=GUN_SPLINTER ? -1 : int((maxsize-size)*BOMB_FADE), // explosion speed, lower=faster
             numdebris = gun==GUN_BARREL ? rnd(max(maxbarreldebris-5, 1))+5 : rnd(maxdebris-5)+5;
         vec debrisvel = owner->o==v ? vec(0, 0, 0) : vec(owner->o).sub(v).normalize(), debrisorigin(v);
         if(gun!=GUN_SPLINTER)
@@ -510,7 +510,7 @@ namespace game
                 adddynlight(v, 1.15f*RL_DAMRAD, vec(0.5f, 1.5f, 2), 900, 100, 0, 8, vec(0.25f, 1, 1));
                 break;
             case GUN_BOMB:
-                // TODO: COMMENT IN: adddynlight(v, owner->bombradius*RL_DAMRAD, vec(0.5f, 1.5f, 2), 900, 100, 0, 8, vec(1, 1, 0.25f));
+                // TODO: COMMENT IN: adddynlight(v, owner->bombradius*BOMB_DAMRAD, vec(0.5f, 1.5f, 2), 900, 100, 0, 8, vec(1, 1, 0.25f));
                 if(owner->ammo[GUN_BOMB] < itemstats[P_AMMO_BO].max) owner->ammo[GUN_BOMB]++; // add a bomb if the bomb explodes
                 break;
             case GUN_SPLINTER:
@@ -601,7 +601,6 @@ namespace game
                         vec pos(b.o);
                         pos.add(vec(b.offset).mul(b.offsetmillis/float(OFFSETMILLIS)));
                         explode(b.local, b.owner, pos, NULL, 0, GUN_BOMB);
-                        // adddecal(DECAL_SCORCH, pos, vec(0, 0, 1), b.owner->bombradius*RL_DAMRAD/2);
                         spawnsplinters(b.o, b.owner);
                         delete bouncers.remove(i);
                         break;

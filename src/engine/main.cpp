@@ -1100,8 +1100,9 @@ int main(int argc, char **argv)
     loadsoundset();
 
     logoutf("init: cfg");
-    execfile("data/cubescript/guis.cfg");
     execfile("data/keymap.cfg");
+    execfile("data/cubescript/music.cfg");
+    execfile("data/cubescript/guis.cfg");
     execfile("data/stdedit.cfg");
     execfile("data/menus.cfg");
     execfile("data/brush.cfg");
