@@ -389,6 +389,12 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
+static bool comparefiles(const char *x, const char *y) { return strcmp(x, y) < 0; }
+void sortfiles(vector<char *> &files)
+{
+    files.sort(comparefiles);
+}
+
 bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0;

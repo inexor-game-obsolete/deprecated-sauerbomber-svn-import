@@ -411,8 +411,8 @@ static struct itemstat { int add, max, sound; const char *name; int icon, info; 
     {100,   100,   S_ITEMARMOUR, "GA", HICON_GREEN_ARMOUR, A_GREEN},
     {200,   200,   S_ITEMARMOUR, "YA", HICON_YELLOW_ARMOUR, A_YELLOW},
     {20000, 30000, S_ITEMPUP,    "Q",  HICON_QUAD},
-    {1,     10,    S_ITEMAMMO,   "BO", HICON_BOMB, GUN_BOMB},
-    {1,     8,     S_ITEMPUP,    "BR", HICON_BOMBRADIUS},
+    {1,     12,    S_ITEMAMMO,   "BO", HICON_BOMB, GUN_BOMB},
+    {1,     10,    S_ITEMPUP,    "BR", HICON_BOMBRADIUS},
     {1,     7,     S_ITEMPUP,    "BD", HICON_BOMBDELAY},
 };
 
@@ -422,6 +422,8 @@ static struct itemstat { int add, max, sound; const char *name; int icon, info; 
 #define RL_SELFDAMDIV 2
 #define RL_DISTSCALE 1.5f
 
+#define BOMB_DAMRAD 20
+#define BOMB_FADE 7
 #define BOMB_COLLHEIGHT 70
 #define BOMB_COLLGROUND 5
 #define BOMB_COLLBULGE 40

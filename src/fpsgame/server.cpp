@@ -1775,6 +1775,7 @@ namespace server
             hitinfo &h = hits[i];
             clientinfo *target = getinfo(h.target);
             if(!target || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>RL_DAMRAD) continue;
+            if((gun==GUN_BOMB||gun==GUN_SPLINTER) && h.dist > BOMB_DAMRAD) continue;
             // conoutf("server.cpp::explodeevent target=%i from=%i",target->clientnum, ci->clientnum);
 
             bool dup = false;
