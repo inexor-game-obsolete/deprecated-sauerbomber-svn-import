@@ -199,9 +199,9 @@ Mix_Music *loadmusic(const char *name)
 }
 
 SVARP(musicdir, "music");
-SVARP(currentartist, "zero-project");
-SVARP(currentalbum, "e-world");
-SVARP(currentsong, "");
+SVARP(currentartist, "Goto 80");
+SVARP(currentalbum, "Digi Dig");
+SVARP(currentsong, "04 - Bullcactus.ogg");
 SVARP(albumcover, "Cover.jpg");
 
 void startmusic(char *name, char *cmd, char *cmd_success, char *cmd_failed)
