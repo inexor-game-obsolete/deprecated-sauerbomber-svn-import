@@ -1,4 +1,5 @@
 #include <svncpp/client.hpp>
+#include <svncpp/targets.hpp>
 #include "callbacklistener.h"
 #include <string>
 #include <iostream>
@@ -8,6 +9,8 @@ using namespace std;
 namespace engine {
 
     char* svn_lastmessage = new char[255];
+    char* svn_repositoryname = new char[255];
+    int svn_repositoryrevision = -1;
     int svn_workers = 0;
 
     void set_lastmessage(const char* message) {
@@ -18,15 +21,20 @@ namespace engine {
     /**
      * Checkout of a new repository.
      */
-    bool svn_checkout(char *folder, char *url) {
+    bool svn_checkout(char *folder, char *url, int revision) {
         svn::Context* context = new svn::Context(std::string(".svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
-        callbacklistener* l = new callbacklistener(&set_lastmessage);
-        context->setListener(l);
+        callbacklistener* listener = new callbacklistener(&set_lastmessage);
+        context->setListener(listener);
         svn::Path destFolder(folder);
         try {
             sprintf(svn_lastmessage, "starting checkout \"%s\" to %s", url, folder);
-            svnClient->checkout(url, destFolder, svn::Revision::HEAD, true);
+            if (revision == -1) {
+                svnClient->checkout(url, destFolder, svn::Revision::HEAD, true);
+            } else {
+                // svn::Revision* svnRevision = new svn::Revision((long int)revision);
+                svnClient->checkout(url, destFolder, (long int)revision, true);
+            }
             sprintf(svn_lastmessage, "successfully checked out \"%s\" to %s", url, folder);
         } catch(svn::ClientException& err) {
             sprintf(svn_lastmessage, "checkout failed: %s", err.message());
@@ -35,6 +43,7 @@ namespace engine {
         }
         delete svnClient;
         delete context;
+        delete listener;
         return true;
     }
 
@@ -46,8 +55,8 @@ namespace engine {
         // cout << "svn_update: \"" << folder << "\"" << endl;
         svn::Context* context = new svn::Context(std::string(".svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
-        callbacklistener* l = new callbacklistener(&set_lastmessage);
-        context->setListener(l);
+        callbacklistener* listener = new callbacklistener(&set_lastmessage);
+        context->setListener(listener);
         svn::Path destFolder(folder);
         try {
             sprintf(svn_lastmessage, "updating %s", folder);
@@ -60,6 +69,7 @@ namespace engine {
         }
         delete svnClient;
         delete context;
+        delete listener;
         return true;
     }
 
@@ -69,11 +79,12 @@ namespace engine {
     int svn_unlock(char *folder) {
         svn::Context* context = new svn::Context(std::string(".svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
-        callbacklistener* l = new callbacklistener(&set_lastmessage);
-        context->setListener(l);
-        svn::Path destFolder(folder);
+        callbacklistener* listener = new callbacklistener(&set_lastmessage);
+        context->setListener(listener);
+        // svn::Path destFolder(folder);
         try {
-            // TODO: svn::unlock
+            svn::Targets* targets = new svn::Targets(folder);
+            svnClient->unlock(*targets, true);
         } catch(svn::ClientException& err) {
             sprintf(svn_lastmessage, "unlock of %s failed: %s", folder, err.message());
         } catch(...) {
@@ -81,5 +92,6 @@ namespace engine {
         }
         delete svnClient;
         delete context;
+        delete listener;
     }
 }

@@ -8,16 +8,6 @@
 #include <sstream>
 #include <string>
 
-/*
-context.hpp
-context_listener.hpp
-svn_client.h
-Verschluckte includes in src:
-iostream
-sstream
-string
-*/
-
 using namespace std;
 
 namespace engine {

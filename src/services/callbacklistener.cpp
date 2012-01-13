@@ -22,6 +22,7 @@ namespace engine {
         svn_revnum_t revnum
     ) {
         std::stringstream message;
+        // TODO: reduce path to the last 60 chars
         message << actionToStr(action) << ": '" << path << "', Revision ";
         if (revnum == -1) {
             message << "HEAD";
