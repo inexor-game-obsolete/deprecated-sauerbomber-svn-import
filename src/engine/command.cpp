@@ -2451,6 +2451,32 @@ ICOMMAND(loopfiles, "rsse", (ident *id, char *dir, char *ext, uint *body),
     if(files.length()) poparg(*id);
 });
 
+ICOMMAND(loopmasterservers, "rre", (ident *host, ident *port, uint *body),
+{
+    if(host->type!=ID_ALIAS || port->type!=ID_ALIAS) return;
+    identstack stack;
+    loopv(masterservers)
+    {
+        masterserver &m = masterservers[i];
+        bool redundant = false;
+        loopj(i) {
+            masterserver &mm = masterservers[j];
+            if (!strcmp(mm.hostname, m.hostname) && mm.port == m.port) redundant = true;
+        }
+        if (!redundant) {
+            tagval t_host;
+            tagval t_port;
+            t_host.setstr(m.hostname);
+            t_port.setint(m.port);
+            pusharg(*host, t_host, stack);
+            pusharg(*port, t_port, stack);
+            host->flags &= ~IDF_UNKNOWN;
+            port->flags &= ~IDF_UNKNOWN;
+            execute(body);
+        }
+    }
+});
+
 ICOMMAND(+, "ii", (int *a, int *b), intret(*a + *b));
 ICOMMAND(*, "ii", (int *a, int *b), intret(*a * *b));
 ICOMMAND(-, "ii", (int *a, int *b), intret(*a - *b));

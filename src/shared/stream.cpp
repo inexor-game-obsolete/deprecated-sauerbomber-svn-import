@@ -360,18 +360,22 @@ const char *addpackagedir(const char *dir)
 }
 
 SVARP(defaultrepository, "repositories/sauerbomber-base");
+SVARP(homerepository, "repositories/home");
+SVARP(editrepository, "repositories/edit");
 
 void addrepositories(const char *repositories) {
-    // search in default repository first
+    // search in home repository first
+    addpackagedir(homerepository);
+    // search in edit repository second
+    addpackagedir(editrepository);
+    // search in default repository third
     addpackagedir(defaultrepository);
-    // compatibility till license cleanup is done
-    // addpackagedir(".");
 #ifdef WIN32
     DIR *dirp;
     dirent *dp;
     dirp = opendir(repositories);
     while ((dp = readdir(dirp)) != NULL) {
-        if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0) {
+        if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0 && strcmp(defaultrepository, dp->d_name) && strcmp(homerepository, dp->d_name) && strcmp(editrepository, dp->d_name)) {
             defformatstring(relpath)("%s/%s", repositories, dp->d_name);
             addpackagedir(relpath);
         }
@@ -382,7 +386,7 @@ void addrepositories(const char *repositories) {
     dirent *dp;
     dirp = opendir(repositories);
     while ((dp = readdir(dirp)) != NULL) {
-        if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0) {
+        if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0 && strcmp(defaultrepository, dp->d_name) && strcmp(homerepository, dp->d_name) && strcmp(editrepository, dp->d_name)) {
             defformatstring(relpath)("%s/%s", repositories, dp->d_name);
             addpackagedir(relpath);
             logoutf("Adding content repository: %s", relpath);

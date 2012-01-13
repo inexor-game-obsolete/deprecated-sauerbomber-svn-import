@@ -975,6 +975,9 @@ int main(int argc, char **argv)
     addrepositories("repositories");
     execfile("data/cubescript/repositories.cfg");
 
+    logoutf("init: master servers");
+    execfile("data/cubescript/masterservers.cfg");
+
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
 

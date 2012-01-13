@@ -144,6 +144,16 @@ namespace engine {
     }
     ICOMMAND(removerepository, "s", (char *repositoryname), removerepository(repositoryname));
 
+    void setrepositoryfor(char *path, char *repositoryname) {
+        // TODO
+    }
+    ICOMMAND(setrepositoryfor, "ss", (char *path, char *repositoryname), setrepositoryfor(path, repositoryname));
+
+    void getrepositoriesfor(char *path) {
+        // TODO
+    }
+    ICOMMAND(getrepositoriesfor, "s", (char *path), getrepositoriesfor(path));
+
     void getrepositoryname() {
         commandret->setstr(newstring(svn_repositoryname));
     }
