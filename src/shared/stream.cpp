@@ -359,24 +359,28 @@ const char *addpackagedir(const char *dir)
 	return packagedirs.add(newstring(pdir));
 }
 
-SVARP(defaultrepository, "repositories/sauerbomber-base");
-SVARP(homerepository, "repositories/home");
-SVARP(editrepository, "repositories/edit");
+SVARP(repositoriesdir, "repositories");
+SVARP(defaultrepository, "sauerbomber-base");
+SVARP(homerepository, "home");
+SVARP(editrepository, "edit");
 
-void addrepositories(const char *repositories) {
+void addrepositories() {
     // search in home repository first
-    addpackagedir(homerepository);
+    defformatstring(homerepositorydir)("%s/%s", repositoriesdir, homerepository);
+    addpackagedir(homerepositorydir);
     // search in edit repository second
-    addpackagedir(editrepository);
+    defformatstring(editrepositorydir)("%s/%s", repositoriesdir, editrepository);
+    addpackagedir(editrepositorydir);
     // search in default repository third
-    addpackagedir(defaultrepository);
+    defformatstring(defaultrepositorydir)("%s/%s", repositoriesdir, defaultrepository);
+    addpackagedir(defaultrepositorydir);
 #ifdef WIN32
     DIR *dirp;
     dirent *dp;
-    dirp = opendir(repositories);
+    dirp = opendir(repositoriesdir);
     while ((dp = readdir(dirp)) != NULL) {
         if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0 && strcmp(defaultrepository, dp->d_name) && strcmp(homerepository, dp->d_name) && strcmp(editrepository, dp->d_name)) {
-            defformatstring(relpath)("%s/%s", repositories, dp->d_name);
+            defformatstring(relpath)("%s/%s", repositoriesdir, dp->d_name);
             addpackagedir(relpath);
         }
     }
@@ -384,10 +388,10 @@ void addrepositories(const char *repositories) {
 #else
     DIR *dirp;
     dirent *dp;
-    dirp = opendir(repositories);
+    dirp = opendir(repositoriesdir);
     while ((dp = readdir(dirp)) != NULL) {
         if(strcmp(".", dp->d_name) != 0 && strcmp("..", dp->d_name) != 0 && strcmp(".svn", dp->d_name) != 0 && strcmp(defaultrepository, dp->d_name) && strcmp(homerepository, dp->d_name) && strcmp(editrepository, dp->d_name)) {
-            defformatstring(relpath)("%s/%s", repositories, dp->d_name);
+            defformatstring(relpath)("%s/%s", repositoriesdir, dp->d_name);
             addpackagedir(relpath);
             logoutf("Adding content repository: %s", relpath);
         }

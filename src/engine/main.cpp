@@ -972,7 +972,7 @@ int main(int argc, char **argv)
     setlogfile(NULL);
 
     logoutf("init: repositories");
-    addrepositories("repositories");
+    addrepositories();
     execfile("data/cubescript/repositories.cfg");
 
     logoutf("init: master servers");

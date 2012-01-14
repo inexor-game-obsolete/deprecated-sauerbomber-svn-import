@@ -526,6 +526,7 @@ extern void g3d_resetcursor();
 extern void g3d_limitscale(float scale);
 
 // stream
+extern char* repositoriesdir;
 extern char* defaultrepository;
 extern char* homerepository;
 extern char* editrepository;
