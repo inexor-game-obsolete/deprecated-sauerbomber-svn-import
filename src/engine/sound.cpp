@@ -416,7 +416,7 @@ void altmapsound(char *name, int *vol)
 COMMAND(altmapsound, "si");
 
 SVARP(soundsetsdir, "packages/sounds/sets");
-SVARP(soundset, "sauerbomber");
+SVARP(currentsoundset, "sauerbomber");
 
 void unregistersounds()
 {
@@ -425,19 +425,19 @@ void unregistersounds()
 }
 COMMAND(unregistersounds, "");
 
-void registersoundset(char *name)
+void soundset(char *name)
 {
     unregistersounds();
     defformatstring(soundsetconfig)("%s/%s/sounds.cfg", soundsetsdir, name);
     execfile(soundsetconfig);
-    copystring(soundset, name);
+    setsvar("currentsoundset", name);
 }
-COMMAND(registersoundset, "s");
+COMMAND(soundset, "s");
 
 void loadsoundset()
 {
     unregistersounds();
-    defformatstring(soundsetconfig)("%s/%s/sounds.cfg", soundsetsdir, soundset);
+    defformatstring(soundsetconfig)("%s/%s/sounds.cfg", soundsetsdir, currentsoundset);
     execfile(soundsetconfig);
 }
 
