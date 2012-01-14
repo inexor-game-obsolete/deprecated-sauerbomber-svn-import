@@ -857,9 +857,10 @@ bool save_world(const char *mname, bool nolms)
 {
     if(!*mname) mname = game::getclientmap();
     setmapfilenames(*mname ? mname : "untitled");
+    defformatstring(editogzname)("%s/%s", editrepository, ogzname);
     if(savebak) backup(ogzname, bakname);
-    stream *f = opengzfile(ogzname, "wb");
-    if(!f) { conoutf(CON_WARN, "could not write map to %s", ogzname); return false; }
+    stream *f = opengzfile(editogzname, "wb");
+    if(!f) { conoutf(CON_WARN, "could not write map to %s", editogzname); return false; }
 
     int numvslots = vslots.length();
     if(!nolms && !multiplayer(false))
@@ -969,7 +970,7 @@ bool save_world(const char *mname, bool nolms)
     if(shouldsaveblendmap()) { renderprogress(0, "saving blendmap..."); saveblendmap(f); }
 
     delete f;
-    conoutf("wrote map file %s", ogzname);
+    conoutf("wrote map file %s", editogzname);
     return true;
 }
 

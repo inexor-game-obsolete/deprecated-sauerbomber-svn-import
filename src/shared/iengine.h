@@ -525,5 +525,10 @@ extern void g3d_cursorpos(float &x, float &y);
 extern void g3d_resetcursor();
 extern void g3d_limitscale(float scale);
 
+// stream
+extern char* defaultrepository;
+extern char* homerepository;
+extern char* editrepository;
+
 // osd
 extern void drawosd(int w, int h);
