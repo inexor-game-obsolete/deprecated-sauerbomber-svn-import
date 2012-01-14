@@ -858,7 +858,7 @@ bool save_world(const char *mname, bool nolms)
     if(!*mname) mname = game::getclientmap();
     setmapfilenames(*mname ? mname : "untitled");
     defformatstring(editogzname)("%s/%s", editrepository, ogzname);
-    if(savebak) backup(ogzname, bakname);
+    if(savebak) backup(editogzname, bakname);
     stream *f = opengzfile(editogzname, "wb");
     if(!f) { conoutf(CON_WARN, "could not write map to %s", editogzname); return false; }
 
