@@ -204,14 +204,14 @@ void startmusic(char *name, char *cmd, char *cmd_success, char *cmd_failed)
             if(cmd[0]) musicdonecmd = newstring(cmd);
             Mix_PlayMusic(music, cmd[0] ? 0 : -1);
             Mix_VolumeMusic((musicvol*MAXVOL)/255);
-            intret(1);
             execute(cmd_success);
+            intret(1);
         }
         else
         {
             conoutf(CON_ERROR, "could not play music: %s", file);
-            intret(0); 
             execute(cmd_failed);
+            intret(0); 
         }
     }
 }
@@ -254,8 +254,8 @@ void nextsong(char *cmd, char *cmd_success, char *cmd_failed)
         nextalbum(cmd, cmd_success, cmd_failed);
     } else {
         defformatstring(file)("%s/%s/%s/%s.ogg", musicdir, currentartist, currentalbum, files[nextindex]);
-        startmusic(file, cmd, cmd_success, cmd_failed);
         setsvar("currentsong", files[nextindex]);
+        startmusic(file, cmd, cmd_success, cmd_failed);
     }
 }
 COMMAND(nextsong, "sss");
@@ -274,8 +274,8 @@ void previoussong(char *cmd, char *cmd_success, char *cmd_failed)
     if (currentindex <= 0) currentindex = files.length();
     int nextindex = (currentindex - 1) % files.length();
     defformatstring(file)("%s/%s/%s/%s.ogg", musicdir, currentartist, currentalbum, files[nextindex]);
-    startmusic(file, cmd, cmd_success, cmd_failed);
     setsvar("currentsong", files[nextindex]);
+    startmusic(file, cmd, cmd_success, cmd_failed);
 }
 COMMAND(previoussong, "sss");
 
