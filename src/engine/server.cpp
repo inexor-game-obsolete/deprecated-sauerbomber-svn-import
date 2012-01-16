@@ -1247,6 +1247,14 @@ vector<const char *> gameargs;
 int main(int argc, char **argv)
 {   
     setlogfile(NULL);
+
+    logoutf("init: repositories");
+    addrepositories();
+    execfile("data/cubescript/repositories.cfg");
+
+    logoutf("init: master servers");
+    execfile("data/cubescript/masterservers.cfg");
+
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     atexit(enet_deinitialize);
     enet_time_set(0);
