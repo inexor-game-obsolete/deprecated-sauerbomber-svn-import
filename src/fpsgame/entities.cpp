@@ -88,7 +88,8 @@ namespace entities
             "ammo/bombs", "ammo/bombradius", "ammo/bombdelay", NULL, NULL, NULL, NULL, NULL, // bomb
             NULL, //obstacle
             NULL, NULL, NULL, // race
-            NULL, NULL, NULL, NULL // physics
+            NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // physics
+            NULL, NULL // two nulls follows
         };
         return entmdlnames[type];
     }
@@ -393,12 +394,19 @@ namespace entities
     void checkphysics(fpsent *d)
     {
         float p_gravity = 0.0f;
-        float p_friction_land = 0.0f;
+        float p_friction = 0.0f;
         float p_jumpvel = 0.0f;
         float p_playerspeed = 0.0f;
+        float p_yaw = 0.0f;
+        float p_pitch = 0.0f;
+        float p_move_x = 0.0f;
+        float p_move_y = 0.0f;
+        float p_move_z = 0.0f;
+        float p_inertia = 0.0f;
+        float p_steercontrol = 0.0f;
         loopv(ents) {
             extentity &e = *ents[i];
-            if(e.type < P_GRAVITY || e.type > P_SPEED) continue;
+            if(e.type < P_GRAVITY || e.type > P_MOVE) continue;
             float dist = camera1->o.dist(e.o);
             if(dist < e.attr2) {
                 /*
@@ -412,7 +420,7 @@ namespace entities
                         // conoutf("+ attr1:%d attr2:%d attr3:%d p_gravity:%1.2f", e.attr1, e.attr2, e.attr3, p_gravity);
                         break;
                     case P_FRICTION:
-                        p_friction_land += addval;
+                        p_friction += addval;
                         break;
                     case P_JUMP:
                         p_jumpvel += addval;
@@ -420,15 +428,39 @@ namespace entities
                     case P_SPEED:
                         p_playerspeed += addval;
                         break;
+                    case P_YAW:
+                        p_yaw += addval;
+                        break;
+                    case P_PITCH:
+                        p_pitch += addval;
+                        break;
+                    case P_MOVE:
+                        p_move_x += (float) e.attr3;
+                        p_move_y += (float) e.attr4;
+                        p_move_z += (float) e.attr5;
+                        break;
+                    case P_INERTIA:
+                        p_inertia += addval;
+                        break;
+                    case P_STEERCONTROL:
+                        p_steercontrol += addval;
+                        break;
                     default:
                         break;
                 }
             }
         }
         d->p_gravity = p_gravity;
-        d->p_friction_land = p_friction_land;
+        d->p_friction = p_friction;
         d->p_jumpvel = p_jumpvel;
         d->p_playerspeed = p_playerspeed;
+        d->p_yaw = p_yaw;
+        d->p_pitch = p_pitch;
+        d->p_move_x = p_move_x;
+        d->p_move_y = p_move_y;
+        d->p_move_z = p_move_z;
+        d->p_inertia = p_inertia;
+        d->p_steercontrol = p_steercontrol;
         // conoutf("physics manipulation: gravity:%1.2f friction:%1.2f jump:%1.2f speed:%1.2f", d->p_gravity, d->p_friction_land, d->p_jumpvel, d->p_playerspeed);
     }
 
@@ -698,6 +730,7 @@ namespace entities
             case OBSTACLE:
             case PLATFORM:
             case ELEVATOR:
+            case P_MOVE:
                 e.attr5 = e.attr4;
                 e.attr4 = e.attr3;
             case TELEDEST:
@@ -705,6 +738,10 @@ namespace entities
             case P_FRICTION:
             case P_JUMP:
             case P_SPEED:
+            case P_YAW:
+            case P_PITCH:
+            case P_INERTIA:
+            case P_STEERCONTROL:
                 e.attr3 = e.attr2;
             case MONSTER:
             case RACE_START:
@@ -778,6 +815,11 @@ namespace entities
             case P_FRICTION:
             case P_JUMP:
             case P_SPEED:
+            case P_YAW:
+            case P_PITCH:
+            case P_MOVE:
+            case P_INERTIA:
+            case P_STEERCONTROL:
                 renderentsphere(e, e.attr2);
                 break;
 
@@ -825,7 +867,7 @@ namespace entities
             "bombs", "bombradius", "bombdelay", "bombreserved2", "bombreserved3", "bombreserved4", "bombreserved5", "bombreserved6",
             "obstacle",
             "start", "finish", "checkpoint",
-            "gravity", "friction", "jump", "speed",
+            "gravity", "friction", "jump", "speed", "yaw", "pitch", "move", "inertia", "steercontrol",
             "", "", // two empty strings follows.
         };
         return i>=0 && size_t(i)<sizeof(entnames)/sizeof(entnames[0]) ? entnames[i] : "";

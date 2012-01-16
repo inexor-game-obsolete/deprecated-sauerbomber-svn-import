@@ -467,19 +467,19 @@ FVARR(old_friction_air,   1.0f, old_friction_air_default,   2000.0f);
 FVARR(old_friction_water, 1.0f, old_friction_water_default, 2000.0f);
 FVARR(old_friction_land,  1.0f, old_friction_land_default,  2000.0f);
 
-#define LULZVAR(n) FVARR(n,   -2000.0f, 1.0f, 2000.0f);
-LULZVAR(friction_air);
-LULZVAR(friction_water);
-LULZVAR(friction_land);
+#define PHYSENTVAR(n) FVARR(n,   -2000.0f, 1.0f, 2000.0f);
+PHYSENTVAR(friction_air);
+PHYSENTVAR(friction_water);
+PHYSENTVAR(friction_land);
 
-LULZVAR(inertia_air);
-LULZVAR(inertia_water);
-LULZVAR(inertia_land);
+PHYSENTVAR(inertia_air);
+PHYSENTVAR(inertia_water);
+PHYSENTVAR(inertia_land);
 
-LULZVAR(steerconrol_air);
-LULZVAR(steerconrol_water);
-LULZVAR(steerconrol_land);
-#undef LULZVAR
+PHYSENTVAR(steerconrol_air);
+PHYSENTVAR(steerconrol_water);
+PHYSENTVAR(steerconrol_land);
+#undef PHYSENTVAR
 //////////////////////
 
 
@@ -1751,58 +1751,75 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
 
     if(game::allowmove(pl) && (pl->move || pl->strafe)) {
 
-	// Apply movement keys
-	vecfromyawpitch(pl->yaw, floating || water || pl->type==ENT_CAMERA ? pl->pitch : 0, pl->move, pl->strafe, d);
+        // Apply movement keys
+        vecfromyawpitch(pl->yaw, floating || water || pl->type==ENT_CAMERA ? pl->pitch : 0, pl->move, pl->strafe, d);
 
 	
         if(!floating && pl->physstate >= PHYS_SLOPE && false ){
-	    // move up or down slopes in air
-	    // but only move up slopes in waterfric           
-	    float dz = -(d.x*pl->floor.x + d.y*pl->floor.y)/pl->floor.z;
+            // move up or down slopes in air
+            // but only move up slopes in waterfric
+            float dz = -(d.x*pl->floor.x + d.y*pl->floor.y)/pl->floor.z;
             d.z = water ? max(d.z, dz) : dz;
         }
 	
-	// Len = 1
+        // Len = 1
         d.normalize();
     }
 
     // Apply speed
     d.mul(pl->maxspeed+(pl->state == CS_ALIVE ? pl->p_playerspeed : 0));
 
+    if (pl->state == CS_ALIVE) {
+        // Apply yaw/pitch manipulation
+        pl->yaw = pl->yaw + (pl->p_yaw * 0.01f);
+        pl->pitch = pl->pitch + (pl->p_pitch * 0.01f);
+        // Apply movement manipulation
+        pl->o.x += (pl->p_move_x * 0.01f);
+        pl->o.y += (pl->p_move_y * 0.01f);
+        pl->o.z += (pl->p_move_z * 0.01f);
+    }
+
     if(pl->type==ENT_PLAYER) {
         if(floating) {
             if(pl==player)
-		d.mul(floatspeed/100.0f);
+		            d.mul(floatspeed/100.0f);
         } else if(!water && game::allowmove(pl))
-	    d.mul((pl->move && !pl->strafe ? 1.3f : 1.0f) * (pl->physstate < PHYS_SLOPE ? 1.3f : 1.0f));
+            d.mul((pl->move && !pl->strafe ? 1.3f : 1.0f) * (pl->physstate < PHYS_SLOPE ? 1.3f : 1.0f));
     }
     
-    float oldfriction, friction, inertia, steerconrol; 
+    float oldfriction, friction, inertia, steercontrol; // conrol???
     if (floating) {  // float (:= spec, edit) => default
         oldfriction = old_friction_land_default;
-	friction = 1;
-	inertia = 1;
-	steerconrol = 1;
+        friction = 1;
+        inertia = 1;
+        steercontrol = 1;
     } else if (water) { // water & !float => water
-	oldfriction = old_friction_water;
-	friction    = friction_water;
-	inertia     = inertia_water;
-	steerconrol = steerconrol_water;
+        oldfriction = old_friction_water;
+        friction    = friction_water;
+        inertia     = inertia_water;
+        steercontrol = steerconrol_water;
     } else if (pl->physstate < PHYS_SLOPE) { // slide, air => air
-	oldfriction = old_friction_air;
-	friction    = friction_air;
-	inertia     = inertia_air; 
-	steerconrol = steerconrol_air;
+        oldfriction = old_friction_air;
+        friction    = friction_air;
+        inertia     = inertia_air;
+        steercontrol = steerconrol_air;
     } else { // otherwise => land
-	oldfriction = old_friction_land+ (pl->state == CS_ALIVE ? pl->p_friction_land : 0);;
-	friction    = friction_land;
-	inertia     = inertia_land;
-	steerconrol = steerconrol_land;
+        oldfriction = old_friction_land;
+        friction    = friction_land;
+        inertia     = inertia_land;
+        steercontrol = steerconrol_land;
+    }
+
+    if (pl->state == CS_ALIVE) {
+        friction += pl->p_friction;
+        inertia += pl->p_inertia;
+        steercontrol += pl->p_steercontrol;
     }
 
     d = vec(0).lerp( // C(): Interpolate between (0,0,0) and d to reduce control over the movement
-		vec(d), //vec(0.0f, 0.0f, 0.0f),
-		steerconrol), // Interpolation amount for C()                    
+		    vec(d), //vec(0.0f, 0.0f, 0.0f),
+		    steercontrol
+		), // Interpolation amount for C()
 
     
     /*
@@ -1814,13 +1831,13 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
      * pl->vel + d = Modified movement (over a specified duration 's')
      */
     pl->vel.lerp( // A(): Interpolate between vel and B() (short: d+vel) to account for the fact, that duration (= time between this and last frame = curtime) us not 's'
-		 vec(d).sub(pl->vel).lerp( // B(): Interpolate between d and d+vel to modify inertia (-> definition of d)
-					  d,
-					  inertia), // Interpolation amount for B()
-		 pl->vel,
-		 pow(                    // Interpolation amount for A()
-		     1 -1/oldfriction,  
-		     curtime/20.0f));
+        vec(d).sub(pl->vel).lerp( // B(): Interpolate between d and d+vel to modify inertia (-> definition of d)
+            d,
+            inertia
+        ), // Interpolation amount for B()
+        pl->vel,
+        pow(1 -1/oldfriction, curtime/20.0f) // Interpolation amount for A()
+    );
     pl->vel.div(1+0.05f*(friction-1));
 }
 

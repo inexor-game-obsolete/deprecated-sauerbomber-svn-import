@@ -62,6 +62,11 @@ enum                            // static entity types
     P_FRICTION,
     P_JUMP,
     P_SPEED,
+    P_YAW,
+    P_PITCH,
+    P_MOVE,
+    P_INERTIA,
+    P_STEERCONTROL,
     // I_INVISIBLE,                // hide and seek
     MAXENTTYPES
 };

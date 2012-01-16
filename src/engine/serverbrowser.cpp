@@ -578,6 +578,93 @@ char *showservers(g3d_gui *cgui, uint *header)
     return newstring("connectselected");
 }
 
+// warning: duplicate code, because pusharg isn't externalizable
+static inline void pusharg(ident &id, tagval &v, identstack &stack)
+{
+    stack.val = id.val;
+    stack.valtype = id.valtype;
+    stack.next = id.stack;
+    id.stack = &stack;
+    id.setval(v);
+    if(id.code)
+    {
+        id.code[0] -= 0x100;
+        if(int(id.code[0]) < 0x100) delete[] id.code;
+        id.code = NULL;
+    }
+}
+
+// warning: duplicate code, because poparg isn't externalizable
+static inline void poparg(ident &id)
+{
+    if(!id.stack) return;
+    identstack *stack = id.stack;
+    if(id.valtype == VAL_STR) delete[] id.val.s;
+    id.setval(*stack);
+    if(id.code)
+    {
+        id.code[0] -= 0x100;
+        if(int(id.code[0]) < 0x100) delete[] id.code;
+        id.code = NULL;
+    }
+    id.stack = stack->next;
+}
+
+static inline void id_setstr(ident &id, char* s)
+{
+    id.valtype = VAL_STR;
+    id.val.s = s;
+}
+
+static inline void id_setint(ident &id, int i)
+{
+    id.valtype = VAL_INT;
+    id.val.i = i;
+}
+
+ICOMMAND(loopservers, "rrrrrrre", (ident *id_host, ident *id_port, ident *id_mode, ident *id_map, ident *id_mastermode, ident *id_players, ident *id_description, uint *body),
+{
+    ident *id[7]; id[0] = id_host; id[1] = id_port; id[2] = id_mode; id[3] = id_map; id[4] = id_mastermode; id[5] = id_players; id[6] = id_description;
+    for(int j=0; j<7; j++) if(id[j]->type!=ID_ALIAS) return;
+    identstack stack[7];
+    refreshservers();
+    if(servers.empty()) return;
+    loopv(servers)
+    {
+        serverinfo *si = servers[i];
+        if(i) {
+            for(int j=0; j<7; j++) if(id[j]->valtype == VAL_STR) delete[] id[j]->val.s;
+            id_setstr(*id[0], newstring(escapestring(si->name)));
+            id_setint(*id[1], si->port);
+            id_setint(*id[2], si->attr.length()>=2 ? si->attr[1] : 0);
+            id_setstr(*id[3], newstring(escapestring(si->map)));
+            id_setint(*id[4], si->attr.length()>=5 ? si->attr[4] : 0);
+            id_setint(*id[5], si->numplayers);
+            if(si->address.host == ENET_HOST_ANY) id_setstr(*id[6], newstring(escapestring("[unknown host]")));
+            else if(si->ping == serverinfo::WAITING) id_setstr(*id[6], newstring(escapestring("[waiting for response]")));
+            else id_setstr(*id[6], newstring(escapestring(si->sdesc)));
+        } else {
+            tagval t[7];
+            t[0].setstr(newstring(escapestring(si->name)));
+            t[1].setint(si->port);
+            t[2].setint(si->attr.length()>=2 ? si->attr[1] : 0);
+            t[3].setstr(newstring(escapestring(si->map)));
+            t[4].setint(si->attr.length()>=5 ? si->attr[4] : 0);
+            t[5].setint(si->numplayers);
+            if(si->address.host == ENET_HOST_ANY) t[6].setstr(newstring(escapestring("[unknown host]")));
+            else if(si->ping == serverinfo::WAITING) t[6].setstr(newstring(escapestring("[waiting for response]")));
+            else t[6].setstr(newstring(escapestring(si->sdesc)));
+            for(int j=0;j<7;j++) {
+                pusharg(*id[j], t[j], stack[j]);
+                id[j]->flags &= ~IDF_UNKNOWN;
+            }
+        }
+        execute(body);
+    }
+    if (servers.length()) for(int j=0;j<7;j++) poparg(*id[j]);
+});
+
+
 void connectselected()
 {
     if(!selectedserver) return;

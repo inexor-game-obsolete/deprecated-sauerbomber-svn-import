@@ -250,6 +250,26 @@ void guibutton(char *name, char *action, char *icon)
     }
 }
 
+void guibuttonf(char* format, char *name, char *action, char *icon)
+{
+    if(!cgui) return;
+    bool hideicon = !strcmp(icon, "0");
+    // defformatstring(bform)("%%.%ds", *numchars);
+    int ret = cgui->buttonf(format, GUI_BUTTON_COLOR, hideicon ? NULL : (icon[0] ? icon : (strstr(action, "showgui") ? "menu" : "action")), name);
+    // conoutf(bform);
+    // conoutf(bform, name);
+    if(ret&G3D_UP)
+    {
+        updatelater.add().schedule(action[0] ? action : name);
+        if(shouldclearmenu) clearlater = true;
+    }
+    else if(ret&G3D_ROLLOVER)
+    {
+        alias("guirollovername", name);
+        alias("guirolloveraction", action);
+    }
+}
+
 void guiimage(char *path, char *action, float *scale, int *overlaid, char *alt)
 {
     if(!cgui) return;
@@ -293,6 +313,12 @@ void guitext(char *name, char *icon)
 {
     bool hideicon = !strcmp(icon, "0");
     if(cgui) cgui->text(name, !hideicon && icon[0] ? GUI_BUTTON_COLOR : GUI_TEXT_COLOR, hideicon ? NULL : (icon[0] ? icon : "info"));
+}
+
+void guitextf(char *format, char *name, char *icon)
+{
+    bool hideicon = !strcmp(icon, "0");
+    if(cgui) cgui->textf(format, !hideicon && icon[0] ? GUI_BUTTON_COLOR : GUI_TEXT_COLOR, hideicon ? NULL : (icon[0] ? icon : "info"), name);
 }
 
 void guititle(char *name)
@@ -541,7 +567,9 @@ void notifywelcome()
 
 COMMAND(newgui, "ssss");
 COMMAND(guibutton, "sss");
+COMMAND(guibuttonf, "ssss");
 COMMAND(guitext, "ss");
+COMMAND(guitextf, "sss");
 COMMAND(guiservers, "e");
 ICOMMAND(cleargui, "i", (int *n), intret(cleargui(*n)));
 COMMAND(showgui, "s");
