@@ -970,7 +970,6 @@ int main(int argc, char **argv)
     #endif
 
     setlogfile(NULL);
-    setlogfile("startup.log");
 
     logoutf("init: repositories");
     addrepositories();
