@@ -394,6 +394,7 @@ void addrepositories() {
             defformatstring(relpath)("%s/%s", repositoriesdir, dp->d_name);
             addpackagedir(relpath);
             logoutf("Adding content repository: %s", relpath);
+            conoutf("Adding content repository: %s", relpath);
         }
     }
     closedir(dirp);
