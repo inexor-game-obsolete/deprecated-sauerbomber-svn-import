@@ -29,7 +29,7 @@ static float cursorx = 0.5f, cursory = 0.5f;
 #define INSERT (3*SKIN_SCALE)
 
 VARP(guiautotab, 6, 16, 40);
-VARP(guiclicktab, 0, 0, 1);
+VARP(guiclicktab, 0, 1, 1);
 
 struct gui : g3d_gui
 {
@@ -121,8 +121,7 @@ struct gui : g3d_gui
                 y1 = cury - ((skiny[6]-skiny[1])-(skiny[3]-skiny[2]))*SKIN_SCALE-h,
                 y2 = cury;
             bool hit = tcurrent && windowhit==this && hitx>=x1 && hity>=y1 && hitx<x2 && hity<y2;
-            if(hit && (!guiclicktab || mousebuttons&G3D_DOWN)) 
-                *tcurrent = tpos; //roll-over to switch tab
+            if(hit && (!guiclicktab || mousebuttons&G3D_DOWN)) *tcurrent = tpos; //roll-over to switch tab
             
             drawskin(x1-skinx[visible()?2:6]*SKIN_SCALE, y1-skiny[1]*SKIN_SCALE, w, h, visible()?10:19, 9, gui2d ? 1 : 2, light, alpha);
             text_(name, x1 + (skinx[3]-skinx[2])*SKIN_SCALE - (w ? INSERT : INSERT/2), y1 + (skiny[2]-skiny[1])*SKIN_SCALE - INSERT, tcolor, visible());
@@ -1175,3 +1174,4 @@ void consolebox(int x1, int y1, int x2, int y2)
     glPopMatrix();
 }
 
+ICOMMAND(guicurrenttab, "", (), intret(*gui::tcurrent ? *gui::tcurrent : 0));
