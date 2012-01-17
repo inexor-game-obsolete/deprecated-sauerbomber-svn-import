@@ -119,7 +119,8 @@ enum
     M_TIMEFORWARD= 1<<23,
     M_OBSTACLES  = 1<<24,
     M_HIDEANDSEEK= 1<<25,
-    M_FREEZE     = 1<<26/*,
+    M_FREEZE     = 1<<26,
+    M_DYNENT     = 1<<27 /*,
     M_SAFARI     = 1<<26 */
 };
 
@@ -157,8 +158,8 @@ static struct gamemodeinfo
     { "insta collect", M_NOITEMS | M_INSTA | M_COLLECT | M_TEAM, "Instagib Skull Collector: Frag \fs\f3the enemy team\fr to drop \fs\f3skulls\fr. Collect them and bring them to \fs\f3the enemy base\fr to score points for \fs\f1your team\fr. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
     { "efficiency collect", M_NOITEMS | M_EFFICIENCY | M_COLLECT | M_TEAM, "Efficiency Skull Collector: Frag \fs\f3the enemy team\fr to drop \fs\f3skulls\fr. Collect them and bring them to \fs\f3the enemy base\fr to score points for \fs\f1your team\fr. You spawn with all weapons and armour. There are no items." },
     { "lms", M_LMS, "Last Man Standing: The last player alive wins." },
-    { "bomberman", M_LMS | M_BOMB | M_OBSTACLES, "Bomberman: Place bombs to kill enemies. Collect items to increase amount of bombs or damage radius. Survive to win." },
-    { "bomberman team", M_LMS | M_BOMB | M_TEAM | M_OBSTACLES, "Bomberman Team: Place bombs to kill \fs\f3enemies\fr. Collect items to increase amount of bombs or damage radius. Your team wins if one player survives." },
+    { "bomberman", M_LMS | M_BOMB | M_OBSTACLES | M_DYNENT, "Bomberman: Place bombs to kill enemies. Collect items to increase amount of bombs or damage radius. Survive to win." },
+    { "bomberman team", M_LMS | M_BOMB | M_TEAM | M_OBSTACLES | M_DYNENT, "Bomberman Team: Place bombs to kill \fs\f3enemies\fr. Collect items to increase amount of bombs or damage radius. Your team wins if one player survives." },
     { "race", M_RACE | M_TIMEFORWARD | M_OBSTACLES, "Race: Be the first who completes 3 laps. Kill people to repulse them." },
     { "hideandseek", M_HIDEANDSEEK | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. No teamkills." },
     { "insta hideandseek", M_HIDEANDSEEK | M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
@@ -197,6 +198,7 @@ static struct gamemodeinfo
 #define m_obstacles    (m_check(gamemode, M_OBSTACLES))
 #define m_timeforward  (m_check(gamemode, M_TIMEFORWARD))
 #define m_freeze       (m_check(gamemode, M_FREEZE))
+#define m_dynent       (m_check(gamemode, M_DYNENT))
 
 #define m_demo         (m_check(gamemode, M_DEMO))
 #define m_edit         (m_check(gamemode, M_EDIT))
