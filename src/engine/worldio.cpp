@@ -857,7 +857,7 @@ bool save_world(const char *mname, bool nolms)
 {
     if(!*mname) mname = game::getclientmap();
     setmapfilenames(*mname ? mname : "untitled");
-    defformatstring(editogzname)("%s/%s", editrepository, ogzname);
+    defformatstring(editogzname)("%s/%s/%s", repositoriesdir, editrepository, ogzname);
     if(savebak) backup(editogzname, bakname);
     stream *f = opengzfile(editogzname, "wb");
     if(!f) { conoutf(CON_WARN, "could not write map to %s", editogzname); return false; }
@@ -879,7 +879,7 @@ bool save_world(const char *mname, bool nolms)
     hdr.worldsize = worldsize;
     hdr.numents = 0;
     const vector<extentity *> &ents = entities::getents();
-    loopv(ents) if(ents[i]->type!=ET_EMPTY || nolms) hdr.numents++;
+    loopv(ents) if((ents[i]->type!=ET_EMPTY || nolms) && ents[i]->savable) hdr.numents++;
     hdr.numpvs = nolms ? 0 : getnumviewcells();
     hdr.lightmaps = nolms ? 0 : lightmaps.length();
     hdr.blendmap = shouldsaveblendmap();
@@ -933,7 +933,7 @@ bool save_world(const char *mname, bool nolms)
     char *ebuf = new char[entities::extraentinfosize()];
     loopv(ents)
     {
-        if(ents[i]->type!=ET_EMPTY || nolms)
+        if((ents[i]->type!=ET_EMPTY || nolms) && ents[i]->savable)
         {
             entity tmp = *ents[i];
             lilswap(&tmp.o.x, 3);

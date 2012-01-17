@@ -395,7 +395,7 @@ struct bombclientmode : clientmode
     }
 
     bool canspawnitem(server_entity *se) {
-        return se->type >= I_BOMBS && se->type <= I_BOMBDELAY && se->maxrespawns != -1 && se->maxrespawns > 0;
+        return se->type >= I_BOMBS && se->type <= I_BOMBDELAY && se->maxrespawns != 0;
     }
 
     void pushentity(vec &o, int type) {
