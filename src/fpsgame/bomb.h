@@ -60,6 +60,12 @@ struct bombclientmode : clientmode
 		}
 	}
 
+	  void newentity(extentity *e) {
+	      dropenttofloor(e);
+  	    // droptofloor(e->o, 4, 4);
+	  }
+
+
     void drawicon(int icon, float x, float y, float sz)
     {
         int bicon = icon - HICON_BOMBRADIUS;
@@ -388,16 +394,21 @@ struct bombclientmode : clientmode
         return false;
     }
 
+    bool canspawnitem(server_entity *se) {
+        return se->type >= I_BOMBS && se->type <= I_BOMBDELAY && se->maxrespawns != -1 && se->maxrespawns > 0;
+    }
+
     void pushentity(vec &o, int type) {
         entity &e = ments.add();
         e.o = o;
         e.type = type;
-        server_entity se = { NOTUSED, 0, false };
+        server_entity se = { NOTUSED, 0, false, -1 };
         while(sents.length()<=ments.length()+1) sents.add(se);
         int id = sents.length()-1;
         sents[id].type = type;
         sents[id].spawned = true;
         sents[id].spawntime = rnd(2000);
+        sents[id].maxrespawns = 0;
         ivec io(o);
         io.mul(DMF);
         io.x -= 120+rnd(240);
