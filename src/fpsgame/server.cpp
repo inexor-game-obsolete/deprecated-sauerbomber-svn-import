@@ -24,6 +24,7 @@ namespace server
         int type;
         int spawntime;
         char spawned;
+        int maxrespawns;
     };
 
     static const int DEATHMILLIS = 300;
@@ -568,6 +569,7 @@ namespace server
         virtual bool canhit(clientinfo *victim, clientinfo *actor) { return true; }
         virtual void died(clientinfo *victim, clientinfo *actor) {}
         virtual bool canchangeteam(clientinfo *ci, const char *oldteam, const char *newteam) { return true; }
+        virtual bool canspawnitem(server_entity *se) { return se->maxrespawns != -1 && se->maxrespawns > 0; };
         virtual void changeteam(clientinfo *ci, const char *oldteam, const char *newteam) {}
         virtual void initclient(clientinfo *ci, packetbuf &p, bool connecting) {}
         virtual void update() {}
@@ -1441,7 +1443,7 @@ namespace server
             return;
         loopv(ments) if(canspawnitem(ments[i].type))
         {
-            server_entity se = { NOTUSED, 0, false };
+            server_entity se = { NOTUSED, 0, false, -1 };
             while(sents.length()<=i) sents.add(se);
             sents[i].type = ments[i].type;
             if(m_mp(gamemode) && delayspawn(sents[i].type)) sents[i].spawntime = spawntime(sents[i].type);
@@ -1921,6 +1923,7 @@ namespace server
             {
                 loopv(sents) if(sents[i].spawntime) // spawn entities when timer reached
                 {
+                    if(smode && !smode->canspawnitem(&sents[i])) continue;
                     int oldtime = sents[i].spawntime;
                     sents[i].spawntime -= curtime;
                     if(sents[i].spawntime<=0)
@@ -2637,7 +2640,7 @@ namespace server
                 int n;
                 while((n = getint(p))>=0 && n<MAXENTS && !p.overread())
                 {
-                    server_entity se = { NOTUSED, 0, false };
+                    server_entity se = { NOTUSED, 0, false, -1 };
                     while(sents.length()<=n) sents.add(se);
                     sents[n].type = getint(p);
                     if(canspawnitem(sents[n].type))
@@ -2661,7 +2664,7 @@ namespace server
                 bool canspawn = canspawnitem(type);
                 if(i<MAXENTS && (sents.inrange(i) || canspawnitem(type)))
                 {
-                    server_entity se = { NOTUSED, 0, false };
+                    server_entity se = { NOTUSED, 0, false, -1 };
                     while(sents.length()<=i) sents.add(se);
                     sents[i].type = type;
                     if(canspawn ? !sents[i].spawned : (sents[i].spawned || sents[i].spawntime))

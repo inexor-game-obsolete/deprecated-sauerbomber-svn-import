@@ -856,6 +856,7 @@ namespace game
         virtual void killed(fpsent *d, fpsent *actor) {}
         virtual void gameconnect(fpsent *d) {}
         virtual void renderscoreboard(g3d_gui &g, scoregroup &sg, int fgcolor, int bgcolor) {}
+        virtual void newentity(extentity *e) {}
     };
 
     extern clientmode *cmode;

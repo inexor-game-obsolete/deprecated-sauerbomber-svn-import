@@ -1493,6 +1493,7 @@ namespace game
 
                 mpeditent(i, vec(x, y, z), type, attr1, attr2, attr3, attr4, attr5, false);
                 if(m_dynent) entities::setspawn(i, true);
+                if(cmode) cmode->newentity(entities::ents[i]);
                 break;
             }
             case N_EDITVAR:
