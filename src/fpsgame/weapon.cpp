@@ -484,6 +484,15 @@ namespace game
         if(dist < BOMB_DAMRAD) b->lifetime = 100;
     }
 
+    void explodelocal(const vec &v)
+    {
+        int maxsize = RL_DAMRAD;
+        int size = 4.0f;
+        playsound(S_RLHIT, &v);
+        particle_fireball(v, maxsize, PART_EXPLOSION, -1, 0xFF8080, size);
+        adddynlight(v, 1.15f*RL_DAMRAD, vec(2, 1.5f, 1), 900, 100);
+    }
+
     void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int damage, int gun)
     {
         int rfactor = 1,
