@@ -198,11 +198,11 @@ Mix_Music *loadmusic(const char *name)
     return music;
 }
 
-SVARP(musicdir, "music");
-SVARP(currentartist, "zero-project");
-SVARP(currentalbum, "e-world");
-SVARP(currentsong, "01_e-world.ogg");
-SVARP(albumcover, "Cover.jpg");
+SVAR(musicdir, "music");
+SVAR(currentartist, "zero-project");
+SVAR(currentalbum, "e-world");
+SVAR(currentsong, "01_e-world.ogg");
+SVAR(albumcover, "Cover.jpg");
 
 void startmusic(char *name, char *cmd, char *cmd_success, char *cmd_failed)
 {
@@ -427,6 +427,9 @@ COMMAND(unregistersounds, "");
 
 void soundset(char *name)
 {
+    if(strlen(name) == 0) {
+        // TODO: return the soundset if no arg
+    }
     unregistersounds();
     defformatstring(soundsetconfig)("%s/%s/sounds.cfg", soundsetsdir, name);
     execfile(soundsetconfig);
