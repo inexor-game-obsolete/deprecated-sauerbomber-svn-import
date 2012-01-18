@@ -157,9 +157,11 @@ static struct gamemodeinfo
     { "bomberman", M_LMS | M_BOMB | M_OBSTACLES | M_DYNENT, "Bomberman: Place bombs to kill enemies. Collect items to increase amount of bombs or damage radius. Survive to win." },
     { "bomberman team", M_LMS | M_BOMB | M_TEAM | M_OBSTACLES | M_DYNENT, "Bomberman Team: Place bombs to kill \fs\f3enemies\fr. Collect items to increase amount of bombs or damage radius. Your team wins if one player survives." },
     { "race", M_RACE | M_TIMEFORWARD | M_OBSTACLES, "Race: Be the first who completes 3 laps. Kill people to repulse them." },
+    // { "countdownrace", M_RACE | M_OBSTACLES, "Race: Be the first who completes 3 laps. Kill people to repulse them." },
     { "hideandseek", M_HIDEANDSEEK | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. No teamkills." },
     { "insta hideandseek", M_HIDEANDSEEK | M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
-    { "hideandseek freeze", M_HIDEANDSEEK | M_TEAM | M_FREEZE | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Hiders freezes Seekers, Seekers catches Hiders. No teamkills." } /*,
+    { "hideandseek freeze", M_HIDEANDSEEK | M_TEAM | M_FREEZE | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Hiders freezes Seekers, Seekers catches Hiders. No teamkills." },
+    { "duckandcover", M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Instagib Duck And Cover Team: You spawn with full rifle ammo and die instantly from one shot. Frag \f3enemies\fr to score points. Cover yourself and destroy the enemies coverage. There are no items." } /*,
     { "hideandseek safari", M_HIDEANDSEEK | M_TEAM | M_SAFARI | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Seekers drugs Hiders, then hunt them down." } */
 };
 
@@ -284,6 +286,7 @@ enum
     N_ITEMPUSH, N_SPAWNLOC,
     N_RACESTART, N_RACEFINISH, N_RACECHECKPOINT, N_RACELAP, N_RACEINFO,
     N_HUDANNOUNCE,
+    N_MOVEABLE,
     NUMSV
 };
 
@@ -314,6 +317,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     N_ITEMPUSH, 6, N_SPAWNLOC, 0,
     N_RACESTART, 0, N_RACEFINISH, 0, N_RACECHECKPOINT, 2, N_RACELAP, 2, N_RACEINFO, 7,
     N_HUDANNOUNCE, 0,
+    N_MOVEABLE, 4,
     -1
 };
 
@@ -946,6 +950,7 @@ namespace game
     extern void rendermovables();
     extern void suicidemovable(movable *m);
     extern void hitmovable(int damage, movable *m, fpsent *at, const vec &vel, int gun);
+    extern void syncmovable(int entidx, int state, int health);
     extern bool isobstaclealive(movable *m);
 
     // weapon
@@ -987,6 +992,7 @@ namespace game
     extern int getweapon(const char *name);
     extern void shoot(fpsent *d, const vec &targ);
     extern void shoteffects(int gun, const vec &from, const vec &to, fpsent *d, bool local, int id, int prevaction);
+    extern void explodelocal(const vec &v);
     extern void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int dam, int gun);
     extern void explodeeffects(int gun, fpsent *d, bool local, int id = 0);
     extern void damageeffect(int damage, fpsent *d, bool thirdperson = true);

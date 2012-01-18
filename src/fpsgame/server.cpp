@@ -19,12 +19,14 @@ extern ENetAddress masteraddress;
 
 namespace server
 {
-    struct server_entity            // server side version of "entity" type
+    struct server_entity            // server side version of entities and movables
     {
         int type;
         int spawntime;
         char spawned;
         int maxrespawns;
+        uchar state;
+        int health;
     };
 
     static const int DEATHMILLIS = 300;
@@ -1443,11 +1445,15 @@ namespace server
             return;
         loopv(ments) if(canspawnitem(ments[i].type))
         {
-            server_entity se = { NOTUSED, 0, false, -1 };
+            server_entity se = { NOTUSED, 0, false, -1, CS_ALIVE, 0 };
             while(sents.length()<=i) sents.add(se);
             sents[i].type = ments[i].type;
+            if (m_obstacles) sents[i].health = ments[i].attr3;
             if(m_mp(gamemode) && delayspawn(sents[i].type)) sents[i].spawntime = spawntime(sents[i].type);
-            else sents[i].spawned = true;
+            else {
+                sents[i].spawned = true;
+                if(sents[i].maxrespawns > 0) sents[i].maxrespawns--;
+            }
         }
         notgotitems = false;
     }
@@ -1930,6 +1936,7 @@ namespace server
                     {
                         sents[i].spawntime = 0;
                         sents[i].spawned = true;
+                        if(sents[i].maxrespawns > 0) sents[i].maxrespawns--;
                         sendf(-1, 1, "ri2", N_ITEMSPAWN, i);
                     }
                     else if(sents[i].spawntime<=10000 && oldtime>10000 && (sents[i].type==I_QUAD || sents[i].type==I_BOOST))
@@ -2559,6 +2566,17 @@ namespace server
                 break;
             }
 
+            case N_MOVEABLE:
+            {
+                int entidx = getint(p);
+                int state = getint(p);
+                int health = getint(p);
+                QUEUE_MSG;
+                sents[entidx].health = health;
+                sents[entidx].state = state;
+                break;
+            }
+
             case N_ITEMPICKUP:
             {
                 int n = getint(p);
@@ -2640,13 +2658,16 @@ namespace server
                 int n;
                 while((n = getint(p))>=0 && n<MAXENTS && !p.overread())
                 {
-                    server_entity se = { NOTUSED, 0, false, -1 };
+                    server_entity se = { NOTUSED, 0, false, -1, CS_ALIVE, 0 };
                     while(sents.length()<=n) sents.add(se);
                     sents[n].type = getint(p);
                     if(canspawnitem(sents[n].type))
                     {
                         if(m_mp(gamemode) && delayspawn(sents[n].type)) sents[n].spawntime = spawntime(sents[n].type);
-                        else sents[n].spawned = true;
+                        else {
+                            sents[n].spawned = true;
+                            if(sents[n].maxrespawns > 0) sents[n].maxrespawns--;
+                        }
                     }
                 }
                 notgotitems = false;
@@ -2664,7 +2685,7 @@ namespace server
                 bool canspawn = canspawnitem(type);
                 if(i<MAXENTS && (sents.inrange(i) || canspawnitem(type)))
                 {
-                    server_entity se = { NOTUSED, 0, false, -1 };
+                    server_entity se = { NOTUSED, 0, false, -1, CS_ALIVE, 0 };
                     while(sents.length()<=i) sents.add(se);
                     sents[i].type = type;
                     if(canspawn ? !sents[i].spawned : (sents[i].spawned || sents[i].spawntime))

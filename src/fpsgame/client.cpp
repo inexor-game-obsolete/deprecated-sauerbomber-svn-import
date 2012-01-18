@@ -1344,6 +1344,15 @@ namespace game
                 break;
             }
 
+            case N_MOVEABLE:
+            {
+                int entidx = getint(p);
+                int state = getint(p);
+                int health = getint(p);
+                syncmovable(entidx, state, health);
+                break;
+            }
+
             case N_DIED:
             {
                 int vcn = getint(p), acn = getint(p), frags = getint(p);

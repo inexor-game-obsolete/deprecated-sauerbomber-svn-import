@@ -18,12 +18,13 @@ namespace game
 
     struct movable : dynent
     {
-        int etype, mapmodel, health, weight, exploding, tag, dir;
+        int etype, entidx, mapmodel, health, weight, exploding, tag, dir;
         physent *stacked;
         vec stackpos;
 
         movable(const entity &e) : 
             etype(e.type),
+            entidx(-1),
             mapmodel(e.attr2),
             health(e.type==BARREL ? (e.attr4 ? e.attr4 : BARRELHEALTH) : (e.type==OBSTACLE ? (e.attr3 ? e.attr3 : OBSTACLEHEALTH) : 0)),
             weight(e.type!=OBSTACLE ? (e.type==PLATFORM || e.type==ELEVATOR ? PLATFORMWEIGHT : (e.attr3 ? e.attr3 : (e.type==BARREL ? BARRELWEIGHT : BOXWEIGHT))) : 0),
@@ -35,7 +36,6 @@ namespace game
         {
             state = CS_ALIVE;
             type = ENT_INANIMATE;
-            // yaw = float((e.attr1+7)-(e.attr1+7)%15);
             yaw = e.attr1;
             if(e.type==PLATFORM || e.type==ELEVATOR) 
             {
@@ -51,7 +51,7 @@ namespace game
        
         void hitpush(int damage, const vec &dir, fpsent *actor, int gun)
         {
-            if(etype!=BOX && etype!=BARREL) return;
+            if(etype!=BOX && etype!=BARREL) return; // TODO: hitpush obstacle?
             vec push(dir);
             push.mul(80*damage/weight);
             vel.add(push);
@@ -62,7 +62,12 @@ namespace game
             // conoutf("movable.cpp::explode etype=%i state=%i health=%i",etype,state,health);
             state = CS_DEAD;
             exploding = 0;
-            if(etype==OBSTACLE) game::explode(false, (fpsent *)at, o, this, 0, GUN_BARREL); // obstacles explodes not only locally and doesn't cause any damage // TODO: GUN_OBSTACLE???
+            if(etype==OBSTACLE) {
+                // obstacles explodes not only locally
+                int damage = m_bomb ? 0 : guns[GUN_BARREL].damage; // in bomb mode, obstacles doesn't cause any damage
+                game::explode(false, (fpsent *)at, o, this, damage, GUN_BARREL);
+
+            }
             else game::explode(true, (fpsent *)at, o, this, guns[GUN_BARREL].damage, GUN_BARREL);
         }
 
@@ -72,6 +77,7 @@ namespace game
             if((etype!=BARREL && etype!=OBSTACLE) || state!=CS_ALIVE || exploding) return;
             health -= damage;
             // conoutf("movable.cpp::damaged health new=%i", health);
+            if (m_obstacles) sync();
             if(health>0) return;
             if(gun==GUN_BARREL) exploding = lastmillis + EXPLODEDELAY;
             else explode(at); 
@@ -81,6 +87,23 @@ namespace game
         {
             state = CS_DEAD;
             if(etype==BARREL || etype==OBSTACLE) explode(player1);
+        }
+
+        void sync()
+        {
+            addmsg(N_MOVEABLE, "riii", entidx, state, health);
+        }
+
+        void gotsync(int s, int h)
+        {
+            health = h;
+            if (health <= 0) {
+                state = CS_DEAD;
+                exploding = 0;
+                explodelocal(o);
+            } else {
+                state = s;
+            }
         }
     };
 
@@ -101,6 +124,7 @@ namespace game
             movable *m = new movable(e);
             movables.add(m);
             m->o = e.o;
+            m->entidx = i;
             if(e.type!=OBSTACLE) entinmap(m);
             else // obstacles doesn't care about collision
             {
@@ -197,9 +221,15 @@ namespace game
         m->damaged(damage, at, gun);
     }
 
+    void syncmovable(int entidx, int state, int health)
+    {
+        loopv(movables) if (movables[i]->entidx == entidx) movables[i]->gotsync(state, health);
+    }
+
     bool isobstaclealive(movable *m)
     {
         return (m->state==CS_ALIVE && m->etype==OBSTACLE);
     }
+
 }
 
