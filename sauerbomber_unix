@@ -1,15 +1,15 @@
 #!/bin/sh
-# SAUER_DATA should refer to the directory in which Sauerbraten data files are placed.
-#SAUER_DATA=~/sauerbraten
-#SAUER_DATA=/usr/local/sauerbraten
+# SAUER_DATA should refer to the directory in which Sauerbomber data files are placed.
+#SAUER_DATA=~/sauerbomber
+#SAUER_DATA=/usr/local/sauerbomber
 SAUER_DATA=.
 
-# SAUER_BIN should refer to the directory in which Sauerbraten executable files are placed.
+# SAUER_BIN should refer to the directory in which Sauerbomber executable files are placed.
 SAUER_BIN=${SAUER_DATA}/bin_unix
 
-# SAUER_OPTIONS contains any command line options you would like to start Sauerbraten with.
+# SAUER_OPTIONS contains any command line options you would like to start Sauerbomber with.
 #SAUER_OPTIONS="-f"
-SAUER_OPTIONS="-q${HOME}/.sauerbraten -r"
+SAUER_OPTIONS="-q${HOME}/.sauerbomber -r"
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
@@ -55,7 +55,7 @@ then
   cd ${SAUER_DATA}
   exec ${SAUER_BIN}/${SYSTEM_NAME}${MACHINE_NAME}client ${SAUER_OPTIONS} "$@"
 else
-  echo "Your platform does not have a pre-compiled Sauerbraten client."
+  echo "Your platform does not have a pre-compiled Sauerbomber client."
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the SDL, SDL-image, SDL-mixer, and OpenGL libraries installed."
   echo "2) Change directory to src/ and type \"make install\"."
