@@ -1,3 +1,4 @@
+#include "sbpy.h"
 #include "game.h"
 
 namespace game
@@ -81,9 +82,13 @@ namespace game
     {
         if(name[0])
         {
+            char *oldname = (char*)malloc(strlen(player1->name)+1);
+            strcpy(oldname, player1->name);
             filtertext(player1->name, name, false, MAXNAMELEN);
             if(!player1->name[0]) copystring(player1->name, "unnamed");
             addmsg(N_SWITCHNAME, "rs", player1->name);
+            SbPy::triggerEventIntStringString("player_name_changed", player1->clientnum, oldname, player1->name);
+            free(oldname);
         }
         else conoutf("your name is: %s", colorname(player1));
     }
@@ -94,8 +99,12 @@ namespace game
     {
         if(team[0])
         {
+            SbPy::triggerEventIntString("player_switch_team", player1->clientnum, team);
             if(player1->clientnum < 0) filtertext(player1->team, team, false, MAXTEAMLEN);
-            else addmsg(N_SWITCHTEAM, "rs", team);
+            else {
+                addmsg(N_SWITCHTEAM, "rs", team);
+                SbPy::triggerEventInt("player_team_changed", player1->clientnum);
+            }
         }
         else conoutf("your team is: %s", player1->team);
     }
@@ -106,6 +115,7 @@ namespace game
     {
         player1->playermodel = playermodel;
         addmsg(N_SWITCHMODEL, "ri", player1->playermodel);
+        SbPy::triggerEventIntInt("player_model_changed", player1->clientnum, player1->playermodel);
     }
 
     struct authkey
@@ -207,6 +217,7 @@ namespace game
         else if(player1->state==CS_EDITING && player1->editstate==CS_DEAD) showscores(false);
         disablezoom();
         player1->suicided = player1->respawned = -2;
+        SbPy::triggerEventInt("player_edit_toggled", on ? 1 : 0);
     }
 
     const char *getclientname(int cn)
@@ -321,6 +332,7 @@ namespace game
     void clearbans()
     {
         addmsg(N_CLEARBANS, "r");
+        SbPy::triggerEvent("try_clearbans", 0);
     }
     COMMAND(clearbans, "");
 
@@ -328,6 +340,7 @@ namespace game
     {
         int i = parseplayer(arg);
         if(i>=0 && i!=player1->clientnum) addmsg(N_KICK, "ri", i);
+        SbPy::triggerEventInt("try_kick_player", i);
     }
     COMMAND(kick, "s");
 
@@ -339,6 +352,7 @@ namespace game
         if(!d || d == player1) return;
         conoutf("ignoring %s", d->name);
         if(ignores.find(cn) < 0) ignores.add(cn);
+        SbPy::triggerEventInt("player_ignore", cn);
     }
 
     void unignore(int cn)
@@ -347,6 +361,7 @@ namespace game
         fpsent *d = getclient(cn);
         if(d) conoutf("stopped ignoring %s", d->name);
         ignores.removeobj(cn);
+        SbPy::triggerEventInt("player_unignore", cn);
     }
 
     bool isignored(int cn) { return ignores.find(cn) >= 0; }
@@ -359,6 +374,7 @@ namespace game
     {
         int i = parseplayer(arg1);
         if(i>=0) addmsg(N_SETTEAM, "ris", i, arg2);
+        SbPy::triggerEventIntString("try_set_team", i, arg2);
     }
     COMMAND(setteam, "ss");
 
@@ -379,8 +395,15 @@ namespace game
         if(!arg[1] && isdigit(arg[0])) val = parseint(arg);
         else server::hashpassword(player1->clientnum, sessionid, arg, hash);
         addmsg(N_SETMASTER, "ris", val, hash);
+        SbPy::triggerEventInt("try_setmaster", val);
     }
     COMMAND(setmaster, "s");
+
+    void setmastermode(int mm)
+    {
+        addmsg(N_MASTERMODE, "ri", mm);
+        SbPy::triggerEventInt("try_set_mastermode", mm);
+    }
     ICOMMAND(mastermode, "i", (int *val), addmsg(N_MASTERMODE, "ri", *val));
 
     bool tryauth(const char *desc)
@@ -389,6 +412,7 @@ namespace game
         if(!a) return false;
         a->lastauth = lastmillis;
         addmsg(N_AUTHTRY, "rss", a->desc, a->name);
+        SbPy::triggerEvent("try_player_auth", 0);
         return true;
     }
     ICOMMAND(auth, "s", (char *desc), tryauth(desc));
@@ -397,6 +421,7 @@ namespace game
     {
         int i = who[0] ? parseplayer(who) : player1->clientnum;
         if(i>=0) addmsg(N_SPECTATOR, "rii", i, val);
+        SbPy::triggerEventIntInt("try_player_spectator", i, val);
     }
     ICOMMAND(spectator, "is", (int *val, char *who), togglespectator(*val, who));
 
@@ -412,6 +437,7 @@ namespace game
 
     void changemapserv(const char *name, int mode)        // forced map change from the server
     {
+        SbPy::triggerEvent("map_changed_pre", 0);
         if(multiplayer(false) && !m_mp(mode))
         {
             conoutf(CON_ERROR, "mode %s (%d) not supported in multiplayer", server::modename(gamemode), gamemode);
@@ -428,6 +454,7 @@ namespace game
             senditemstoserver = false;
         }
         startgame();
+        SbPy::triggerEventStrInt("map_changed", name, gamemode);
     }
 
     void setmode(int mode)
@@ -440,6 +467,7 @@ namespace game
         }
         nextmode = mode;
         intret(1);
+        SbPy::triggerEventInt("set_mode", mode);
     }
     ICOMMAND(mode, "i", (int *val), setmode(*val));
     ICOMMAND(getmode, "", (), intret(gamemode));
@@ -481,12 +509,14 @@ namespace game
     {
         if(m_checknot(mode, M_EDIT) && !name[0])
             name = clientmap[0] ? clientmap : (remote ? lobbymap : localmap);
-        if(!remote)
-        {
+        if(!remote) {
             server::forcemap(name, mode);
             if(!connected) localconnect();
+            SbPy::triggerEvent("map_changing", 0);
+        } else if(player1->state!=CS_SPECTATOR || player1->privilege) {
+            addmsg(N_MAPVOTE, "rsi", name, mode);
+            SbPy::triggerEvent("try_map_change", 0);
         }
-        else if(player1->state!=CS_SPECTATOR || player1->privilege) addmsg(N_MAPVOTE, "rsi", name, mode);
     }
     void changemap(const char *name)
     {
@@ -502,6 +532,7 @@ namespace game
     void newmap(int size)
     {
         addmsg(N_NEWMAP, "ri", size);
+        SbPy::triggerEvent("try_new_map", 0);
     }
 
     int needclipboard = -1;
@@ -522,6 +553,7 @@ namespace game
         if(outlen > 0) p.put(outbuf, outlen);
         sendclientpacket(p.finalize(), 1);
         needclipboard = -1;
+        SbPy::triggerEvent("sent_clipboard", 0);
     }
 
     void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3)
@@ -633,6 +665,7 @@ namespace game
     void pausegame(int *val)
     {
         addmsg(N_PAUSEGAME, "ri", *val > 0 ? 1 : 0);
+        SbPy::triggerEventInt("try_pausegame", *val);
     }
     COMMAND(pausegame, "i");
 
@@ -713,6 +746,7 @@ namespace game
     void connectfail()
     {
         memset(connectpass, 0, sizeof(connectpass));
+        SbPy::triggerEvent("connect_failed", 0);
     }
 
     void gameconnect(bool _remote)
@@ -746,12 +780,21 @@ namespace game
             nextmode = gamemode = INT_MAX;
             clientmap[0] = '\0';
         }
+        SbPy::triggerEventInt("player_disconnected", player1->clientnum);
     }
 
-    void toserver(char *text) { conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text); addmsg(N_TEXT, "rcs", player1, text); }
+    void toserver(char *text) {
+        conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text);
+        addmsg(N_TEXT, "rcs", player1, text);
+        SbPy::triggerEventIntString("try_player_say", player1->clientnum, text);
+    }
     COMMANDN(say, toserver, "C");
 
-    void sayteam(char *text) { conoutf(CON_TEAMCHAT, "%s:\f1 %s", colorname(player1), text); addmsg(N_SAYTEAM, "rcs", player1, text); }
+    void sayteam(char *text) {
+        conoutf(CON_TEAMCHAT, "%s:\f1 %s", colorname(player1), text);
+        addmsg(N_SAYTEAM, "rcs", player1, text);
+        SbPy::triggerEventIntString("try_player_sayteam", player1->clientnum, text);
+    }
     COMMAND(sayteam, "C");
 
     static void sendposition(fpsent *d, packetbuf &q)
@@ -1071,6 +1114,7 @@ namespace game
                 {
                     conoutf(CON_ERROR, "you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
                     disconnect();
+                    SbPy::triggerEventInt("player_connect_failed", player1->clientnum);
                     return;
                 }
                 sessionid = getint(p);
@@ -1079,6 +1123,7 @@ namespace game
                 getstring(text, p);
                 copystring(servinfo, text);
                 sendintro();
+                SbPy::triggerEventInt("player_connected", player1->clientnum);
                 break;
             }
 
@@ -1095,6 +1140,7 @@ namespace game
                 int val = getint(p);
                 gamepaused = val > 0;
                 conoutf("game is %s", gamepaused ? "paused" : "resumed");
+                SbPy::triggerEventIntInt("player_pause", player1->clientnum, val);
                 break;
             }
 
@@ -1121,6 +1167,7 @@ namespace game
                 if(d->state!=CS_DEAD && d->state!=CS_SPECTATOR)
                     particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text);
+                SbPy::triggerEventIntString("player_say", d->clientnum, text);
                 break;
             }
 
@@ -1134,6 +1181,7 @@ namespace game
                 hudannounce_timeout = totalmillis + duration;
                 hudannounce_effect = effect;
                 hudannounce_text = text;
+                SbPy::triggerEventIntIntString("hud_announce", duration, effect, text);
                 break;
             }
 
@@ -1147,6 +1195,7 @@ namespace game
                 if(t->state!=CS_DEAD && t->state!=CS_SPECTATOR)
                     particle_textcopy(t->abovehead(), text, PART_TEXT, 2000, 0x6496FF, 4.0f, -8);
                 conoutf(CON_TEAMCHAT, "%s:\f1 %s", colorname(t), text);
+                SbPy::triggerEventIntString("player_sayteam", tcn, text);
                 break;
             }
 
@@ -1171,6 +1220,7 @@ namespace game
                 }
                 else d->resetinterp();
                 d->state = CS_DEAD;
+                SbPy::triggerEventInt("player_death", cn);
                 break;
             }
 
@@ -1190,6 +1240,7 @@ namespace game
                 defformatstring(nextmapalias)("nextmap_%s%s", (cmode ? cmode->prefixnextmap() : ""), getclientmap());
                 const char *map = getalias(nextmapalias);     // look up map in the cycle
                 addmsg(N_MAPCHANGE, "rsi", *map ? map : getclientmap(), nextmode);
+                SbPy::triggerEventIntString("map_reload", nextmode, *map ? map : getclientmap());
                 break;
             }
 
@@ -1209,13 +1260,16 @@ namespace game
                 if(!text[0]) copystring(text, "unnamed");
                 if(d->name[0])          // already connected
                 {
-                    if(strcmp(d->name, text) && !isignored(d->clientnum))
+                    if(strcmp(d->name, text) && !isignored(d->clientnum)) {
                         conoutf("%s is now known as %s", colorname(d), colorname(d, text));
+                        SbPy::triggerEventIntStringString("player_rename", cn, d->name, text);
+                    }
                 }
                 else                    // new client
                 {
                     conoutf("connected: %s", colorname(d, text));
                     if(needclipboard >= 0) needclipboard++;
+                    SbPy::triggerEventInt("player_connect", cn);
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
                 getstring(text, p);
@@ -1234,6 +1288,7 @@ namespace game
                     {
                         if(!isignored(d->clientnum)) conoutf("%s is now known as %s", colorname(d), colorname(d, text));
                         copystring(d->name, text, MAXNAMELEN+1);
+                        SbPy::triggerEventIntStringString("player_rename", cn, d->name, text);
                     }
                 }
                 break;
@@ -1245,13 +1300,18 @@ namespace game
                 {
                     d->playermodel = model;
                     if(d->ragdoll) cleanragdoll(d);
+                    SbPy::triggerEventIntInt("player_switch_model", d->clientnum, model);
                 }
                 break;
             }
 
             case N_CDIS:
-                clientdisconnected(getint(p));
+            {
+                int cn = getint(p);
+                clientdisconnected(cn);
+                SbPy::triggerEventInt("player_disconnect", cn);
                 break;
+            }
 
             case N_SPAWN:
             {
@@ -1371,7 +1431,7 @@ namespace game
                 }
                 if(!victim) break;
                 killed(victim, actor);
-				
+                SbPy::triggerEventIntInt("player_frag", acn, vcn);
                 break;
             }
 
@@ -1388,6 +1448,7 @@ namespace game
             {
                 if(!d) return;
                 d->lasttaunt = lastmillis;
+                SbPy::triggerEventInt("player_taunt", d->clientnum);
                 break;
             }
 
@@ -1400,6 +1461,7 @@ namespace game
                     fpsent *d = (cn == player1->clientnum ? player1 : newclient(cn));
                     parsestate(d, p, true);
                 }
+                SbPy::triggerEventInt("game_paused", 0);
                 break;
             }
 
@@ -1556,11 +1618,13 @@ namespace game
 
             case N_TIMEUP:
                 timeupdate(getint(p));
+                SbPy::triggerEvent("time_update", 0);
                 break;
 
             case N_SERVMSG:
                 getstring(text, p);
                 conoutf("%s", text);
+                SbPy::triggerEventStr("server_message", text);
                 break;
 
             case N_SENDDEMOLIST:
@@ -1571,6 +1635,7 @@ namespace game
                 {
                     getstring(text, p);
                     conoutf("%d. %s", i+1, text);
+                    SbPy::triggerEventStr("get_demo_list", text);
                 }
                 break;
             }
@@ -1585,6 +1650,7 @@ namespace game
                 gamepaused = false;
                 const char *alias = on ? "demostart" : "demoend";
                 if(identexists(alias)) execute(alias);
+                SbPy::triggerEventIntInt("demo_playback", player1->clientnum, on);
                 break;
             }
 
@@ -1601,6 +1667,7 @@ namespace game
                 {
                     mastermode = mm;
                     conoutf("mastermode is %s (%d)", server::mastermodename(mastermode), mastermode);
+                    SbPy::triggerEventInt("server_mastermode_changed", mastermode);
                 }
                 break;
             }
@@ -1609,6 +1676,7 @@ namespace game
             {
                 mastermode = getint(p);
                 conoutf("mastermode is %s (%d)", server::mastermodename(mastermode), mastermode);
+                SbPy::triggerEventInt("server_mastermode_changed", mastermode);
                 break;
             }
 
@@ -1649,11 +1717,13 @@ namespace game
                         disablezoom();
                     }
                     s->state = CS_SPECTATOR;
+                    SbPy::triggerEventInt("player_spectated", s->clientnum);
                 }
                 else if(s->state==CS_SPECTATOR)
                 {
                     if(s==player1) stopfollowing();
                     deathstate(s, true);
+                    SbPy::triggerEventInt("player_unspectated", s->clientnum);
                 }
                 break;
             }
@@ -1669,6 +1739,7 @@ namespace game
                 static const char *fmt[2] = { "%s switched to team %s", "%s forced to team %s"};
                 if(reason >= 0 && size_t(reason) < sizeof(fmt)/sizeof(fmt[0]))
                     conoutf(fmt[reason], colorname(w), w->team);
+                SbPy::triggerEventIntString("player_switch_team", wn, text);
                 break;
             }
 
@@ -1699,6 +1770,7 @@ namespace game
                     int newsize = 0;
                     while(1<<newsize < getworldsize()) newsize++;
                     conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), newsize);
+                    SbPy::triggerEvent("edit_new_map", 0);
                 }
                 break;
             }
@@ -1773,6 +1845,7 @@ namespace game
                 conoutf("received demo \"%s\"", fname);
                 demo->write(data, len);
                 delete demo;
+                SbPy::triggerEventStr("demo_received", fname);
                 break;
             }
 
@@ -1791,6 +1864,7 @@ namespace game
                 if(load_world(mname, oldname[0] ? oldname : NULL))
                     entities::spawnitems(true);
                 remove(findfile(fname, "rb"));
+                SbPy::triggerEventStr("map_received", fname);
                 break;
             }
         }
@@ -1820,6 +1894,7 @@ namespace game
         if(!m_edit) { conoutf(CON_ERROR, "\"getmap\" only works in coop edit mode"); return; }
         conoutf("getting map...");
         addmsg(N_GETMAP, "r");
+        SbPy::triggerEvent("try_get_map", 0);
     }
     COMMAND(getmap, "");
 
@@ -1829,6 +1904,7 @@ namespace game
         {
             if(player1->privilege<PRIV_ADMIN) return;
             addmsg(N_STOPDEMO, "r");
+            SbPy::triggerEvent("try_stop_demo", 0);
         }
         else server::stopdemo();
     }
@@ -1838,6 +1914,7 @@ namespace game
     {
         if(remote && player1->privilege<PRIV_ADMIN) return;
         addmsg(N_RECORDDEMO, "ri", val);
+        SbPy::triggerEventInt("try_record_demo", val);
     }
     ICOMMAND(recorddemo, "i", (int *val), recorddemo(*val));
 
@@ -1845,6 +1922,7 @@ namespace game
     {
         if(remote && player1->privilege<PRIV_ADMIN) return;
         addmsg(N_CLEARDEMOS, "ri", val);
+        SbPy::triggerEventInt("try_clear_demos", val);
     }
     ICOMMAND(cleardemos, "i", (int *val), cleardemos(*val));
 
@@ -1853,6 +1931,7 @@ namespace game
         if(i<=0) conoutf("getting demo...");
         else conoutf("getting demo %d...", i);
         addmsg(N_GETDEMO, "ri", i);
+        SbPy::triggerEventInt("try_get_demo", i);
     }
     ICOMMAND(getdemo, "i", (int *val), getdemo(*val));
 
@@ -1860,12 +1939,14 @@ namespace game
     {
         conoutf("listing demos...");
         addmsg(N_LISTDEMOS, "r");
+        SbPy::triggerEvent("try_list_demos", 0);
     }
     COMMAND(listdemos, "");
 
     void sendmap()
     {
         if(!m_edit || (player1->state==CS_SPECTATOR && remote && !player1->privilege)) { conoutf(CON_ERROR, "\"sendmap\" only works in coop edit mode"); return; }
+        SbPy::triggerEvent("send_map_pre", 0);
         conoutf("sending map...");
         defformatstring(mname)("sendmap_%d", lastmillis);
         save_world(mname, true);
@@ -1882,8 +1963,11 @@ namespace game
                 if(needclipboard >= 0) needclipboard++;
             }
             delete map;
+            SbPy::triggerEvent("send_map", 0);
+        } else {
+            conoutf(CON_ERROR, "could not read map");
+            SbPy::triggerEvent("send_map_failed", 0);
         }
-        else conoutf(CON_ERROR, "could not read map");
         remove(findfile(fname, "rb"));
     }
     COMMAND(sendmap, "");

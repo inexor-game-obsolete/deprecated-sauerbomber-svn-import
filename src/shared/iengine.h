@@ -487,7 +487,7 @@ struct g3d_gui
 
     virtual void allowautotab(bool on) = 0;
     virtual bool shouldtab() { return false; }
-	virtual void tab(const char *name = NULL, int color = 0) = 0;
+    virtual void tab(const char *name = NULL, int color = 0) = 0;
     virtual int image(Texture *t, float scale, bool overlaid = false) = 0;
     virtual int texture(VSlot &vslot, float scale, bool overlaid = true) = 0;
     virtual void slider(int &val, int vmin, int vmax, int color, const char *label = NULL) = 0;

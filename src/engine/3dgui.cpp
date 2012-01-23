@@ -1088,7 +1088,10 @@ void g3d_render()
     
     if(!mainmenu) g3d_texturemenu();
     g3d_mainmenu();
-    if(!mainmenu) game::g3d_gamemenus();
+    if(!mainmenu) {
+        game::g3d_gamemenus();
+        game::g3d_pymenus();
+    }
 
     guis2d.sort(g3d_sort);
     guis3d.sort(g3d_sort);

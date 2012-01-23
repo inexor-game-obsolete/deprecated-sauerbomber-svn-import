@@ -226,7 +226,10 @@ struct editor
     bool region(int &sx, int &sy, int &ex, int &ey)
     {
         int n = lines.length(); 
-        assert(n != 0);
+        // TODO:
+        // WORKAROUND xsbs integration
+        // assert(n != 0);
+        // END WORKAROUND
         if(cy < 0) cy = 0; else if(cy >= n) cy = n-1;
         int len = lines[cy].len;
         if(cx < 0) cx = 0; else if(cx > len) cx = len;
@@ -251,7 +254,10 @@ struct editor
     editline &currentline()
     {
         int n = lines.length(); 
-        assert(n != 0);
+        // TODO:
+        // WORKAROUND xsbs integration
+        // assert(n != 0);
+        // END WORKAROUND
         if(cy < 0) cy = 0; else if(cy >= n) cy = n-1;
         if(cx < 0) cx = 0; else if(cx > lines[cy].len) cx = lines[cy].len;
         return lines[cy];

@@ -93,5 +93,6 @@ namespace engine {
         delete svnClient;
         delete context;
         delete listener;
+        return true;
     }
 }

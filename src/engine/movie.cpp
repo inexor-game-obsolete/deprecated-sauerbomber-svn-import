@@ -87,13 +87,20 @@ struct aviwriter
     
     void endchunk()
     {
-        assert(chunkdepth >= 0);
-        --chunkdepth;
+        // TODO:
+        // WORKAROUND xsbs
+        // assert(chunkdepth >= 0);
+        //--chunkdepth;
+        if(chunkdepth >= 0) --chunkdepth;
+        // END WORKAROUND
     }
 
     void endlistchunk()
     {
-        assert(chunkdepth >= 0);
+        // WORKAROUND xsbs
+        // assert(chunkdepth >= 0);
+        if(chunkdepth < 0) return;
+        // END WORKAROUND
         int size = int(totalsize - chunkoffsets[chunkdepth]);
         f->seek(-4 - size, SEEK_CUR);
         f->putlil(size);

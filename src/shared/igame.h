@@ -76,6 +76,7 @@ namespace game
     extern void readgamedata(vector<char> &extras);
     extern int clipconsole(int w, int h);
     extern void g3d_gamemenus();
+    extern void g3d_pymenus();
     extern const char *defaultcrosshair(int index);
     extern int selectcrosshair(float &r, float &g, float &b);
     extern void lighteffects(dynent *d, vec &color, vec &dir);
@@ -95,7 +96,7 @@ namespace server
 {
     extern void *newclientinfo();
     extern void deleteclientinfo(void *ci);
-    extern void serverinit();
+    extern bool serverinit();
     extern int reserveclients();
     extern int numchannels();
     extern void clientdisconnect(int n);

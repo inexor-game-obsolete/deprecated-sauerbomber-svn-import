@@ -165,7 +165,7 @@ static struct gamemodeinfo
     { "hideandseek", M_HIDEANDSEEK | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. No teamkills." },
     { "insta hideandseek", M_HIDEANDSEEK | M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
     { "hideandseek freeze", M_HIDEANDSEEK | M_TEAM | M_FREEZE | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Hiders freezes Seekers, Seekers catches Hiders. No teamkills." },
-    { "duckandcover", M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Instagib Duck And Cover Team: You spawn with full rifle ammo and die instantly from one shot. Frag \f3enemies\fr to score points. Cover yourself and destroy the enemies coverage. There are no items." } /*,
+    { "duckandcover", M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Instagib Duck And Cover Team: You spawn with full rifle ammo and die instantly from one shot. Frag \fs\f3enemies\fr to score points. Cover yourself and destroy the enemies coverage. There are no items." } /*,
     { "hideandseek safari", M_HIDEANDSEEK | M_TEAM | M_SAFARI | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Seekers drugs Hiders, then hunt them down." } */
 };
 

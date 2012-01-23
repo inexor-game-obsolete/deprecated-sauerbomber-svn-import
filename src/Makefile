@@ -5,7 +5,7 @@ override CXXFLAGS+= -Wall -fsigned-char -fexceptions -fno-rtti
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX= native
 
-INCLUDES= -Ishared -Iengine -Ifpsgame -Iservices -Ienet/include
+INCLUDES= -Ishared -Iengine -Ifpsgame -Iservices -Ipycontrol -Ienet/include
 
 STRIP=
 ifeq (,$(findstring -g,$(CXXFLAGS)))
@@ -21,8 +21,8 @@ WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -Iinclude
 CLIENT_LIBS= -mwindows -Llib -lSDL -lSDL_image -lSDL_mixer -lzdll -lopengl32 -lenet -lws2_32 -lwinmm -static
 else	
-CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` -I/usr/include/svncpp -I/usr/include/subversion-1 `apr-1-config --includes`
-CLIENT_LIBS= -Lenet/.libs -lenet -L/usr/X11R6/lib -lX11 `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1
+CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` -I/usr/include/svncpp -I/usr/include/subversion-1 `apr-1-config --includes` `python-config --includes`
+CLIENT_LIBS= -Lenet/.libs -lenet -L/usr/X11R6/lib -lX11 `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1 `python-config --libs`
 endif
 ifeq ($(PLATFORM),Linux)
 CLIENT_LIBS+= -lrt
@@ -72,6 +72,7 @@ CLIENT_OBJS= \
 	engine/water.o \
 	engine/world.o \
 	engine/worldio.o \
+	services/clientservervars.o \
 	services/contentrepo.o \
 	services/svn.o \
 	services/callbacklistener.o \
@@ -85,7 +86,11 @@ CLIENT_OBJS= \
 	fpsgame/scoreboard.o \
 	fpsgame/server.o \
 	fpsgame/waypoint.o \
-	fpsgame/weapon.o
+	fpsgame/weapon.o \
+	pycontrol/sbpy.o \
+	pycontrol/menus.o \
+	pycontrol/sharedmodule.o \
+	pycontrol/clientmodule.o
 
 CLIENT_PCH= shared/cube.h.gch engine/engine.h.gch fpsgame/game.h.gch
 
@@ -94,8 +99,8 @@ SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -Iinclude
 SERVER_LIBS= -mwindows -Llib -lzdll -lenet -lws2_32 -lwinmm
 MASTER_LIBS= -Llib -lzdll -lenet -lws2_32 -lwinmm
 else
-SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I/usr/include/svncpp -I/usr/include/subversion-1 -I/usr/include/apr-1.0
-SERVER_LIBS= -Lenet/.libs -lenet -lz `sdl-config --libs` -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1
+SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I/usr/include/svncpp -I/usr/include/subversion-1 -I/usr/include/apr-1.0 `python-config --includes`
+SERVER_LIBS= -Lenet/.libs -lenet -lz `sdl-config --libs` -L/usr/lib/libsvncpp -lsvncpp -L/usr/lib/libapr-1 -lapr-1 -L/usr/lib/libsvn_client-1 -lsvn_client-1 `python-config --libs`
 MASTER_LIBS= $(SERVER_LIBS)
 endif
 SERVER_OBJS= \
@@ -105,11 +110,15 @@ SERVER_OBJS= \
 	engine/command-standalone.o \
 	engine/server-standalone.o \
 	engine/worldio-standalone.o \
+	services/clientservervars.o \
 	services/contentrepo.o \
 	services/svn.o \
 	services/callbacklistener.o \
 	fpsgame/entities-standalone.o \
-	fpsgame/server-standalone.o
+	fpsgame/server-standalone.o \
+	pycontrol/sbpy.o \
+	pycontrol/sharedmodule.o \
+	pycontrol/servermodule.o
 
 MASTER_OBJS= \
 	shared/crypto-standalone.o \
@@ -193,10 +202,10 @@ endif
 endif
 
 depend:
-	makedepend -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst .o,.cpp,$(CLIENT_OBJS))
-	makedepend -a -o.h.gch -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst .h.gch,.h,$(CLIENT_PCH))
-	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst -standalone.o,.cpp,$(SERVER_OBJS))
-	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame -Iservices $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
+	makedepend -Y -Ishared -Iengine -Ifpsgame -Iservices -Ipycontrol $(subst .o,.cpp,$(CLIENT_OBJS))
+	makedepend -a -o.h.gch -Y -Ishared -Iengine -Ifpsgame -Iservices -Ipycontrol $(subst .h.gch,.h,$(CLIENT_PCH))
+	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame -Iservices -Ipycontrol $(subst -standalone.o,.cpp,$(SERVER_OBJS))
+	makedepend -a -o-standalone.o -Y -Ishared -Iengine -Ifpsgame -Iservices -Ipycontrol $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
 
 engine/engine.h.gch: shared/cube.h.gch
 fpsgame/game.h.gch: shared/cube.h.gch
@@ -211,6 +220,8 @@ shared/stream.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h
 shared/stream.o: shared/command.h shared/iengine.h shared/igame.h
 shared/tools.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h
 shared/tools.o: shared/command.h shared/iengine.h shared/igame.h
+shared/tools.o: shared/assert.h shared/databuf.h shared/loops.h
+shared/tools.o: shared/sort.h shared/tmath.h shared/vector.h
 shared/zip.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h
 shared/zip.o: shared/command.h shared/iengine.h shared/igame.h
 engine/3dgui.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h

@@ -1,3 +1,4 @@
+#include "sbpy.h"
 #include "game.h"
 
 namespace game
@@ -259,7 +260,7 @@ namespace server
         int ping, aireinit;
         string clientmap;
         int mapcrc;
-        bool warned, gameclip;
+        bool warned, gameclip, active;
         ENetPacket *getdemo, *getmap, *clipboard;
         int lastclipboard, needclipboard;
 
@@ -354,6 +355,7 @@ namespace server
             ping = 0;
             aireinit = 0;
             needclipboard = 0;
+            active = false;
             cleanclipboard();
             mapchange();
         }
@@ -439,6 +441,8 @@ namespace server
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
+    SVAR(pyscriptspath, "repositories/sauerbomber-base/data/python");
+    SVAR(pyconfigpath, "repositories/sauerbomber-base/config");
     VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
@@ -514,14 +518,21 @@ namespace server
             case 'y': setsvar("serverpass", &arg[2]); return true;
             case 'p': setsvar("adminpass", &arg[2]); return true;
             case 'o': setvar("publicserver", atoi(&arg[2])); return true;
+            case 's': setsvar("pyscriptspath", &arg[2]); return true;
+            case 'a': setsvar("pyconfigpath", &arg[2]); return true;
         }
         return false;
     }
 
-    void serverinit()
+    bool serverinit()
     {
         smapname[0] = '\0';
         resetitems();
+
+        // Initialize python modules
+        if(!SbPy::init("sauerbomber", pyscriptspath, "sauerbomber"))
+            return false;
+        return true;
     }
 
     int numclients(int exclude = -1, bool nospec = true, bool noai = true, bool priv = false)
@@ -680,6 +691,7 @@ namespace server
         static const char *teamnames[2] = {"good", "evil"};
         vector<clientinfo *> team[2];
         float teamrank[2] = {0, 0};
+        SbPy::triggerEvent("autoteam", 0);
         for(int round = 0, remaining = clients.length(); remaining>=0; round++)
         {
             int first = round&1, second = (round+1)&1, selected = 0;
@@ -778,6 +790,7 @@ namespace server
         demotmp->seek(0, SEEK_SET);
         demotmp->read(d.data, len);
         DELETEP(demotmp);
+        SbPy::triggerEventInt("demo_recorded", demos.ulen - 1);
     }
 
     void writedemo(int chan, void *data, int len)
@@ -1010,11 +1023,20 @@ namespace server
             else if(ci->state.state==CS_SPECTATOR && !haspass && !authname && !ci->local) return;
             loopv(clients) if(ci!=clients[i] && clients[i]->privilege)
             {
-                if(haspass) clients[i]->privilege = PRIV_NONE;
+                if(haspass) {
+                    if(clients[i]->privilege == PRIV_MASTER)
+                        SbPy::triggerEventInt("player_released_master", clients[i]->clientnum);
+                    else if(clients[i]->privilege == PRIV_MASTER)
+                        SbPy::triggerEventInt("player_released_admin", clients[i]->clientnum);
+                    clients[i]->privilege = PRIV_NONE;
+                }
                 else if((authname || ci->local) && clients[i]->privilege<=PRIV_MASTER) continue;
                 else return;
             }
-            if(haspass) ci->privilege = PRIV_ADMIN;
+            if(haspass) {
+                ci->privilege = PRIV_ADMIN;
+                SbPy::triggerEventInt("player_claimed_admin", ci->clientnum);
+            }
             else if(!authname && !(mastermask&MM_AUTOAPPROVE) && !ci->privilege && !ci->local)
             {
                 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "This server requires you to use the \"/auth\" command to gain master.");
@@ -1027,6 +1049,7 @@ namespace server
                     loopv(clients) if(ci!=clients[i] && clients[i]->privilege<=PRIV_MASTER) revokemaster(clients[i]);
                 }
                 ci->privilege = PRIV_MASTER;
+                SbPy::triggerEventInt("player_claimed_master", ci->clientnum);
             }
             name = privname(ci->privilege);
         }
@@ -1036,6 +1059,7 @@ namespace server
             name = privname(ci->privilege);
             revokemaster(ci);
         }
+        if (mastermode != MM_OPEN) SbPy::triggerEventInt("server_mastermode_changed", mastermode);
         mastermode = MM_OPEN;
         allowedips.shrink(0);
         string msg;
@@ -1463,6 +1487,7 @@ namespace server
         
     void changemap(const char *s, int mode)
     {
+        SbPy::triggerEvent("map_changed_pre", 0);
         stopdemo();
         pausegame(false);
         if(smode) smode->cleanup();
@@ -1535,6 +1560,7 @@ namespace server
                 if(m_mp(gamemode) && ci->state.state!=CS_SPECTATOR) sendspawn(ci);
             }
         }
+        SbPy::triggerEventStrInt("map_changed", smapname, mode);
     }
 
     struct votecount
@@ -1627,6 +1653,7 @@ namespace server
         if(gamemillis >= gamelimit && !interm && !m_timeforward)
         {
             sendf(-1, 1, "ri2", N_TIMEUP, 0);
+            SbPy::triggerEvent("intermission_begin", 0);
             if(smode) smode->intermission();
             interm = gamemillis + 10000;
         }
@@ -1643,6 +1670,7 @@ namespace server
         if(interm) return;
         interm = gamemillis + 10000;
         sendf(-1, 1, "ri2", N_TIMEUP, 0);
+        SbPy::triggerEvent("intermission_begin", 0);
         if(smode) smode->intermission();
     }
 
@@ -1711,7 +1739,11 @@ namespace server
         if(ts.health<=0)
         {
             target->state.deaths++;
-            if(actor!=target && isteam(actor->team, target->team)) actor->state.teamkills++;
+            if(actor!=target && isteam(actor->team, target->team)) {
+                actor->state.teamkills++;
+                if(actor->clientnum != target->clientnum)
+                    SbPy::triggerEventIntInt("player_teamkill", actor->clientnum, target->clientnum);
+            }
             int fragvalue = smode ? smode->fragvalue(target, actor) : (target==actor || isteam(target->team, actor->team) ? -1 : 1);
             actor->state.frags += fragvalue;
             if(fragvalue>0)
@@ -1728,6 +1760,7 @@ namespace server
             ts.lastdeath = gamemillis;
             if (m_lms) checklms(); // Last Man Standing
             else ts.respawn(gamemode);
+            SbPy::triggerEventIntInt("player_frag", actor->clientnum, target->clientnum);
             // don't issue respawn yet until DEATHMILLIS has elapsed
             // ts.respawn();
         }
@@ -1964,11 +1997,14 @@ namespace server
             }
         }
 
+        SbPy::update();
+
         if(!gamepaused && m_timed && smapname[0] && gamemillis-curtime>0) checkintermission();
         if(interm > 0 && gamemillis>interm)
         {
             if(demorecord) enddemorecord();
             interm = -1;
+            SbPy::triggerEvent("intermission_ended", 0);
             checkvotes(true);
         }
     }
@@ -2014,6 +2050,7 @@ namespace server
         {
             clientinfo *ci = clients[i];
             if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || ci->clientmap[0] || ci->mapcrc >= 0 || (req < 0 && ci->warned)) continue;
+            SbPy::triggerEventInt("player_modified_map", ci->clientnum);
             formatstring(msg)("%s has modified map \"%s\"", colorname(ci), smapname);
             sendf(req, 1, "ris", N_SERVMSG, msg);
             if(req < 0) ci->warned = true;
@@ -2026,6 +2063,7 @@ namespace server
             {
                 clientinfo *ci = clients[j];
                 if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || !ci->clientmap[0] || ci->mapcrc != info.crc || (req < 0 && ci->warned)) continue;
+                SbPy::triggerEventInt("player_modified_map", ci->clientnum);
                 formatstring(msg)("%s has modified map \"%s\"", colorname(ci), smapname);
                 sendf(req, 1, "ris", N_SERVMSG, msg);
                 if(req < 0) ci->warned = true;
@@ -2042,6 +2080,7 @@ namespace server
     {
         bannedips.shrink(0);
         aiman::clearai();
+        SbPy::triggerEvent("no_clients", 0);
     }
 
     void localconnect(int n)
@@ -2079,6 +2118,8 @@ namespace server
     void clientdisconnect(int n)
     {
         clientinfo *ci = getinfo(n);
+        SbPy::triggerEventInt("player_disconnect", n);
+        SbPy::triggerEventInt("player_disconnect_post", n);
         if(ci->connected)
         {
             if(ci->privilege) setmaster(ci, false);
@@ -2154,6 +2195,8 @@ namespace server
         loopv(bannedips) if(bannedips[i].ip==ip) return DISC_IPBAN;
         if(checkgban(ip)) return DISC_IPBAN;
         if(mastermode>=MM_PRIVATE && allowedips.find(ip)<0) return DISC_PRIVATE;
+        if(!SbPy::triggerPolicyEventIntString("connect_private", ci->clientnum, pwd)) return DISC_PRIVATE;
+        if(!SbPy::triggerPolicyEventIntString("connect_kick", ci->clientnum, pwd)) return DISC_KICK;
         return DISC_NONE;
     }
 
@@ -2195,6 +2238,7 @@ namespace server
 
     void tryauth(clientinfo *ci, const char *user)
     {
+        SbPy::triggerEventIntString("player_auth_request", ci->clientnum, user);
         if(!nextauthreq) nextauthreq = 1;
         ci->authreq = nextauthreq++;
         filtertext(ci->authname, user, false, 100);
@@ -2207,6 +2251,7 @@ namespace server
 
     void answerchallenge(clientinfo *ci, uint id, char *val)
     {
+        SbPy::triggerEventIntIntString("player_auth_challenge_response", ci->clientnum, id, val);
         if(ci->authreq != id) return;
         for(char *s = val; *s; s++)
         {
@@ -2247,6 +2292,7 @@ namespace server
         mapdata->write(data, len);
         defformatstring(msg)("[%s uploaded map to server, \"/getmap\" to receive it]", colorname(ci));
         sendservmsg(msg);
+        SbPy::triggerEventInt("player_uploaded_map", sender);
     }
 
     void sendclipboard(clientinfo *ci)
@@ -2282,6 +2328,10 @@ namespace server
                 copystring(ci->name, text, MAXNAMELEN+1);
 
                 getstring(text, p);
+
+                SbPy::triggerEventInt("player_connect_pre", ci->clientnum);
+                SbPy::triggerEventInt("player_connect", ci->clientnum);
+
                 int disc = allowconnect(ci, text);
                 if(disc)
                 {
@@ -2370,7 +2420,13 @@ namespace server
                         cp->position.setsize(0);
                         while(curmsg<p.length()) cp->position.add(p.buf[curmsg++]);
                     }
-                    if(smode && cp->state.state==CS_ALIVE) smode->moved(cp, cp->state.o, cp->gameclip, pos, (flags&0x80)!=0);
+                    if(smode && cp->state.state==CS_ALIVE) {
+                        if(!cp->active) {
+                            cp->active = true;
+                            SbPy::triggerEventInt("player_active", cp->clientnum);
+                        }
+                        smode->moved(cp, cp->state.o, cp->gameclip, pos, (flags&0x80)!=0);
+                    }
                     cp->state.o = pos;
                     cp->gameclip = (flags&0x80)!=0;
                 }
@@ -2510,7 +2566,10 @@ namespace server
 
             case N_SUICIDE:
             {
-                if(cq) cq->addevent(new suicideevent);
+                if(cq) {
+                    cq->addevent(new suicideevent);
+                    SbPy::triggerEventInt("player_suicide", cq->clientnum);
+                }
                 break;
             }
 
@@ -2588,16 +2647,44 @@ namespace server
 
             case N_TEXT:
             {
+                getstring(text, p);
+                filtertext(text, text);
+                if(SbPy::triggerPolicyEventIntString("allow_message", ci->clientnum, text))
+                {
+                    SbPy::triggerEventIntString("player_message", ci->clientnum, text);
+                    QUEUE_AI;
+                    QUEUE_INT(N_TEXT);
+                    QUEUE_STR(text);
+                }
+                break;
+                /* before xsbs integration
+                break;
                 QUEUE_AI;
                 QUEUE_MSG;
                 getstring(text, p);
                 filtertext(text, text);
                 QUEUE_STR(text);
                 break;
+                */
             }
 
             case N_SAYTEAM:
             {
+                getstring(text, p);
+                // TODO: Should this event be triggered before or after check?
+                if(!ci || !cq || (ci->state.state==CS_SPECTATOR && !ci->local && !ci->privilege) || !m_teammode || !cq->team[0]) break;
+                if(SbPy::triggerPolicyEventIntString("allow_message_team", ci->clientnum, text))
+                {
+                    SbPy::triggerEventIntString("player_message_team", ci->clientnum, text);
+                    loopv(clients)
+                    {
+                        clientinfo *t = clients[i];
+                        if(t==cq || t->state.state==CS_SPECTATOR || t->state.aitype != AI_NONE || strcmp(cq->team, t->team)) continue;
+                        sendf(t->clientnum, 1, "riis", N_SAYTEAM, cq->clientnum, text);
+                    }
+                }
+                break;
+                /* before xsbs integration
                 getstring(text, p);
                 if(!ci || !cq || (ci->state.state==CS_SPECTATOR && !ci->local && !ci->privilege) || !m_teammode || !cq->team[0]) break;
                 loopv(clients)
@@ -2607,14 +2694,19 @@ namespace server
                     sendf(t->clientnum, 1, "riis", N_SAYTEAM, cq->clientnum, text);
                 }
                 break;
+                */
             }
 
             case N_SWITCHNAME:
             {
                 QUEUE_MSG;
                 getstring(text, p);
+                char *oldname = (char*)malloc(strlen(ci->name)+1);
+                strcpy(oldname, ci->name);
                 filtertext(ci->name, text, false, MAXNAMELEN);
                 if(!ci->name[0]) copystring(ci->name, "unnamed");
+                SbPy::triggerEventIntStringString("player_name_changed", ci->clientnum, oldname, ci->name);
+                free(oldname);
                 QUEUE_STR(ci->name);
                 break;
             }
@@ -2623,6 +2715,7 @@ namespace server
             {
                 ci->playermodel = getint(p);
                 QUEUE_MSG;
+                SbPy::triggerEventIntInt("player_model_changed", ci->clientnum, ci->playermodel);
                 break;
             }
 
@@ -2630,12 +2723,14 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text, false, MAXTEAMLEN);
-                if(strcmp(ci->team, text) && m_teammode && (!smode || smode->canchangeteam(ci, ci->team, text)))
+                SbPy::triggerEventIntString("player_switch_team", sender, text);
+                if(strcmp(ci->team, text) && m_teammode && (!smode || smode->canchangeteam(ci, ci->team, text))) // TODO: allow_switch_team event
                 {
                     if(ci->state.state==CS_ALIVE) suicide(ci);
                     copystring(ci->team, text);
                     aiman::changeteam(ci);
                     sendf(-1, 1, "riisi", N_SETTEAM, sender, ci->team, ci->state.state==CS_SPECTATOR ? -1 : 0);
+                    SbPy::triggerEventInt("player_team_changed", ci->clientnum);
                 }
                 break;
             }
@@ -2646,6 +2741,10 @@ namespace server
                 getstring(text, p);
                 filtertext(text, text, false);
                 int reqmode = getint(p);
+                if(type==N_MAPVOTE)
+                    SbPy::triggerEventIntStringInt("player_map_vote", sender, text, reqmode);
+                else
+                    SbPy::triggerEventIntStringInt("player_map_set", sender, text, reqmode);
                 if(type!=N_MAPVOTE && !mapreload) break;
                 vote(text, reqmode, sender);
                 break;
@@ -2740,6 +2839,7 @@ namespace server
                             loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
                         }
                         sendf(-1, 1, "rii", N_MASTERMODE, mastermode);
+                        SbPy::triggerEventIntInt("player_set_mastermode", ci->clientnum, mm);
                         //defformatstring(s)("mastermode is now %s (%d)", mastermodename(mastermode), mastermode);
                         //sendservmsg(s);
                     }
@@ -2756,6 +2856,7 @@ namespace server
             {
                 if(ci->privilege || ci->local)
                 {
+                    SbPy::triggerEventInt("server_clear_bans", ci->clientnum);
                     bannedips.shrink(0);
                     sendservmsg("cleared all bans");
                 }
@@ -2771,6 +2872,7 @@ namespace server
                     b.time = totalmillis;
                     b.ip = getclientip(victim);
                     allowedips.removeobj(b.ip);
+                    SbPy::triggerEventIntInt("player_kick", ci->clientnum, victim);
                     disconnect_client(victim, DISC_KICK);
                 }
                 break;
@@ -2778,10 +2880,15 @@ namespace server
 
             case N_SPECTATOR:
             {
+                bool spectated = false, unspectated = false;
                 int spectator = getint(p), val = getint(p);
                 if(!ci->privilege && !ci->local && (spectator!=sender || (ci->state.state==CS_SPECTATOR && mastermode>=MM_LOCKED))) break;
                 clientinfo *spinfo = (clientinfo *)getclientinfo(spectator); // no bots
                 if(!spinfo || (spinfo->state.state==CS_SPECTATOR ? val : !val)) break;
+                if(val)
+                    SbPy::triggerEventIntInt("player_request_spectate", ci->clientnum, spectator);
+                else
+                    SbPy::triggerEventIntInt("player_request_unspectate", ci->clientnum, spectator);
 
                 if(spinfo->state.state!=CS_SPECTATOR && val)
                 {
@@ -2790,6 +2897,7 @@ namespace server
                     spinfo->state.state = CS_SPECTATOR;
                     spinfo->state.timeplayed += lastmillis - spinfo->state.lasttimeplayed;
                     if(!spinfo->local && !spinfo->privilege) aiman::removeai(spinfo);
+                    spectated = true;
                 }
                 else if(spinfo->state.state==CS_SPECTATOR && !val)
                 {
@@ -2799,8 +2907,13 @@ namespace server
                     aiman::addclient(spinfo);
                     if(spinfo->clientmap[0] || spinfo->mapcrc) checkmaps();
                     sendf(-1, 1, "ri", N_MAPRELOAD);
+                    unspectated = true;
                 }
                 sendf(-1, 1, "ri3", N_SPECTATOR, spectator, val);
+                if(spectated)
+                         SbPy::triggerEventInt("player_spectated", spinfo->clientnum);
+                else if(unspectated)
+                         SbPy::triggerEventInt("player_unspectated", spinfo->clientnum);
                 if(!val && mapreload && !spinfo->privilege && !spinfo->local) sendf(spectator, 1, "ri", N_MAPRELOAD);
                 break;
             }
@@ -2815,6 +2928,7 @@ namespace server
                 if(!wi || !strcmp(wi->team, text)) break;
                 if(!smode || smode->canchangeteam(wi, wi->team, text))
                 {
+                    SbPy::triggerEventIntIntString("player_set_team", ci->clientnum, who, text);
                     if(wi->state.state==CS_ALIVE) suicide(wi);
                     copystring(wi->team, text, MAXTEAMLEN+1);
                 }
@@ -2831,6 +2945,7 @@ namespace server
             {
                 int val = getint(p);
                 if(ci->privilege<PRIV_ADMIN && !ci->local) break;
+                SbPy::triggerEventIntBool("player_record_demo", ci->clientnum, val != 0);
                 demonextmatch = val!=0;
                 defformatstring(msg)("demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
                 sendservmsg(msg);
@@ -2866,7 +2981,10 @@ namespace server
             }
 
             case N_GETMAP:
-                if(!mapdata) sendf(sender, 1, "ris", N_SERVMSG, "no map to send");
+                if(!mapdata) {
+                    sendf(sender, 1, "ris", N_SERVMSG, "no map to send");
+                    SbPy::triggerEventInt("player_get_map", ci->clientnum);
+                }
                 else if(ci->getmap) sendf(sender, 1, "ris", N_SERVMSG, "already sending map");
                 else
                 {
@@ -2896,6 +3014,10 @@ namespace server
             {
                 int val = getint(p);
                 getstring(text, p);
+                if(val!=0)
+                    SbPy::triggerEventIntString("player_setmaster", ci->clientnum, text);
+                else
+                    SbPy::triggerEventInt("player_setmaster_off", ci->clientnum);
                 setmaster(ci, val!=0, text);
                 // don't broadcast the master password
                 break;
@@ -2951,6 +3073,7 @@ namespace server
                 int val = getint(p);
                 if(ci->privilege<PRIV_ADMIN && !ci->local) break;
                 pausegame(val > 0);
+                SbPy::triggerEventIntBool("player_pause", ci->clientnum, val != 0);
                 break;
             }
 

@@ -1,7 +1,10 @@
 // server.cpp: little more than enhanced multicaster
 // runs dedicated or as client coroutine
 
+#include "sbpy.h"
 #include "engine.h"
+
+#include <signal.h>
 
 #define LOGSTRLEN 512
 
@@ -729,7 +732,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
         server::sendpackets();
         return;
     }
-       
+
     // below is network only
 
     if(dedicated) 
@@ -1101,9 +1104,17 @@ void logoutfv(const char *fmt, va_list args)
 
 #endif
 
+static bool rundedicated = true;
+
+void server_sigint(int signal)
+{
+    rundedicated = false;
+}
+
 void rundedicatedserver()
 {
     logoutf("dedicated server started, waiting for clients...");
+    SbPy::triggerEvent("server_start", 0);
 #ifdef WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	for(;;)
@@ -1118,7 +1129,7 @@ void rundedicatedserver()
 		serverslice(true, 5);
 	}
 #else
-    for(;;) serverslice(true, 5);
+    for(;rundedicated;) serverslice(true, 5);
 #endif
 }
 
@@ -1180,7 +1191,13 @@ void initserver(bool listen, bool dedicated)
 
     if(listen) setuplistenserver(dedicated);
 
-    server::serverinit();
+    if(!server::serverinit())
+    {
+        conoutf("Server: Python initialization failed. Starting plain sauer.");
+        // return;
+    }
+    signal(SIGINT, server_sigint);
+    signal(SIGTERM, server_sigint);
 
     if(listen)
     {
@@ -1261,6 +1278,8 @@ int main(int argc, char **argv)
     for(int i = 1; i<argc; i++) if(argv[i][0]!='-' || !serveroption(argv[i])) gameargs.add(argv[i]);
     game::parseoptions(gameargs);
     initserver(true, true);
+    SbPy::triggerEvent("server_stop", 0);
+    SbPy::deinitPy();
     return EXIT_SUCCESS;
 }
 #endif
