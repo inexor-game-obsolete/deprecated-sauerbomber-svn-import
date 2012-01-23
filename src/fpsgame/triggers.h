@@ -1,0 +1,13 @@
+#ifndef _FPSGAME_TRIGGERS_H
+#define _FPSGAME_TRIGGERS_H
+
+enum
+{
+    TRIGGER_RESET = 0,
+    TRIGGERING,
+    TRIGGERED,
+    TRIGGER_RESETTING,
+    TRIGGER_DISAPPEARED
+};
+
+#endif

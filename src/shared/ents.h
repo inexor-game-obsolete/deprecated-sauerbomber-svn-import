@@ -1,3 +1,6 @@
+#ifndef _SHARED_ENTS_H
+#define _SHARED_ENTS_H
+
 // this file defines static map entities ("entity") and dynamic entities (players/monsters, "dynent")
 // the gamecode extends these types to add game specific functionality
 
@@ -232,3 +235,4 @@ struct dynent : physent                         // animated characters, or chara
 };
 
 
+#endif

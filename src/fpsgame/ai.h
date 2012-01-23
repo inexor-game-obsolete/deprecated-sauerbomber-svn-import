@@ -1,4 +1,12 @@
+#ifndef _FPSGAME_AI_H
+#define _FPSGAME_AI_H
+
+// #include "fpsent.h"
+
 struct fpsent;
+
+extern int lastmillis;
+extern uint randomMT(void);
 
 #define MAXBOTS 32
 
@@ -314,3 +322,4 @@ namespace ai
 }
 
 
+#endif

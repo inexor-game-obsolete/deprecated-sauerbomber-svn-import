@@ -18,7 +18,6 @@
  */
 
 #include "servermodule.h"
-#include "sharedmodule.h"
 
 #include <iostream>
 
@@ -44,11 +43,9 @@ namespace SbPy {
         return pTuple;
     }
 
-    /*
     static PyObject *players(PyObject *self, PyObject *args) {
         server::clientinfo *ci;
-        std::vector<int> spects;
-        std::vector<int>::iterator itr;
+        vector<int> players;
         PyObject *pTuple;
         PyObject *pInt;
         int y = 0;
@@ -56,12 +53,11 @@ namespace SbPy {
         loopv(server::clients) {
             ci = server::getinfo(i);
             if(ci && ci->state.state != CS_SPECTATOR)
-              spects.push_back(i);
+                players.add(i);
         }
-        pTuple = PyTuple_New(spects.size());
-
-        for(itr = spects.begin(); itr != spects.end(); itr++) {
-            pInt = PyInt_FromLong(*itr);
+        pTuple = PyTuple_New(players.length());
+        loopv(players) {
+            pInt = PyInt_FromLong(players[i]);
             PyTuple_SetItem(pTuple, y, pInt);
             y++;
         }
@@ -70,8 +66,7 @@ namespace SbPy {
 
     static PyObject *spectators(PyObject *self, PyObject *args) {
         server::clientinfo *ci;
-        std::vector<int> spects;
-        std::vector<int>::iterator itr;
+        vector<int> spectators;
         PyObject *pTuple;
         PyObject *pInt;
         int y = 0;
@@ -79,13 +74,12 @@ namespace SbPy {
         loopv(server::clients) {
             ci = server::getinfo(i);
             if(ci && ci->state.state == CS_SPECTATOR) {
-                spects.push_back(i);
+                spectators.add(i);
             }
         }
-        pTuple = PyTuple_New(spects.size());
-
-        for(itr = spects.begin(); itr != spects.end(); itr++) {
-            pInt = PyInt_FromLong(*itr);
+        pTuple = PyTuple_New(spectators.length());
+        loopv(spectators) {
+            pInt = PyInt_FromLong(spectators[i]);
             PyTuple_SetItem(pTuple, y, pInt);
             y++;
         }
@@ -116,7 +110,7 @@ namespace SbPy {
             PyErr_SetString(PyExc_ValueError, "Cannot send message to AI client");
             return 0;
         }
-        sendf(cn, 1, "ris", SV_SERVMSG, text);
+        sendf(cn, 1, "ris", N_SERVMSG, text);
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -377,7 +371,7 @@ namespace SbPy {
             return 0;
         }
         if(!ci->local && ci->privilege < PRIV_ADMIN)
-            sendf(cn, 1, "ris", SV_SERVMSG, "Insufficient permissions to add bot.");
+            sendf(cn, 1, "ris", N_SERVMSG, "Insufficient permissions to add bot.");
         else
             server::aiman::setbotlimit(ci, limit);
         Py_INCREF(Py_None);
@@ -540,13 +534,13 @@ namespace SbPy {
     }
 
     static PyObject *port(PyObject *self, PyObject *args) {
-        if(serverport <= 0)
-            return Py_BuildValue("i", server::serverport());
-        else
+        if(serverport > 0)
             return Py_BuildValue("i", serverport);
+        else
+          return Py_None;
     }
 
-    static PyObject *authChal(PyObject *self, PyObject *args) {
+    static PyObject *authChallenge(PyObject *self, PyObject *args) {
         int cn, id;
         char *chal;
         server::clientinfo *ci;
@@ -561,10 +555,10 @@ namespace SbPy {
         return Py_None;
     }
 
-    static PyObject *setGameMins(PyObject *self, PyObject *args) {
-        int mm;
-        if(!PyArg_ParseTuple(args, "i", &mm)) return 0;
-        server::setgamemins(mm);
+    static PyObject *setRemainingMillis(PyObject *self, PyObject *args) {
+        int millis;
+        if(!PyArg_ParseTuple(args, "i", &millis)) return 0;
+        server::setremainingmillis(millis);
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -575,26 +569,24 @@ namespace SbPy {
         return Py_None;
     }
 
-    static PyObject *adminPass(PyObject *self, PyObject *args) {
-        return Py_BuildValue("s", server::adminpass);
-    }
-
     static PyObject *sendMapReload(PyObject *self, PyObject *args) {
         server::sendmapreload();
         Py_INCREF(Py_None);
         return Py_None;
     }
 
+    static PyObject *adminPass(PyObject *self, PyObject *args) {
+        return Py_BuildValue("s", server::adminpass);
+    }
+
     static PyObject *serverPassword(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", server::serverpass);
     }
 
-    static PyObject *minRemain(PyObject *self, PyObject *args) {
-        return Py_BuildValue("i", server::minremain);
+    static PyObject *remainingMillis(PyObject *self, PyObject *args) {
+        return Py_BuildValue("i", server::gamelimit - totalmillis);
     }
-    */
 
-    /*
     static PyObject *setTeam(PyObject *self, PyObject *args) {
         int cn;
         char *team;
@@ -625,6 +617,7 @@ namespace SbPy {
         return Py_None;
     }
 
+    /*
     static PyObject *teamScore(PyObject *self, PyObject *args) {
         char *team;
         if(!PyArg_ParseTuple(args, "s", &team)) return 0;
@@ -644,7 +637,6 @@ namespace SbPy {
         return Py_None;
     }
 
-    /*
     static PyObject *demoSize(PyObject *self, PyObject *args) {
         int num;
         if(!PyArg_ParseTuple(args, "i", &num)) return 0;
@@ -678,11 +670,10 @@ namespace SbPy {
             PyErr_SetString(PyExc_ValueError, "Invalid demo number");
             return 0;
         }
-        server::senddemo(cn, num);
+        server::senddemo(ci, num);
         Py_INCREF(Py_None);
         return Py_None;
     }
-    */
 
     static PyObject *suicide(PyObject *self, PyObject *args) {
         int cn;
@@ -707,11 +698,10 @@ namespace SbPy {
     PyMethodDef ModuleMethods[] = {
         /* from servermodule.cpp */
         {"numClients", numClients, METH_VARARGS, "Return the number of clients on the server."},
-        // {"message", message, METH_VARARGS, "Send a server message."},
+        {"message", message, METH_VARARGS, "Send a server message."},
         {"clients", clients, METH_VARARGS, "List of client numbers."},
-        /*
-        {"players", players, METH_VARARGS, "List of client numbers of active clients."},
-        {"spectators", spectators, METH_VARARGS, "List of client numbers of spectating clients."},
+        // {"players", players, METH_VARARGS, "List of client numbers of active clients."},
+        // {"spectators", spectators, METH_VARARGS, "List of client numbers of spectating clients."},
         {"playerMessage", playerMessage, METH_VARARGS, "Send a message to player."},
         {"playerName", playerName, METH_VARARGS, "Get name of player from cn."},
         {"playerSessionId", playerSessionId, METH_VARARGS, "Session ID of player."},
@@ -751,22 +741,21 @@ namespace SbPy {
         {"uptime", uptime, METH_VARARGS, "Number of milliseconds server has been running."},
         {"ip", ip, METH_VARARGS, "Current server ip."},
         {"port", port, METH_VARARGS, "Current server port."},
-        {"authChallenge", authChal, METH_VARARGS, "Send auth challenge to client."},
-        {"setMinsRemaining", setGameMins, METH_VARARGS, "Set the minutes remanining in current game."},
+        {"authChallenge", authChallenge, METH_VARARGS, "Send auth challenge to client."},
+        {"setRemainingMillis", setRemainingMillis, METH_VARARGS, "Set the minutes remanining in current game."},
         {"endGame", endGame, METH_VARARGS, "End the current game."},
-        {"adminPassword", adminPass, METH_VARARGS, "Get the administrator password."},
         {"sendMapReload", sendMapReload, METH_VARARGS, "Causes all users to send vote on next map."},
+        {"adminPassword", adminPass, METH_VARARGS, "Get the administrator password."},
         {"serverPassword", serverPassword, METH_VARARGS, "Password for entry to the server."},
-        {"minutesRemaining", minRemain, METH_VARARGS, "Minutes remaining in current match."},
+        {"remainingMillis", remainingMillis, METH_VARARGS, "Minutes remaining in current match."},
         {"setTeam", setTeam, METH_VARARGS, "Set team of player."},
-        */
-        // {"pregameSetTeam", pregameSetTeam, METH_VARARGS, "Set team of player as a result of autoteam event."},
+        {"pregameSetTeam", pregameSetTeam, METH_VARARGS, "Set team of player as a result of autoteam event."},
         // {"teamScore", teamScore, METH_VARARGS, "Score of team."},
         {"nextMatchRecorded", nextMatchRecorded, METH_VARARGS, "Is next match being recorded."},
         {"setRecordNextMatch", setRecordNextMatch, METH_VARARGS, "Set to record demo of next match."},
-        // {"demoSize", demoSize, METH_VARARGS, "Size of demo in bytes."},
-        // {"demoData", demoData, METH_VARARGS, "Demo data."},
-        // {"sendDemo", sendDemo, METH_VARARGS, "Send demo to client."},
+        {"demoSize", demoSize, METH_VARARGS, "Size of demo in bytes."},
+        {"demoData", demoData, METH_VARARGS, "Demo data."},
+        {"sendDemo", sendDemo, METH_VARARGS, "Send demo to client."},
         {"suicide", suicide, METH_VARARGS, "Force client to commit suicide."},
         /* from sharedmodule.cpp */
         {"pyscriptspath", pyscriptspath, METH_VARARGS, "Plugin path."},

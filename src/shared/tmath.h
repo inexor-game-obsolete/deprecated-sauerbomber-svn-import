@@ -38,4 +38,10 @@ static inline T clamp(T a, T b, T c)
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 
+#define PI  (3.1415927f)
+#define PI2 (2*PI)
+#define SQRT2 (1.4142136f)
+#define SQRT3 (1.7320508f)
+#define RAD (PI / 180.0f)
+
 #endif

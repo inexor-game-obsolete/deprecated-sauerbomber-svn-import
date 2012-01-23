@@ -1,3 +1,8 @@
+#ifndef SHARED_GEOM_H
+#define SHARED_GEOM_H
+
+#include "tmath.h"
+
 struct vec4;
 struct vec2;
 
@@ -1370,3 +1375,4 @@ extern bool linecylinderintersect(const vec &from, const vec &to, const vec &sta
 
 extern const vec2 sincos360[];
 
+#endif

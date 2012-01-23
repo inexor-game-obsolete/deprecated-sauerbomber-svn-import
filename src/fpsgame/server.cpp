@@ -1,4 +1,4 @@
-#include "sbpy.h"
+#include "server.h"
 #include "game.h"
 
 namespace game
@@ -20,389 +20,8 @@ extern ENetAddress masteraddress;
 
 namespace server
 {
-    struct server_entity            // server side version of entities and movables
-    {
-        int type;
-        int spawntime;
-        char spawned;
-        int maxrespawns;
-        uchar state;
-        int health;
-    };
 
-    static const int DEATHMILLIS = 300;
-
-    struct clientinfo;
     int gamemode = 0;
-
-    struct gameevent
-    {
-        virtual ~gameevent() {}
-
-        virtual bool flush(clientinfo *ci, int fmillis);
-        virtual void process(clientinfo *ci) {}
-
-        virtual bool keepable() const { return false; }
-    };
-
-    struct timedevent : gameevent
-    {
-        int millis;
-
-        bool flush(clientinfo *ci, int fmillis);
-    };
-
-    struct hitinfo
-    {
-        int target;
-        int lifesequence;
-        int rays;
-        float dist;
-        vec dir;
-    };
-
-    struct shotevent : timedevent
-    {
-        int id, gun;
-        vec from, to;
-        vector<hitinfo> hits;
-
-        void process(clientinfo *ci);
-    };
-
-    struct explodeevent : timedevent
-    {
-        int id, gun;
-        vector<hitinfo> hits;
-
-        bool keepable() const { return true; }
-
-        void process(clientinfo *ci);
-    };
-
-    struct suicideevent : gameevent
-    {
-        void process(clientinfo *ci);
-    };
-
-    struct pickupevent : gameevent
-    {
-        int ent;
-
-        void process(clientinfo *ci);
-    };
-
-    template <int N>
-    struct projectilestate
-    {
-        int projs[N];
-        int numprojs;
-
-        projectilestate() : numprojs(0) {}
-
-        void reset() { numprojs = 0; }
-
-        void add(int val)
-        {
-            if(numprojs>=N) numprojs = 0;
-            projs[numprojs++] = val;
-        }
-
-        bool remove(int val)
-        {
-            loopi(numprojs) if(projs[i]==val)
-            {
-                projs[i] = projs[--numprojs];
-                return true;
-            }
-            return false;
-        }
-    };
-
-    struct gamestate : fpsstate
-    {
-        vec o;
-        int state, editstate;
-        int lastdeath, lastspawn, lifesequence;
-        int lastshot;
-        projectilestate<8> rockets, grenades, bombs;
-        int frags, flags, deaths, teamkills, shotdamage, damage, tokens;
-        int lasttimeplayed, timeplayed;
-        float effectiveness;
-
-        gamestate() : state(CS_DEAD), editstate(CS_DEAD) {}
-
-        bool isalive(int gamemillis)
-        {
-            return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
-        }
-
-        bool waitexpired(int gamemillis)
-        {
-            return gamemillis - lastshot >= gunwait;
-        }
-
-        void reset()
-        {
-            if(state!=CS_SPECTATOR) state = editstate = CS_DEAD;
-            maxhealth = 100;
-            rockets.reset();
-            grenades.reset();
-            bombs.reset();
-
-            timeplayed = 0;
-            effectiveness = 0;
-            frags = flags = deaths = teamkills = shotdamage = damage = tokens = 0;
-
-            respawn(gamemode);
-        }
-
-        void respawn(int gamemode = NULL)
-        {
-            fpsstate::respawn(gamemode);
-            o = vec(-1e10f, -1e10f, -1e10f);
-            lastdeath = 0;
-            lastspawn = -1;
-            lastshot = 0;
-            tokens = 0;
-        }
-
-        void reassign()
-        {
-            respawn(gamemode);
-            rockets.reset();
-            grenades.reset();
-            bombs.reset();
-        }
-
-        void setbackupweapon(int backupweapon)
-        {
-        	fpsstate::backupweapon = GUN_BOMB;
-        }
-
-    };
-
-    struct savedscore
-    {
-        uint ip;
-        string name;
-        int maxhealth, frags, flags, deaths, teamkills, shotdamage, damage;
-        int timeplayed;
-        float effectiveness;
-        int bombradius;
-        int bombdelay;
-        int racetime;
-        int racelaps;
-        int racecheckpoint;
-        int racerank;
-        int racestate;
-
-        void save(gamestate &gs)
-        {
-            maxhealth = gs.maxhealth;
-            frags = gs.frags;
-            flags = gs.flags;
-            deaths = gs.deaths;
-            teamkills = gs.teamkills;
-            shotdamage = gs.shotdamage;
-            damage = gs.damage;
-            timeplayed = gs.timeplayed;
-            effectiveness = gs.effectiveness;
-            bombradius = gs.bombradius;
-            bombdelay = gs.bombdelay;
-            racetime = gs.racetime;
-            racelaps = gs.racelaps;
-            racecheckpoint = gs.racecheckpoint;
-            racerank = gs.racerank;
-            racestate = gs.racestate;
-        }
-
-        void restore(gamestate &gs)
-        {
-            if(gs.health==gs.maxhealth) gs.health = maxhealth;
-            gs.maxhealth = maxhealth;
-            gs.frags = frags;
-            gs.flags = flags;
-            gs.deaths = deaths;
-            gs.teamkills = teamkills;
-            gs.shotdamage = shotdamage;
-            gs.damage = damage;
-            gs.timeplayed = timeplayed;
-            gs.effectiveness = effectiveness;
-            gs.bombradius = bombradius;
-            gs.bombdelay = bombdelay;
-            gs.racetime = racetime;
-            gs.racelaps = racelaps;
-            gs.racecheckpoint = racecheckpoint;
-            gs.racerank = racerank;
-            gs.racestate = racestate;
-        }
-    };
-
-    extern int gamemillis, nextexceeded;
-
-    struct clientinfo
-    {
-        int clientnum, ownernum, connectmillis, sessionid, overflow;
-        string name, team, mapvote;
-        int playermodel;
-        int modevote;
-        int privilege;
-        bool connected, local, timesync;
-        int gameoffset, lastevent, pushed, exceeded;
-        gamestate state;
-        vector<gameevent *> events;
-        vector<uchar> position, messages;
-        int posoff, poslen, msgoff, msglen;
-        vector<clientinfo *> bots;
-        uint authreq;
-        string authname;
-        int ping, aireinit;
-        string clientmap;
-        int mapcrc;
-        bool warned, gameclip, active;
-        ENetPacket *getdemo, *getmap, *clipboard;
-        int lastclipboard, needclipboard;
-
-        clientinfo() : getdemo(NULL), getmap(NULL), clipboard(NULL) { reset(); }
-        ~clientinfo() { events.deletecontents(); cleanclipboard(); }
-
-        void addevent(gameevent *e)
-        {
-            if(state.state==CS_SPECTATOR || events.length()>100) delete e;
-            else events.add(e);
-        }
-
-        enum
-        {
-            PUSHMILLIS = 2500
-        };
-
-        int calcpushrange()
-        {
-            ENetPeer *peer = getclientpeer(ownernum);
-            return PUSHMILLIS + (peer ? peer->roundTripTime + peer->roundTripTimeVariance : ENET_PEER_DEFAULT_ROUND_TRIP_TIME);
-        }
-
-        bool checkpushed(int millis, int range)
-        {
-            return millis >= pushed - range && millis <= pushed + range;
-        }
-
-        void scheduleexceeded()
-        {
-            if(state.state!=CS_ALIVE || !exceeded) return;
-            int range = calcpushrange();
-            if(!nextexceeded || exceeded + range < nextexceeded) nextexceeded = exceeded + range;
-        }
-
-        void setexceeded()
-        {
-            if(state.state==CS_ALIVE && !exceeded && !checkpushed(gamemillis, calcpushrange())) exceeded = gamemillis;
-            scheduleexceeded(); 
-        }
-            
-        void setpushed()
-        {
-            pushed = max(pushed, gamemillis);
-            if(exceeded && checkpushed(exceeded, calcpushrange())) exceeded = 0;
-        }
-        
-        bool checkexceeded()
-        {
-            return state.state==CS_ALIVE && exceeded && gamemillis > exceeded + calcpushrange() && !m_race; // TODO: check if there are physics manipulation entities
-        }
-
-        void mapchange()
-        {
-            mapvote[0] = 0;
-            state.reset();
-            events.deletecontents();
-            overflow = 0;
-            timesync = false;
-            lastevent = 0;
-            exceeded = 0;
-            pushed = 0;
-            clientmap[0] = '\0';
-            mapcrc = 0;
-            warned = false;
-            gameclip = false;
-        }
-
-        void reassign()
-        {
-            state.reassign();
-            events.deletecontents();
-            timesync = false;
-            lastevent = 0;
-        }
-
-        void cleanclipboard(bool fullclean = true)
-        {
-            if(clipboard) { if(--clipboard->referenceCount <= 0) enet_packet_destroy(clipboard); clipboard = NULL; }
-            if(fullclean) lastclipboard = 0;
-        }
-
-        void reset()
-        {
-            name[0] = team[0] = 0;
-            playermodel = -1;
-            privilege = PRIV_NONE;
-            connected = local = false;
-            authreq = 0;
-            position.setsize(0);
-            messages.setsize(0);
-            ping = 0;
-            aireinit = 0;
-            needclipboard = 0;
-            active = false;
-            cleanclipboard();
-            mapchange();
-        }
-
-        int geteventmillis(int servmillis, int clientmillis)
-        {
-            if(!timesync || (events.empty() && state.waitexpired(servmillis)))
-            {
-                timesync = true;
-                gameoffset = servmillis - clientmillis;
-                return servmillis;
-            }
-            else return gameoffset + clientmillis;
-        }
-    };
-
-    struct worldstate
-    {
-        int uses;
-        vector<uchar> positions, messages;
-    };
-
-    struct ban
-    {
-        int time;
-        uint ip;
-    };
-
-    namespace aiman
-    {
-        extern void removeai(clientinfo *ci);
-        extern void clearai();
-        extern void checkai();
-        extern void reqadd(clientinfo *ci, int skill);
-        extern void reqdel(clientinfo *ci);
-        extern void setbotlimit(clientinfo *ci, int limit);
-        extern void setbotbalance(clientinfo *ci, bool balance);
-        extern void changemap();
-        extern void addclient(clientinfo *ci);
-        extern void changeteam(clientinfo *ci);
-    }
-
-    #define MM_MODE 0xF
-    #define MM_AUTOAPPROVE 0x1000
-    #define MM_PRIVSERV (MM_MODE | MM_AUTOAPPROVE)
-    #define MM_PUBSERV ((1<<MM_OPEN) | (1<<MM_VETO))
-    #define MM_COOPSERV (MM_AUTOAPPROVE | MM_PUBSERV | (1<<MM_LOCKED))
 
     bool notgotitems = true;        // true when map has changed and waiting for clients to send item
 //Hanack    int gamemode = 0; // moved to top
@@ -415,6 +34,7 @@ namespace server
     enet_uint32 lastsend = 0;
     int mastermode = MM_OPEN, mastermask = MM_PRIVSERV;
     int currentmaster = -1;
+    bool masterupdate = false;
     stream *mapdata = NULL;
 
     vector<uint> allowedips;
@@ -422,13 +42,6 @@ namespace server
     vector<clientinfo *> connects, clients, bots;
     vector<worldstate *> worldstates;
     bool reliablemessages = false;
-
-    struct demofile
-    {
-        string info;
-        uchar *data;
-        int len;
-    };
 
     #define MAXDEMOS 5
     #define MAXDEMOSIZE (16*1024*1024)
@@ -684,6 +297,45 @@ namespace server
             if(!best || rank > bestrank) { best = ci; bestrank = rank; }
         }
         return best;
+    }
+
+    bool setteam(clientinfo *ci, char *team)
+    {
+        if(!ci || !strcmp(ci->team, team)) return false;
+        if(smode && ci->state.state==CS_ALIVE) smode->changeteam(ci, ci->team, team);
+        copystring(ci->team, team);
+        aiman::changeteam(ci);
+        sendf(-1, 1, "riis", N_SETTEAM, ci->clientnum, ci->team);
+        return true;
+    }
+
+    void switchteam(clientinfo *ci, char *team, int sender)
+    {
+        if(ci && strcmp(ci->team, team))
+        {
+            if(m_teammode && smode && !smode->canchangeteam(ci, ci->team, team))
+                sendf(sender, 1, "riis", N_SETTEAM, sender, ci->team);
+            else
+            {
+                if(smode && ci->state.state==CS_ALIVE)
+                    smode->changeteam(ci, ci->team, team);
+                copystring(ci->team, team);
+                aiman::changeteam(ci);
+                sendf(-1, 1, "riis", N_SETTEAM, sender, ci->team);
+            }
+        }
+    }
+
+    /* This is a special purpose function for setting teams pre-game
+       which wont be effected by the autoteam function. */
+    bool pregame_setteam(clientinfo *ci, char *team)
+    {
+        if(!ci) return false;
+        ci->state.timeplayed = -1;
+        if(!strcmp(ci->team, team)) return true;
+        copystring(ci->team, team, MAXTEAMLEN+1);
+        sendf(-1, 1, "riis", N_SETTEAM, ci->clientnum, team);
+        return true;
     }
 
     void autoteam()
@@ -1007,6 +659,43 @@ namespace server
     {
         ci->privilege = PRIV_NONE;
         if(ci->state.state==CS_SPECTATOR && !ci->local) aiman::removeai(ci);
+    }
+
+    void setcimaster(clientinfo *ci)
+    {
+        loopv(clients) if(ci!=clients[i] && clients[i]->privilege<=PRIV_MASTER) revokemaster(clients[i]);
+        if(ci)
+        {
+            ci->privilege = PRIV_MASTER;
+            currentmaster = ci->clientnum;
+            SbPy::triggerEventInt("player_claimed_master", ci->clientnum);
+        }
+        else
+        {
+            currentmaster = -1;
+        }
+        masterupdate = true;
+    }
+
+    void setciadmin(clientinfo *ci)
+    {
+        loopv(clients) if(ci!=clients[i] && clients[i]->privilege<=PRIV_MASTER) revokemaster(clients[i]);
+        ci->privilege = PRIV_ADMIN;
+        currentmaster = ci->clientnum;
+        masterupdate = true;
+        SbPy::triggerEventInt("player_claimed_admin", ci->clientnum);
+    }
+
+    void resetpriv(clientinfo *ci)
+    {
+        if(!ci || !ci->privilege) return;
+        if(ci->privilege == PRIV_MASTER)
+            SbPy::triggerEventInt("player_released_master", ci->clientnum);
+        else
+            SbPy::triggerEventInt("player_released_admin", ci->clientnum);
+        ci->privilege = PRIV_NONE;
+        masterupdate = true;
+        currentmaster = -1;
     }
 
     void setmaster(clientinfo *ci, bool val, const char *pass = "", const char *authname = NULL)
@@ -1610,6 +1299,23 @@ namespace server
         }
     }
 
+    void setmap(const char *s, int mode)
+    {
+        sendf(-1, 1, "risii", N_MAPCHANGE, s, mode, 1);
+        changemap(s, mode);
+    }
+
+    void setmastermode(int mm)
+    {
+        mastermode = mm;
+        allowedips.setsize(0);
+        if(mastermode>=MM_PRIVATE)
+        {
+            loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
+        }
+        SbPy::triggerEventInt("server_mastermode_changed", mastermode);
+    }
+
     void forcemap(const char *map, int mode)
     {
         stopdemo();
@@ -1646,6 +1352,16 @@ namespace server
             sendservmsg(msg);
             checkvotes();
         }
+    }
+
+    void setremainingmillis(int millis)
+    {
+        gamelimit = gamemillis + millis + 1;
+    }
+
+    void endgame()
+    {
+        setremainingmillis(0);
     }
 
     void checkintermission()
@@ -1727,7 +1443,10 @@ namespace server
         if (smode && !smode->canhit(target, actor)) return;
         gamestate &ts = target->state;
         ts.dodamage(damage);
-        if(target!=actor && !isteam(target->team, actor->team)) actor->state.damage += damage;
+        if(target!=actor && !isteam(target->team, actor->team)) {
+            actor->state.damage += damage;
+            target->state.damage_rec += damage;
+        }
         sendf(-1, 1, "ri6", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health);
         if(target==actor) target->setpushed();
         else if(!hitpush.iszero())
@@ -1852,6 +1571,7 @@ namespace server
                 int(to.x*DMF), int(to.y*DMF), int(to.z*DMF),
                 ci->ownernum);
         gs.shotdamage += guns[gun].damage*(gs.quadmillis ? 4 : 1)*(gun==GUN_SG ? SGRAYS : 1);
+        gs.shots++;
         switch(gun)
         {
             case GUN_RL: gs.rockets.add(id); break;
@@ -1865,6 +1585,8 @@ namespace server
                     hitinfo &h = hits[i];
                     clientinfo *target = getinfo(h.target);
                     if(!target || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.rays<1 || h.dist > guns[gun].range + 1) continue;
+
+                    gs.hits += (ci != target ? 1 : 0);
 
                     totalrays += h.rays;
                     if(totalrays>maxrays) continue;
@@ -1997,6 +1719,13 @@ namespace server
             }
         }
 
+        if(masterupdate)
+        {
+            clientinfo *m = currentmaster>=0 ? getinfo(currentmaster) : NULL;
+            sendf(-1, 1, "ri3", N_CURRENTMASTER, currentmaster, m ? m->privilege : 0);
+            masterupdate = false;
+        }
+
         SbPy::update();
 
         if(!gamepaused && m_timed && smapname[0] && gamemillis-curtime>0) checkintermission();
@@ -2007,6 +1736,11 @@ namespace server
             SbPy::triggerEvent("intermission_ended", 0);
             checkvotes(true);
         }
+    }
+
+    void sendmapreload()
+    {
+        if(clients.length()) sendf(-1, 1, "ri", N_MAPRELOAD);
     }
 
     struct crcinfo
@@ -2074,6 +1808,34 @@ namespace server
     void sendservinfo(clientinfo *ci)
     {
         sendf(ci->clientnum, 1, "ri5s", N_SERVINFO, ci->clientnum, PROTOCOL_VERSION, ci->sessionid, serverpass[0] ? 1 : 0, serverdesc);
+    }
+
+    bool spectate(clientinfo *spinfo, bool val, int spectator)
+    {
+        bool spectated = false, unspectated = false;
+        if(spinfo->state.state!=CS_SPECTATOR && val) {
+             if(spinfo->state.state==CS_ALIVE) suicide(spinfo);
+             if(smode) smode->leavegame(spinfo);
+             spinfo->state.state = CS_SPECTATOR;
+             spinfo->state.timeplayed += lastmillis - spinfo->state.lasttimeplayed;
+             if(!spinfo->local && !spinfo->privilege) aiman::removeai(spinfo);
+             spectated = true;
+        } else if(spinfo->state.state==CS_SPECTATOR && !val) {
+             spinfo->state.state = CS_DEAD;
+             spinfo->state.respawn();
+             spinfo->state.lasttimeplayed = lastmillis;
+             aiman::addclient(spinfo);
+             if(spinfo->clientmap[0] || spinfo->mapcrc) checkmaps();
+             unspectated = true;
+         } else {
+             return false;
+         }
+         sendf(-1, 1, "ri3", N_SPECTATOR, spectator, val);
+         if(spectated)
+             SbPy::triggerEventInt("player_spectated", spinfo->clientnum);
+         else if(unspectated)
+             SbPy::triggerEventInt("player_unspectated", spinfo->clientnum);
+         return true;
     }
 
     void noclients()
@@ -2234,6 +1996,12 @@ namespace server
         sendf(ci->clientnum, 1, "risis", N_AUTHCHAL, "", id, val);
     }
 
+    void challengeauth(clientinfo *ci, uint id, const char *val)
+    {
+        if(!ci) return;
+        sendf(ci->clientnum, 1, "risis", N_AUTHCHAL, "", id, val);
+    }
+
     uint nextauthreq = 0;
 
     void tryauth(clientinfo *ci, const char *user)
@@ -2349,6 +2117,7 @@ namespace server
                 ci->connected = true;
                 ci->needclipboard = totalmillis ? totalmillis : 1;
                 if(mastermode>=MM_LOCKED) ci->state.state = CS_SPECTATOR;
+                if(currentmaster>=0) masterupdate = true;
                 ci->state.lasttimeplayed = lastmillis;
 
                 const char *worst = m_teammode ? chooseworstteam(NULL, ci) : NULL;
