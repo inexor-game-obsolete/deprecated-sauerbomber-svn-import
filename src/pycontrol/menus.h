@@ -28,8 +28,6 @@
 #define GUI_BUTTON_COLOR 0xFFFFFF
 #define GUI_TEXT_COLOR   0xDDFFDD
 
-extern g3d_gui* get3dgui();
-
 namespace PythonGui {
 
     void guiShow(bool on);

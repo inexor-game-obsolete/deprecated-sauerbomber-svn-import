@@ -23,12 +23,31 @@
 #ifndef SBPY_SERVERMODULE_H
 #define SBPY_SERVERMODULE_H
 
-namespace SbPy
-{
-
-
-
+namespace SbPy {
+    // python setting (defined in engine/server)
+    extern PyObject *pyscriptspath(PyObject *self, PyObject *args);
+    extern PyObject *configdir(PyObject *self, PyObject *args);
 }
+
+namespace server {
+    // server functions (defined in fpsgame/server.cpp)
+    struct clientinfo;
+    // struct demofile;
+    // struct servmode;
+    extern vector<clientinfo *> connects, clients, bots;
+    // extern vector<demofile> demos;
+    extern bool demonextmatch;
+
+    // extern servmode *smode;
+
+    extern char *pyconfigpath;
+    extern int numclients(int exclude = -1, bool nospec = true, bool noai = true, bool priv = false);
+    extern clientinfo *getinfo(int n);
+
+    extern void senddemo(clientinfo *ci, int num);
+    extern void suicide(clientinfo *ci);
+}
+
 
 #endif
 
