@@ -169,10 +169,10 @@ void setmapfilenames(const char *fname, const char *cname = 0)
     getmapfilenames(fname, cname, pakname, mapname, mcfgname);
 
     formatstring(ogzname)("packages/%s.ogz", mapname);
-    if(savebak==1) formatstring(bakname)("packages/%s.BAK", mapname);
-    else formatstring(bakname)("packages/%s_%d.BAK", mapname, totalmillis);
-    formatstring(cfgname)("packages/%s/%s.cfg", pakname, mcfgname);
-    formatstring(picname)("packages/%s.jpg", mapname);
+    if(savebak==1) formatstring(bakname)("%s/%s/packages/%s.BAK", repositoriesdir, editrepository, mapname);
+    else formatstring(bakname)("%s/%s/packages/%s_%d.BAK", repositoriesdir, editrepository, mapname, totalmillis);
+    formatstring(cfgname)("%s/%s/packages/%s/%s.cfg", repositoriesdir, editrepository, pakname, mcfgname);
+    formatstring(picname)("%s/%s/packages/%s.jpg", repositoriesdir, editrepository, mapname);
 
     path(ogzname);
     path(bakname);
