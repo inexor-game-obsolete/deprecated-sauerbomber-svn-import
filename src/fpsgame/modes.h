@@ -29,7 +29,8 @@ enum {
     M_OBSTACLES  = 1<<24,
     M_HIDEANDSEEK= 1<<25,
     M_FREEZE     = 1<<26,
-    M_DYNENT     = 1<<27 //,
+    M_DYNENT     = 1<<27,
+    M_WORLD      = 1<<28 //,
     // M_SAFARI     = 1<<26
 };
 
@@ -72,8 +73,10 @@ static struct gamemodeinfo {
     { "hideandseek", M_HIDEANDSEEK | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. No teamkills." },
     { "insta hideandseek", M_HIDEANDSEEK | M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Hide and Seek: Hiders hides, seekers seeks. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
     { "hideandseek freeze", M_HIDEANDSEEK | M_TEAM | M_FREEZE | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Hiders freezes Seekers, Seekers catches Hiders. No teamkills." },
-    { "duckandcover", M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Instagib Duck And Cover Team: You spawn with full rifle ammo and die instantly from one shot. Frag \fs\f3enemies\fr to score points. Cover yourself and destroy the enemies coverage. There are no items." } //,
+    { "duckandcover", M_NOITEMS | M_INSTA | M_TEAM | M_OBSTACLES, "Instagib Duck And Cover Team: You spawn with full rifle ammo and die instantly from one shot. Frag \fs\f3enemies\fr to score points. Cover yourself and destroy the enemies coverage. There are no items." },
     // { "hideandseek safari", M_HIDEANDSEEK | M_TEAM | M_SAFARI | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Seekers drugs Hiders, then hunt them down." }
+    { "duckandcoverffa", M_LOBBY | M_OBSTACLES, "Duck and Cover FFA" },
+    { "gta", M_NOITEMS | M_OBSTACLES | M_WORLD, "Top Secret." } //,
 };
 
 #define STARTGAMEMODE (-3)
@@ -108,6 +111,7 @@ static struct gamemodeinfo {
 #define m_timeforward  (m_check(gamemode, M_TIMEFORWARD))
 #define m_freeze       (m_check(gamemode, M_FREEZE))
 #define m_dynent       (m_check(gamemode, M_DYNENT))
+#define m_world        (m_check(gamemode, M_WORLD))
 
 #define m_demo         (m_check(gamemode, M_DEMO))
 #define m_edit         (m_check(gamemode, M_EDIT))
