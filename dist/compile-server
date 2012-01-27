@@ -1,4 +1,8 @@
+echo "compile server"
 cd src
-make server
+make clean server
 cd ..
-cp -a src/sauer_server bin_unix/native_64_server
+cp -a src/sauerbomber_server bin_unix/native_64_server
+chown noob:noob bin_unix/native_64_server
+echo "done"
+
