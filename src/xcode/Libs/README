@@ -1,0 +1,130 @@
+---- Overview ----
+
+This Directory contains all direct dependencies needed to compile sauerbomber. This includes:
+- subversion (libsvn_client)
+- rapidsvn (libsvncpp)
+- SDL (libSDL || SDL.framework)
+- SDL_image (libSDL_image || SDL_image.framework)
+- SDL_mixer (libSDL_mixer || SDL_mixer.framework)
+- apr
+- apr-util
+
+Not direct dependencies:
+- zlib (libz) for subversion
+
+All the named libs, besides SDL.framework, have been compiled in src/ and installed to .
+they are build in a way that they soupport 32bit-ppc (ppc), 32bit x86/intel (i386) and and 64bit intel/x86 (x86_64). The lowest supported plattform should be: Mac OS X 10.4
+The SDL.framework has been downloaded from the SDL website, where universal binarys that allow the Plattforms above are provided.
+
+All the  libs are provided under their respective licenses. See src/*.
+
+
+
+---- The Directory Structure ----
+
+The directory structure is mostly the same as in (POSIX) /usr. It would have been nicer to build all the debs as OpenStep Frameworks, but this way I could just use --configure=".".
+./Frameworks/ contains OpenStep Frameworks (currently SDL)
+./src/ Is where the sources are :3
+./bundle-lib/
+   Dylibs on the mac plattform are loaded using the full path. This is bad for bundles. There are variables that can be used to make the load path dynamic.
+   This directory is a copy of lib/ in which all the libs load path have been changed to: "@executable_path/../Frameworks" to allow them to be loaded dynamicly.
+   The tool used to do this is "./make_libs_bundelable.sh". For more information see the darwin man page dyld(1), DYNAMIC LIBRARY LOADING section.
+
+
+
+---- Compiling ----
+
+To compile sauerbraten, press compile in xCode :3 . The precompiled libs shoudl work fine.
+
+If you want to compile all the deps yourself, be aware that this set of instructions is incomplete, because my machine has allready undergone lots of customizations (and I probably foregot some of the things i have done to the sources). If you still want to compile the libs, please send my your corrections to this guide or contact me on irc://irc.nooblounge.net/#talk, I will assist you if I can and complete this guide.
+
+- Install macports and brew
+   I have the both installed in /opt/local and /usr/local, although is better to have them in /opt/brew and /opt/port I think.
+   There is also the packagemanager fink, but I am not sure if it works anyway.
+
+- Get your paths in order
+   If you have installed macports and/or brew, you shoud add thir bin and sbin directorys to your path variable,
+   you can do this as: "export PATH=$prefix0/bin:$prefix0/sbin:$prefix1/bin:$prefix1/sbin:$prefix2/...".
+   Aditionally to the standart prefixes (/ and /user) I /opt/cuscus and /opt/own for own scripts and stuff I compiled myself.
+   This is importand because to get lots of software working on Mac you might want to use more than one package manager...
+   Then you shoud do almoist the same for LDFLAGS, CPPFLAGS and MANPATH:
+   	PATH (dirs with executables): export PATH="$prefix0/bin:$prefix0/sbin:$prefix1/bin:$prefix1/sbin:$prefix2/..."
+   	LDFLAGS (library dirs):       export LDFLAGS="-L$prefix0/lib -L$prefix1/lib -L$prefix2/..."
+   	CPPFLAGS (include dirs):      export CPPFLAGS="-I$prefix0/include -L$prefix1/include -L $prefix2/..."
+   	MANPATH (dirs with manpages): export MANPATH="$prefix0/share/man:$prefix1/share/man:$prefix2/..."
+   If you want them to be avaiable on your next session you shoudl put them in your .profile or /etc/profile for the entire system.
+
+- Additional Framework paths
+   If you have prefixes that include frameworks, you can use -F in ldflags, this is normally: "-F$prefix/Library/Frameworks" or "-F$prefix/Frameworks"
+
+- How to build in general:
+   All the libs are build using configure and make.
+   Normally the process is:
+   
+   $ ./configure
+   $ make
+   $ make install
+
+   ./configure supports options! To see which, invoke 
+   
+   $ ./configure --help
+
+- Build Prefix:
+   We need all the files installed in . to do this, get the full path of . and invoke configure like:
+   
+   $ ./configure --prefix=$prefix # Where prefix is the full path of . :3
+
+   To save time I saved my prefix in a shell variable. 
+
+- Multithreaded build:
+   See make manpage, -j option
+
+- ENVIREMENT VARIABLES:
+   See dyld(1) manpage and the end of any ./configure --help
+   Any editing of variables in ./configure --help must be done before running ./configure.
+
+- Universal build, Plattform/Mac API:
+   Mach-O binarys support multiple architectures in the same file. To create such binarys, add the -arch option multiple times.
+   The mac API to use is indicated by -mmacosx-version-min. To add the desired buildflags, use CXXFLAGS (c++) and CLFAGS (c):
+
+   $ export CXXFLAGS="-Wall -force_cpusubtype_ALL -mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64"
+   $ export CLFAGS="$CXXFLAGS"
+
+- Build:
+   - Build zlib and install
+   - Build apr
+   - Build apr-util
+      You will have to use the --with-apr-conf=... (or --with-apr=.?) option:
+
+      $ configure --prefix="$prefix" --with-apr="$prefix/bin/apr-*"
+
+   - Build svncpp (in rapidsvn):
+      Add optionfs for apt and apr-util:
+      
+      $ configure --prefix="$prefix" --with-apr-conf="$prefix/bin/apr-*" --with-apu-conf="$prefix/bin/apu-*"
+      
+      if the build fails, because it can not use wxwidgets go to src/svncpp/ and type "make install" (rapidsvn failed, but not svncpp).
+
+   - Build subversion
+      This gave me a few problems:
+      - The linker would not use the prefix is gave for apr and aprutil, i had to create a symlink in /usr/local/:
+	 
+	$ mkdir /usr/local
+	$ ln -s "$prefix" /usr/lib/apr
+
+      - The installer wanted to instull some stuff outside $prefix x(. I let him do it... (had to invoke make install with sudo)
+   - Build SDL:
+      Good luck, I did not, I used the prebuild one in Frameworks/ :3
+   - Build SDL_mixer and SDL_image
+      You must tell the linker, where the desired SDL lib is and that it is a framework. To do that, add -F$prefix/Frameworks to LDFLAGS and "-framework SDL" to LIBS:
+
+      $ export LDFLAGS="-F$prefix/Frameworks $LDFLAGS"
+      $ export LIBS="-framework SDL $LIBS"
+   - Run the lib localizer:
+   
+      $ ./make_libs_bundelable.sh
+
+- Error Handling:
+   - Try adding -lstdc++ to LIBS
+   - Try configuring with --ignore-dependency-tracking
+   - Try both :3

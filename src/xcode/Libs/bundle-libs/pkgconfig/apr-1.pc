@@ -1,0 +1,11 @@
+prefix=/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+APR_MAJOR_VERSION=1
+includedir=${prefix}/include/apr-${APR_MAJOR_VERSION}
+
+Name: APR
+Description: The Apache Portable Runtime library
+Version: 1.4.5
+Libs: -L${libdir} -lapr-${APR_MAJOR_VERSION}  -lpthread
+Cflags:  -DDARWIN -DSIGPROCMASK_SETS_THREAD_MASK -no-cpp-precomp -DDARWIN_10  -I${includedir}

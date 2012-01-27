@@ -1,0 +1,5 @@
+#!/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/bin/python2.7
+
+import pydoc
+if __name__ == '__main__':
+    pydoc.cli()

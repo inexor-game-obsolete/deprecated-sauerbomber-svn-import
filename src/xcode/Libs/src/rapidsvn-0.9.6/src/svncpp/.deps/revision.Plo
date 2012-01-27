@@ -1,0 +1,194 @@
+revision.lo revision.o: revision.cpp \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/rapidsvn-0.9.6/include/svncpp/revision.hpp \
+  /usr/local/include/subversion-1/svn_types.h /usr/include/stdlib.h \
+  /usr/include/Availability.h /usr/include/AvailabilityInternal.h \
+  /usr/include/_types.h /usr/include/sys/_types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/_types.h \
+  /usr/include/i386/_types.h /usr/include/sys/wait.h \
+  /usr/include/sys/signal.h /usr/include/sys/appleapiopts.h \
+  /usr/include/machine/signal.h /usr/include/i386/signal.h \
+  /usr/include/i386/_structs.h /usr/include/sys/_structs.h \
+  /usr/include/machine/_structs.h /usr/include/mach/i386/_structs.h \
+  /usr/include/sys/resource.h /usr/include/machine/endian.h \
+  /usr/include/i386/endian.h /usr/include/sys/_endian.h \
+  /usr/include/libkern/_OSByteOrder.h \
+  /usr/include/libkern/i386/_OSByteOrder.h /usr/include/alloca.h \
+  /usr/include/machine/types.h /usr/include/i386/types.h \
+  /usr/include/i386/_types.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr.h \
+  /usr/include/sys/types.h /usr/include/sys/socket.h \
+  /usr/include/machine/_param.h /usr/include/i386/_param.h \
+  /Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/stdint.h \
+  /Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/limits.h \
+  /Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/syslimits.h \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/limits.h \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/syslimits.h \
+  /usr/include/limits.h /usr/include/machine/limits.h \
+  /usr/include/i386/limits.h /usr/include/i386/_limits.h \
+  /usr/include/sys/syslimits.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_errno.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr.h \
+  /usr/include/errno.h /usr/include/sys/errno.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_pools.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_errno.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_general.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_pools.h \
+  /usr/include/signal.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_want.h \
+  /usr/include/string.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_allocator.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_thread_mutex.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_hash.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_tables.h \
+  /Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/stdarg.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_time.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_strings.h \
+  /usr/include/sys/uio.h /usr/local/include/subversion-1/svn_error.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_want.h \
+  /usr/include/stdio.h /usr/local/include/subversion-1/svn_types.h \
+  /usr/local/include/subversion-1/svn_error_codes.h \
+  /usr/local/include/subversion-1/svn_opt.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_getopt.h \
+  /Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/rapidsvn-0.9.6/include/svncpp/datetime.hpp
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/rapidsvn-0.9.6/include/svncpp/revision.hpp:
+
+/usr/local/include/subversion-1/svn_types.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/Availability.h:
+
+/usr/include/AvailabilityInternal.h:
+
+/usr/include/_types.h:
+
+/usr/include/sys/_types.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/machine/_types.h:
+
+/usr/include/i386/_types.h:
+
+/usr/include/sys/wait.h:
+
+/usr/include/sys/signal.h:
+
+/usr/include/sys/appleapiopts.h:
+
+/usr/include/machine/signal.h:
+
+/usr/include/i386/signal.h:
+
+/usr/include/i386/_structs.h:
+
+/usr/include/sys/_structs.h:
+
+/usr/include/machine/_structs.h:
+
+/usr/include/mach/i386/_structs.h:
+
+/usr/include/sys/resource.h:
+
+/usr/include/machine/endian.h:
+
+/usr/include/i386/endian.h:
+
+/usr/include/sys/_endian.h:
+
+/usr/include/libkern/_OSByteOrder.h:
+
+/usr/include/libkern/i386/_OSByteOrder.h:
+
+/usr/include/alloca.h:
+
+/usr/include/machine/types.h:
+
+/usr/include/i386/types.h:
+
+/usr/include/i386/_types.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/sys/socket.h:
+
+/usr/include/machine/_param.h:
+
+/usr/include/i386/_param.h:
+
+/Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/stdint.h:
+
+/Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/limits.h:
+
+/Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/syslimits.h:
+
+/usr/lib/gcc/i686-apple-darwin10/4.2.1/include/limits.h:
+
+/usr/lib/gcc/i686-apple-darwin10/4.2.1/include/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/machine/limits.h:
+
+/usr/include/i386/limits.h:
+
+/usr/include/i386/_limits.h:
+
+/usr/include/sys/syslimits.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_errno.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr.h:
+
+/usr/include/errno.h:
+
+/usr/include/sys/errno.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_pools.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_errno.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_general.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_pools.h:
+
+/usr/include/signal.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_want.h:
+
+/usr/include/string.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_allocator.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_thread_mutex.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_hash.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_tables.h:
+
+/Developer/usr/bin/../lib/gcc/i686-apple-darwin10/4.2.1/include/stdarg.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_time.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_strings.h:
+
+/usr/include/sys/uio.h:
+
+/usr/local/include/subversion-1/svn_error.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_want.h:
+
+/usr/include/stdio.h:
+
+/usr/local/include/subversion-1/svn_types.h:
+
+/usr/local/include/subversion-1/svn_error_codes.h:
+
+/usr/local/include/subversion-1/svn_opt.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/apr-1.4.5/include/apr_getopt.h:
+
+/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/src/rapidsvn-0.9.6/include/svncpp/datetime.hpp:

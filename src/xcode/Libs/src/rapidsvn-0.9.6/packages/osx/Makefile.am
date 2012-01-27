@@ -1,0 +1,1 @@
+EXTRA_DIST=make_osx_bundle.sh rapidsvn.icns

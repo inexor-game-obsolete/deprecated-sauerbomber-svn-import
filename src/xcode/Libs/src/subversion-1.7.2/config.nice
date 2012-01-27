@@ -1,0 +1,5 @@
+#! /bin/sh
+#
+# Created by configure
+
+'./configure'  '--prefix=/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs' '--with-apr=/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs' '--with-spr-util=/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs' 'CC=gcc-4.2' 'CFLAGS=-Wall -force_cpusubtype_ALL -mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64' 'LDFLAGS=-L/Developer/Projects/cube2/sauerbomber/trunk/src/xcode/Libs/lib/  -L/opt/mapc/lib -L/opt/cuscus/lib -L/usr/local/lib -L/opt/local/lib -L/Developer/usr/lib -L/lib -L/usr/lib -L/opt/X11/lib -L/usr/X11/lib -L/opt/sw/lib' 'LIBS=-lstdc++' 'CPPFLAGS= -I/opt/mapc/include -I/opt/cuscus/include -I/usr/local/include -I/opt/local/include -I/Developer/usr/include -I/include -I/usr/include -I/opt/X11/include -I/usr/X11/include -I/opt/sw/include' 'CXX=gcc-4.2' 'CXXFLAGS=-Wall -force_cpusubtype_ALL -mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64' 'CXXCPP=gcc-4.2 -E' "$@"
