@@ -260,6 +260,10 @@ void nextsong(char *cmd, char *cmd_success, char *cmd_failed)
     vector<char *> files;
     listfiles(albumdir, "ogg", files);
     removehiddendirs(files);
+	if (files.length() < 1) {
+		execute(cmd_failed);
+		return;
+	}
     sortfiles(files);
     int currentindex = -1;
     loopv(files) if (strcmp(files[i], currentsong) == 0) {

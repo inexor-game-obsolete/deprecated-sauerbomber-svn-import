@@ -12,6 +12,10 @@
 #endif
 #include <math.h>
 
+#ifdef __MACOSX__
+#include <assert.h>
+#endif
+
 #ifdef __GNUC__
 #undef gamma
 #endif

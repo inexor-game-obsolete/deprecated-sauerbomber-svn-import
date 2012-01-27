@@ -310,7 +310,7 @@ void pasteconsole()
     GlobalUnlock(cb);
     CloseClipboard();
     #elif defined(__APPLE__)
-	extern char *mac_pasteconsole(int *cblen);
+    extern char *mac_pasteconsole(int *cblen);
     int cblen = 0;
 	uchar *cb = (uchar *)mac_pasteconsole(&cblen);
     if(!cb) return;

@@ -82,7 +82,7 @@ namespace engine {
         callbacklistener* listener = new callbacklistener(&set_lastmessage);
         context->setListener(listener);
         // svn::Path destFolder(folder);
-        try {
+		try {
             svn::Targets* targets = new svn::Targets(folder);
             svnClient->unlock(*targets, true);
         } catch(svn::ClientException& err) {
