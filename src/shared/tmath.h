@@ -1,7 +1,6 @@
 #ifndef _TMATH_H
 #define _TMATH_H
 
-
 #ifdef swap
 #undef swap
 #endif
