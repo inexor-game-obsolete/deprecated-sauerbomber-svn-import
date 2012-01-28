@@ -1103,12 +1103,19 @@ int main(int argc, char **argv)
     loadsoundset();
 
     logoutf("init: cfg");
+    logoutf("init: keymap");
     execfile("data/keymap.cfg");
+    logoutf("init: music");
     execfile("data/cubescript/music.cfg");
+    logoutf("init: guis");
     execfile("data/cubescript/guis.cfg");
+    logoutf("init: stdedit");
     execfile("data/stdedit.cfg");
+    logoutf("init: menus");
     execfile("data/menus.cfg");
+    logoutf("init: brush");
     execfile("data/brush.cfg");
+    logoutf("init: mybrushes");
     execfile("mybrushes.cfg", false);
     if(game::savedservers()) execfile(game::savedservers(), false);
     
@@ -1125,6 +1132,7 @@ int main(int argc, char **argv)
 
     identflags &= ~IDF_PERSIST;
 
+    logoutf("init: game cfg");
     string gamecfgname;
     copystring(gamecfgname, "data/game_");
     concatstring(gamecfgname, game::gameident());
@@ -1135,6 +1143,7 @@ int main(int argc, char **argv)
 
     identflags |= IDF_PERSIST;
 
+    logoutf("init: once cfg");
     if(execfile("once.cfg", false)) remove(findfile("once.cfg", "rb"));
 
     if(load)
