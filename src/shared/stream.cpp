@@ -356,13 +356,14 @@ const char *addpackagedir(const char *dir)
     string pdir;
     copystring(pdir, dir);
     if(!subhomedir(pdir, sizeof(pdir), dir) || !fixpackagedir(pdir)) return NULL;
-	return packagedirs.add(newstring(pdir));
+    return packagedirs.add(newstring(pdir));
 }
 
 SVARP(repositoriesdir, "repositories");
 SVARP(defaultrepository, "sauerbomber-base");
 SVARP(homerepository, "home");
 SVARP(editrepository, "edit");
+SVARP(lookuprepository, "sauerbomber-base");
 
 void addrepositories() {
     // search in home repository first
@@ -403,6 +404,12 @@ void addrepositories() {
 const char *findfile(const char *filename, const char *mode)
 {
     static string s;
+
+    // priority 1: default repository
+    formatstring(s)("%s/%s/%s", repositoriesdir, defaultrepository, filename);
+    if(fileexists(s, mode)) return s;
+
+    // priority 2: home folder
     if(homedir[0])
     {
         formatstring(s)("%s%s", homedir, filename);
@@ -423,6 +430,20 @@ const char *findfile(const char *filename, const char *mode)
         }
     }
     if(mode[0]=='w' || mode[0]=='a') return filename;
+
+    // priority 3: lookup repository
+    formatstring(s)("%s/%s/%s", repositoriesdir, lookuprepository, filename);
+    if(fileexists(s, mode)) return s;
+
+    // priority 4: home repository
+    formatstring(s)("%s/%s/%s", repositoriesdir, homerepository, filename);
+    if(fileexists(s, mode)) return s;
+
+    // priority 5: edit repository
+    formatstring(s)("%s/%s/%s", repositoriesdir, editrepository, filename);
+    if(fileexists(s, mode)) return s;
+
+    // priority 6: resolve in all repositories
     loopv(packagedirs)
     {
         formatstring(s)("%s%s", packagedirs[i], filename);
@@ -1137,6 +1158,7 @@ stream *opentempfile(const char *name, const char *mode)
 
 stream *opengzfile(const char *filename, const char *mode, stream *file, int level)
 {
+conoutf(filename);
     stream *source = file ? file : openfile(filename, mode);
     if(!source) return NULL;
     gzstream *gz = new gzstream;
