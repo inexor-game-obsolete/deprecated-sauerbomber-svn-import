@@ -21,7 +21,7 @@ namespace entities
             case BOX:
             case BARREL:
             case OBSTACLE:
-            case PLATFORM:
+            case M_PLATFORM:
             case ELEVATOR:
                 e.attr1 = (int(e.attr1)+180)%360;
                 break;
@@ -31,7 +31,7 @@ namespace entities
             case BOX:
             case BARREL:
             case OBSTACLE:
-            case PLATFORM:
+            case M_PLATFORM:
             case ELEVATOR:
                 int yaw = (int(e.attr1)%360 + 360)%360 + 7; 
                 e.attr1 = yaw - yaw%15;
@@ -730,7 +730,7 @@ namespace entities
             case BOX:
             case BARREL:
             case OBSTACLE:
-            case PLATFORM:
+            case M_PLATFORM:
             case ELEVATOR:
             case P_MOVE:
                 e.attr5 = e.attr4;
@@ -833,7 +833,7 @@ namespace entities
             case BOX:
             case BARREL:
             case OBSTACLE:
-            case PLATFORM:
+            case M_PLATFORM:
             case ELEVATOR:
             {
                 vec dir;

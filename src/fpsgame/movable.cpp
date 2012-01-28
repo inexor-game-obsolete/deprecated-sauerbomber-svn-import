@@ -27,21 +27,21 @@ namespace game
             entidx(-1),
             mapmodel(e.attr2),
             health(e.type==BARREL ? (e.attr4 ? e.attr4 : BARRELHEALTH) : (e.type==OBSTACLE ? (e.attr3 ? e.attr3 : OBSTACLEHEALTH) : 0)),
-            weight(e.type!=OBSTACLE ? (e.type==PLATFORM || e.type==ELEVATOR ? PLATFORMWEIGHT : (e.attr3 ? e.attr3 : (e.type==BARREL ? BARRELWEIGHT : BOXWEIGHT))) : 0),
+            weight(e.type!=OBSTACLE ? (e.type==M_PLATFORM || e.type==ELEVATOR ? PLATFORMWEIGHT : (e.attr3 ? e.attr3 : (e.type==BARREL ? BARRELWEIGHT : BOXWEIGHT))) : 0),
             exploding(0),
-            tag(e.type==PLATFORM || e.type==ELEVATOR ? e.attr3 : 0),
-            dir(e.type==PLATFORM || e.type==ELEVATOR ? (e.attr4 < 0 ? -1 : 1) : 0),
+            tag(e.type==M_PLATFORM || e.type==ELEVATOR ? e.attr3 : 0),
+            dir(e.type==M_PLATFORM || e.type==ELEVATOR ? (e.attr4 < 0 ? -1 : 1) : 0),
             stacked(NULL),
             stackpos(0, 0, 0)
         {
             state = CS_ALIVE;
             type = ENT_INANIMATE;
             yaw = e.attr1;
-            if(e.type==PLATFORM || e.type==ELEVATOR) 
+            if(e.type==M_PLATFORM || e.type==ELEVATOR)
             {
                 maxspeed = e.attr4 ? fabs(float(e.attr4)) : PLATFORMSPEED;
                 if(tag) vel = vec(0, 0, 0);
-                else if(e.type==PLATFORM) { vecfromyawpitch(yaw, 0, 1, 0, vel); vel.mul(dir*maxspeed); } 
+                else if(e.type==M_PLATFORM) { vecfromyawpitch(yaw, 0, 1, 0, vel); vel.mul(dir*maxspeed); }
                 else vel = vec(0, 0, dir*maxspeed);
             }
 
@@ -120,7 +120,7 @@ namespace game
         loopv(entities::ents) 
         {
             const entity &e = *entities::ents[i];
-            if(e.type!=BOX && e.type!=BARREL && e.type!=OBSTACLE && e.type!=PLATFORM && e.type!=ELEVATOR) continue;
+            if(e.type!=BOX && e.type!=BARREL && e.type!=OBSTACLE && e.type!=M_PLATFORM && e.type!=ELEVATOR) continue;
             movable *m = new movable(e);
             movables.add(m);
             m->o = e.o;
@@ -142,7 +142,7 @@ namespace game
         loopv(movables)
         {
             movable *m = movables[i];
-            if(m->state!=CS_ALIVE || (m->etype!=PLATFORM && m->etype!=ELEVATOR) || m->tag!=tag) continue;
+            if(m->state!=CS_ALIVE || (m->etype!=M_PLATFORM && m->etype!=ELEVATOR) || m->tag!=tag) continue;
             if(!newdir)
             {
                 if(m->tag) m->vel = vec(0, 0, 0);
@@ -150,7 +150,7 @@ namespace game
             }
             else
             {
-                if(m->etype==PLATFORM) { vecfromyawpitch(m->yaw, 0, 1, 0, m->vel); m->vel.mul(newdir*m->dir*m->maxspeed); }
+                if(m->etype==M_PLATFORM) { vecfromyawpitch(m->yaw, 0, 1, 0, m->vel); m->vel.mul(newdir*m->dir*m->maxspeed); }
                 else m->vel = vec(0, 0, newdir*m->dir*m->maxspeed);
             }
         }
@@ -170,7 +170,7 @@ namespace game
         {
             movable *m = movables[i];
             if(m->state!=CS_ALIVE) continue;
-            if(m->etype==PLATFORM || m->etype==ELEVATOR)
+            if(m->etype==M_PLATFORM || m->etype==ELEVATOR)
             {
                 if(m->vel.iszero()) continue;
                 for(int remaining = curtime; remaining>0;)

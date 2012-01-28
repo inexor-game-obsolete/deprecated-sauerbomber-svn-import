@@ -3,7 +3,7 @@
 
 #include "ents.h"
 
-enum                            // static entity types
+enum static_ents                // static entity types
 {
     NOTUSED = ET_EMPTY,         // entity slot not in use in map
     LIGHT = ET_LIGHT,           // lightsource, attr1 = radius, attr2 = intensity
@@ -26,7 +26,7 @@ enum                            // static entity types
     RESPAWNPOINT,
     BOX,                        // attr1 = angle, attr2 = idx, attr3 = weight
     BARREL,                     // attr1 = angle, attr2 = idx, attr3 = weight, attr4 = health
-    PLATFORM,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
+    M_PLATFORM,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
     ELEVATOR,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
     FLAG,                       // attr1 = angle, attr2 = team
     I_BOMBS,
