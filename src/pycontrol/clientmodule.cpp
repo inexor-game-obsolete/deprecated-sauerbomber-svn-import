@@ -217,8 +217,8 @@ namespace SbPy {
 
     static PyObject *listClients(PyObject *self, PyObject *args) {
         fprintf(stderr, "listClients was called\n");
-        int local;
-        if(!PyArg_ParseTuple(args, "i", &local)) return 0;
+        bool local;
+        if(!PyArg_ParseTuple(args, "b", &local)) return 0;
         game::listclients(local);
         return Py_None;
     }
