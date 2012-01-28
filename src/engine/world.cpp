@@ -21,7 +21,7 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
     {
         case ET_EMPTY:
             return false;
-        case 39: // OBSTACLE
+        case ET_OBSTACLE:
             if(!entediting || !entities::hasmapmodel(e))
             {
                 model *m = loadmodel(NULL, e.attr2);
@@ -93,7 +93,7 @@ void modifyoctaentity(int flags, int id, cube *c, const ivec &cor, int size, con
             octaentities &oe = *c[i].ext->ents;
             switch(entities::getents()[id]->type)
             {
-                case 39: // OBSTACLE
+                case ET_OBSTACLE:
                     if(!entediting || !entities::hasmapmodel(*entities::getents()[id]))
                     {
                         oe.other.add(id);
@@ -128,7 +128,7 @@ void modifyoctaentity(int flags, int id, cube *c, const ivec &cor, int size, con
             switch(entities::getents()[id]->type)
             {
                 /* TODO: maybe this is needed as well?
-                case 39: // OBSTACLE
+                case ET_OBSTACLE:
                     if(!entediting || !entities::hasmapmodel(*entities::getents()[id]))
                     {
                         oe.other.removeobj(id);

@@ -18,21 +18,21 @@ namespace entities
             case MONSTER:
             case TELEDEST:
             case RESPAWNPOINT:
-            case BOX:
-            case BARREL:
-            case OBSTACLE:
-            case M_PLATFORM:
-            case ELEVATOR:
+            case MOV_BOX:
+            case MOV_BARREL:
+            case MOV_OBSTACLE:
+            case MOV_PLATFORM:
+            case MOV_ELEVATOR:
                 e.attr1 = (int(e.attr1)+180)%360;
                 break;
         }
         if(ver <= 31) switch(e.type)
         {
-            case BOX:
-            case BARREL:
-            case OBSTACLE:
-            case M_PLATFORM:
-            case ELEVATOR:
+            case MOV_BOX:
+            case MOV_BARREL:
+            case MOV_OBSTACLE:
+            case MOV_PLATFORM:
+            case MOV_ELEVATOR:
                 int yaw = (int(e.attr1)%360 + 360)%360 + 7; 
                 e.attr1 = yaw - yaw%15;
                 break;
@@ -727,11 +727,11 @@ namespace entities
         switch(e.type)
         {
             case FLAG:
-            case BOX:
-            case BARREL:
-            case OBSTACLE:
-            case M_PLATFORM:
-            case ELEVATOR:
+            case MOV_BOX:
+            case MOV_BARREL:
+            case MOV_OBSTACLE:
+            case MOV_PLATFORM:
+            case MOV_ELEVATOR:
             case P_MOVE:
                 e.attr5 = e.attr4;
                 e.attr4 = e.attr3;
@@ -830,11 +830,11 @@ namespace entities
             case MONSTER:
             case TELEDEST:
             case RESPAWNPOINT:
-            case BOX:
-            case BARREL:
-            case OBSTACLE:
-            case M_PLATFORM:
-            case ELEVATOR:
+            case MOV_BOX:
+            case MOV_BARREL:
+            case MOV_OBSTACLE:
+            case MOV_PLATFORM:
+            case MOV_ELEVATOR:
             {
                 vec dir;
                 vecfromyawpitch(e.attr1, 0, 1, 0, dir);
@@ -897,7 +897,7 @@ namespace entities
 
     bool hasmapmodel(extentity &e)
     {
-        if(e.type==MAPMODEL || e.type==BOX || e.type==BARREL || e.type==OBSTACLE) return true;
+        if(e.type==MAPMODEL || e.type==MOV_BOX || e.type==MOV_BARREL || e.type==MOV_OBSTACLE) return true;
         return false;
     }
 #endif

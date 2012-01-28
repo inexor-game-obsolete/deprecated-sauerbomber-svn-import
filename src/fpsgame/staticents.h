@@ -24,10 +24,10 @@ enum static_ents                // static entity types
     JUMPPAD,                    // attr1 = zpush, attr2 = ypush, attr3 = xpush
     BASE,
     RESPAWNPOINT,
-    BOX,                        // attr1 = angle, attr2 = idx, attr3 = weight
-    BARREL,                     // attr1 = angle, attr2 = idx, attr3 = weight, attr4 = health
-    M_PLATFORM,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
-    ELEVATOR,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
+    MOV_BOX,                        // attr1 = angle, attr2 = idx, attr3 = weight
+    MOV_BARREL,                     // attr1 = angle, attr2 = idx, attr3 = weight, attr4 = health
+    MOV_PLATFORM,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
+    MOV_ELEVATOR,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
     FLAG,                       // attr1 = angle, attr2 = team
     I_BOMBS,
     I_BOMBRADIUS,
@@ -37,7 +37,7 @@ enum static_ents                // static entity types
     I_BOMBRESERVED4,
     I_BOMBRESERVED5,
     I_BOMBRESERVED6,
-    OBSTACLE,                   // attr1 = angle, attr2 = idx (mapmodel index), attr3 = health, attr4 = weight, attr5 = respawnmillis
+    MOV_OBSTACLE,                   // attr1 = angle, attr2 = idx (mapmodel index), attr3 = health, attr4 = weight, attr5 = respawnmillis
     RACE_START,
     RACE_FINISH,
     RACE_CHECKPOINT,            // attr1 = angle, attr2 = checkpoint no

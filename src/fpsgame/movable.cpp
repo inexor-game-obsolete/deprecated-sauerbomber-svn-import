@@ -26,22 +26,22 @@ namespace game
             etype(e.type),
             entidx(-1),
             mapmodel(e.attr2),
-            health(e.type==BARREL ? (e.attr4 ? e.attr4 : BARRELHEALTH) : (e.type==OBSTACLE ? (e.attr3 ? e.attr3 : OBSTACLEHEALTH) : 0)),
-            weight(e.type!=OBSTACLE ? (e.type==M_PLATFORM || e.type==ELEVATOR ? PLATFORMWEIGHT : (e.attr3 ? e.attr3 : (e.type==BARREL ? BARRELWEIGHT : BOXWEIGHT))) : 0),
+            health(e.type==MOV_BARREL ? (e.attr4 ? e.attr4 : BARRELHEALTH) : (e.type==MOV_OBSTACLE ? (e.attr3 ? e.attr3 : OBSTACLEHEALTH) : 0)),
+            weight(e.type!=MOV_OBSTACLE ? (e.type==MOV_PLATFORM || e.type==MOV_ELEVATOR ? PLATFORMWEIGHT : (e.attr3 ? e.attr3 : (e.type==MOV_BARREL ? BARRELWEIGHT : BOXWEIGHT))) : 0),
             exploding(0),
-            tag(e.type==M_PLATFORM || e.type==ELEVATOR ? e.attr3 : 0),
-            dir(e.type==M_PLATFORM || e.type==ELEVATOR ? (e.attr4 < 0 ? -1 : 1) : 0),
+            tag(e.type==MOV_PLATFORM || e.type==MOV_ELEVATOR ? e.attr3 : 0),
+            dir(e.type==MOV_PLATFORM || e.type==MOV_ELEVATOR ? (e.attr4 < 0 ? -1 : 1) : 0),
             stacked(NULL),
             stackpos(0, 0, 0)
         {
             state = CS_ALIVE;
             type = ENT_INANIMATE;
             yaw = e.attr1;
-            if(e.type==M_PLATFORM || e.type==ELEVATOR)
+            if(e.type==MOV_PLATFORM || e.type==MOV_ELEVATOR)
             {
                 maxspeed = e.attr4 ? fabs(float(e.attr4)) : PLATFORMSPEED;
                 if(tag) vel = vec(0, 0, 0);
-                else if(e.type==M_PLATFORM) { vecfromyawpitch(yaw, 0, 1, 0, vel); vel.mul(dir*maxspeed); }
+                else if(e.type==MOV_PLATFORM) { vecfromyawpitch(yaw, 0, 1, 0, vel); vel.mul(dir*maxspeed); }
                 else vel = vec(0, 0, dir*maxspeed);
             }
 
@@ -51,7 +51,7 @@ namespace game
        
         void hitpush(int damage, const vec &dir, fpsent *actor, int gun)
         {
-            if(etype!=BOX && etype!=BARREL) return; // TODO: hitpush obstacle?
+            if(etype!=MOV_BOX && etype!=MOV_BARREL) return; // TODO: hitpush obstacle?
             vec push(dir);
             push.mul(80*damage/weight);
             vel.add(push);
@@ -62,7 +62,7 @@ namespace game
             // conoutf("movable.cpp::explode etype=%i state=%i health=%i",etype,state,health);
             state = CS_DEAD;
             exploding = 0;
-            if(etype==OBSTACLE) {
+            if(etype==MOV_OBSTACLE) {
                 // obstacles explodes not only locally
                 int damage = m_bomb ? 0 : guns[GUN_BARREL].damage; // in bomb mode, obstacles doesn't cause any damage
                 game::explode(false, (fpsent *)at, o, this, damage, GUN_BARREL);
@@ -74,7 +74,7 @@ namespace game
         void damaged(int damage, fpsent *at, int gun = -1)
         {
             // conoutf("movable.cpp::damaged etype=%i state=%i health=%i damage=%i gun=%i",etype,state,health,damage,gun);
-            if((etype!=BARREL && etype!=OBSTACLE) || state!=CS_ALIVE || exploding) return;
+            if((etype!=MOV_BARREL && etype!=MOV_OBSTACLE) || state!=CS_ALIVE || exploding) return;
             health -= damage;
             // conoutf("movable.cpp::damaged health new=%i", health);
             if (m_obstacles) sync();
@@ -86,7 +86,7 @@ namespace game
         void suicide()
         {
             state = CS_DEAD;
-            if(etype==BARREL || etype==OBSTACLE) explode(player1);
+            if(etype==MOV_BARREL || etype==MOV_OBSTACLE) explode(player1);
         }
 
         void sync()
@@ -120,12 +120,12 @@ namespace game
         loopv(entities::ents) 
         {
             const entity &e = *entities::ents[i];
-            if(e.type!=BOX && e.type!=BARREL && e.type!=OBSTACLE && e.type!=M_PLATFORM && e.type!=ELEVATOR) continue;
+            if(e.type!=MOV_BOX && e.type!=MOV_BARREL && e.type!=MOV_OBSTACLE && e.type!=MOV_PLATFORM && e.type!=MOV_ELEVATOR) continue;
             movable *m = new movable(e);
             movables.add(m);
             m->o = e.o;
             m->entidx = i;
-            if(e.type!=OBSTACLE) entinmap(m);
+            if(e.type!=MOV_OBSTACLE) entinmap(m);
             else // obstacles doesn't care about collision
             {
                 m->o.z += m->eyeheight;
@@ -142,7 +142,7 @@ namespace game
         loopv(movables)
         {
             movable *m = movables[i];
-            if(m->state!=CS_ALIVE || (m->etype!=M_PLATFORM && m->etype!=ELEVATOR) || m->tag!=tag) continue;
+            if(m->state!=CS_ALIVE || (m->etype!=MOV_PLATFORM && m->etype!=MOV_ELEVATOR) || m->tag!=tag) continue;
             if(!newdir)
             {
                 if(m->tag) m->vel = vec(0, 0, 0);
@@ -150,7 +150,7 @@ namespace game
             }
             else
             {
-                if(m->etype==M_PLATFORM) { vecfromyawpitch(m->yaw, 0, 1, 0, m->vel); m->vel.mul(newdir*m->dir*m->maxspeed); }
+                if(m->etype==MOV_PLATFORM) { vecfromyawpitch(m->yaw, 0, 1, 0, m->vel); m->vel.mul(newdir*m->dir*m->maxspeed); }
                 else m->vel = vec(0, 0, newdir*m->dir*m->maxspeed);
             }
         }
@@ -170,7 +170,7 @@ namespace game
         {
             movable *m = movables[i];
             if(m->state!=CS_ALIVE) continue;
-            if(m->etype==M_PLATFORM || m->etype==ELEVATOR)
+            if(m->etype==MOV_PLATFORM || m->etype==MOV_ELEVATOR)
             {
                 if(m->vel.iszero()) continue;
                 for(int remaining = curtime; remaining>0;)
@@ -228,7 +228,7 @@ namespace game
 
     bool isobstaclealive(movable *m)
     {
-        return (m->state==CS_ALIVE && m->etype==OBSTACLE);
+        return (m->state==CS_ALIVE && m->etype==MOV_OBSTACLE);
     }
 
 }
