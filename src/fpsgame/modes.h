@@ -30,7 +30,8 @@ enum {
     M_HIDEANDSEEK= 1<<25,
     M_FREEZE     = 1<<26,
     M_DYNENT     = 1<<27,
-    M_WORLD      = 1<<28 //,
+    M_WORLDMOD   = 1<<28,
+    M_BASES      = 1<<29 //,
     // M_SAFARI     = 1<<26
 };
 
@@ -77,7 +78,7 @@ static struct gamemodeinfo {
     // { "hideandseek safari", M_HIDEANDSEEK | M_TEAM | M_SAFARI | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Seekers drugs Hiders, then hunt them down." }
     { "ffa duckandcover", M_LOBBY | M_OBSTACLES, "Free for All: Duck and Cover" },
     { "efficiency duckandcover", M_NOITEMS | M_EFFICIENCY| M_TEAM | M_OBSTACLES, "Efficiency Duck and Cover" },
-    { "gta", M_NOITEMS | M_OBSTACLES | M_WORLD, "Top Secret." } //,
+    { "gta", M_NOITEMS | M_TEAM | M_OBSTACLES | M_BASES | M_WORLDMOD, "Top Secret." } //,
 };
 
 #define STARTGAMEMODE (-3)
@@ -112,7 +113,8 @@ static struct gamemodeinfo {
 #define m_timeforward  (m_check(gamemode, M_TIMEFORWARD))
 #define m_freeze       (m_check(gamemode, M_FREEZE))
 #define m_dynent       (m_check(gamemode, M_DYNENT))
-#define m_world        (m_check(gamemode, M_WORLD))
+#define m_worldmod     (m_check(gamemode, M_WORLDMOD))
+#define m_bases        (m_check(gamemode, M_BASES))
 
 #define m_demo         (m_check(gamemode, M_DEMO))
 #define m_edit         (m_check(gamemode, M_EDIT))
