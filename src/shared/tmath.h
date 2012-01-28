@@ -43,4 +43,13 @@ static inline T clamp(T a, T b, T c)
 #define SQRT3 (1.7320508f)
 #define RAD (PI / 180.0f)
 
+#ifdef WIN32
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_LN2
+#define M_LN2 0.693147180559945309417
+#endif
+#endif
+
 #endif

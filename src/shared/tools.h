@@ -46,19 +46,7 @@ inline void operator delete[](void *, void *) {}
 #define DELETEP(p) if(p) { delete   p; p = 0; }
 #define DELETEA(p) if(p) { delete[] p; p = 0; }
 
-// #define PI  (3.1415927f)
-// #define PI2 (2*PI)
-// #define SQRT2 (1.4142136f)
-// #define SQRT3 (1.7320508f)
-// #define RAD (PI / 180.0f)
-
 #ifdef WIN32
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-#ifndef M_LN2
-#define M_LN2 0.693147180559945309417
-#endif
 
 #ifndef __GNUC__
 #pragma warning (3: 4189)       // local variable is initialized but not referenced
