@@ -37,11 +37,11 @@ namespace engine {
             }
             sprintf(svn_lastmessage, "successfully checked out \"%s\" to %s", url, folder);
         } catch(svn::ClientException& err) {
-            sprintf(svn_lastmessage, "checkout failed: %s", err.message());
+            sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: %s", url, folder, err.message());
         } catch(svn::Exception& err2) {
-            sprintf(svn_lastmessage, "checkout failed: %s", err2.message());
+            sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: %s", url, folder, err2.message());
         } catch(...) {
-            sprintf(svn_lastmessage, "checkout failed: unknown");
+            sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: unknown", url, folder);
         }
         delete svnClient;
         delete context;
