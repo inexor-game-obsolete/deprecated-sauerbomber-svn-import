@@ -17,6 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#ifndef STANDALONE
+
 #include "menus.h"
 
 namespace game {
@@ -205,45 +207,4 @@ namespace PythonGui {
 
 }
 
-
-/*
-    if(cgui) {
-        cgui->pushlist();
-        g->pushlist();
-        g->text(names[i], 0xFFFF80, !i ? " " : NULL);
-        g->strut(3);
-        g->mergehits(true);
-        cgui->poplist();
-    }
-    // if(header) execute(header);
-    serverinfo *sc = NULL;
-    for(int start = 0; start < servers.length();)
-    {
-        if(start > 0) cgui->tab();
-        if(header) execute(header);
-        int end = servers.length();
-        cgui->pushlist();
-        loopi(10)
-        {
-            if(!game::serverinfostartcolumn(cgui, i)) break;
-            for(int j = start; j < end; j++)
-            {
-                if(!i && cgui->shouldtab()) { end = j; break; }
-                serverinfo &si = *servers[j];
-                const char *sdesc = si.sdesc;
-                if(si.address.host == ENET_HOST_ANY) sdesc = "[unknown host]";
-                else if(si.ping == serverinfo::WAITING) sdesc = "[waiting for response]";
-                if(game::serverinfoentry(cgui, i, si.name, si.port, sdesc, si.map, sdesc == si.sdesc ? si.ping : -1, si.attr, si.numplayers))
-                    sc = &si;
-            }
-            game::serverinfoendcolumn(cgui, i);
-        }
-        cgui->poplist();
-        start = end;
-    }
-    if(selectedserver || !sc) return NULL;
-    selectedserver = sc;
-    return newstring("connectselected");
-*/
-
-
+#endif

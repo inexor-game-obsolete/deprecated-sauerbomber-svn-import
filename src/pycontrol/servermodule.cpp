@@ -17,6 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#ifdef STANDALONE
+
 #include "servermodule.h"
 
 #include <iostream>
@@ -764,3 +766,5 @@ namespace SbPy {
     };
 
 }
+
+#endif

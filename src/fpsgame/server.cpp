@@ -1822,7 +1822,7 @@ namespace server
              spectated = true;
         } else if(spinfo->state.state==CS_SPECTATOR && !val) {
              spinfo->state.state = CS_DEAD;
-             spinfo->state.respawn();
+             spinfo->state.respawn(gamemode);
              spinfo->state.lasttimeplayed = lastmillis;
              aiman::addclient(spinfo);
              if(spinfo->clientmap[0] || spinfo->mapcrc) checkmaps();
