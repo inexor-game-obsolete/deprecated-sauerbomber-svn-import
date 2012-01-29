@@ -40,6 +40,8 @@ namespace engine {
             sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: %s", url, folder, err.message());
         } catch(svn::Exception& err2) {
             sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: %s", url, folder, err2.message());
+        } catch(exception& err3) {
+            sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: %s", url, folder, err3.what());
         } catch(...) {
             sprintf(svn_lastmessage, "checkout \"%s\" to %s failed: unknown", url, folder);
         }
