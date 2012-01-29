@@ -70,6 +70,8 @@ namespace engine {
             sprintf(svn_lastmessage, "update of %s failed: %s", folder, err.message());
         } catch(svn::Exception& err2) {
             sprintf(svn_lastmessage, "update of %s failed: %s", folder, err2.message());
+        } catch(exception& err3) {
+            sprintf(svn_lastmessage, "update of %s failed: %s", folder, err3.what());
         } catch(...) {
             sprintf(svn_lastmessage, "update of %s failed: unknown", folder);
         }
