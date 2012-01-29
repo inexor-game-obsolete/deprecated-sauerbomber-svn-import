@@ -38,6 +38,8 @@ namespace engine {
             sprintf(svn_lastmessage, "successfully checked out \"%s\" to %s", url, folder);
         } catch(svn::ClientException& err) {
             sprintf(svn_lastmessage, "checkout failed: %s", err.message());
+        } catch(svn::Exception& err2) {
+            sprintf(svn_lastmessage, "checkout failed: %s", err2.message());
         } catch(...) {
             sprintf(svn_lastmessage, "checkout failed: unknown");
         }
@@ -64,6 +66,8 @@ namespace engine {
             sprintf(svn_lastmessage, "successfully updated %s", folder);
         } catch(svn::ClientException& err) {
             sprintf(svn_lastmessage, "update of %s failed: %s", folder, err.message());
+        } catch(svn::Exception& err2) {
+            sprintf(svn_lastmessage, "update of %s failed: %s", folder, err2.message());
         } catch(...) {
             sprintf(svn_lastmessage, "update of %s failed: unknown", folder);
         }
