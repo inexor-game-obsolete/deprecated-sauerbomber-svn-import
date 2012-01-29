@@ -2399,6 +2399,8 @@ namespace server
                 int state = getint(p);
                 int health = getint(p);
                 QUEUE_MSG;
+                server_entity se = { NOTUSED, 0, false, -1, CS_ALIVE, 0 };
+                while(sents.length()<=entidx) sents.add(se);
                 sents[entidx].health = health;
                 sents[entidx].state = state;
                 break;

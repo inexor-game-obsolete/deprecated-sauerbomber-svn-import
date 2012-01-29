@@ -73,10 +73,8 @@ namespace game
 
         void damaged(int damage, fpsent *at, int gun = -1)
         {
-            // conoutf("movable.cpp::damaged etype=%i state=%i health=%i damage=%i gun=%i",etype,state,health,damage,gun);
             if((etype!=MOV_BARREL && etype!=MOV_OBSTACLE) || state!=CS_ALIVE || exploding) return;
             health -= damage;
-            // conoutf("movable.cpp::damaged health new=%i", health);
             if (m_obstacles) sync();
             if(health>0) return;
             if(gun==GUN_BARREL) exploding = lastmillis + EXPLODEDELAY;
