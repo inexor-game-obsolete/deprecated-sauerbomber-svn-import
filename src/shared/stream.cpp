@@ -363,7 +363,7 @@ SVARP(repositoriesdir, "repositories");
 SVARP(defaultrepository, "sauerbomber-base");
 SVARP(homerepository, "home");
 SVARP(editrepository, "edit");
-SVARP(lookuprepository, "sauerbomber-base");
+SVARP(lookuprepository, "sauerbomber-content");
 
 void addrepositories() {
     // search in home repository first
