@@ -2,6 +2,8 @@
 
 #include "engine.h"
 
+#include <signal.h>
+
 extern void cleargamma();
 
 void cleanup()
@@ -958,6 +960,13 @@ int getclockmillis()
     return max(millis, totalmillis);
 }
 
+static bool running = true;
+
+void client_sigint(int signal)
+{
+    running = false;
+}
+
 int main(int argc, char **argv)
 {
     #ifdef WIN32
@@ -1165,7 +1174,10 @@ int main(int argc, char **argv)
     // startup
     execfile("data/cubescript/startup_client.cfg");
 
-    for(;;)
+    signal(SIGINT, client_sigint);
+    signal(SIGTERM, client_sigint);
+
+    for(;running;)
     {
         static int frames = 0;
         int millis = getclockmillis();

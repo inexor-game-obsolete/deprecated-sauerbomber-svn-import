@@ -1187,6 +1187,8 @@ void initserver(bool listen, bool dedicated)
         setupwindow("Cube 2: Sauerbomber server");
 #endif
         execfile("server-init.cfg", false);
+        signal(SIGINT, server_sigint);
+        signal(SIGTERM, server_sigint);
     }
 
     if(listen) setuplistenserver(dedicated);
@@ -1196,8 +1198,6 @@ void initserver(bool listen, bool dedicated)
         conoutf("Server: Python initialization failed. Starting Sauerbomber without Python support.");
         // return;
     }
-    signal(SIGINT, server_sigint);
-    signal(SIGTERM, server_sigint);
 
     if(listen)
     {
