@@ -429,7 +429,7 @@ const char *findfile(const char *filename, const char *mode)
             return s;
         }
     }
-    if(mode[0]=='w' || mode[0]=='a') return filename;
+    // if(mode[0]=='w' || mode[0]=='a') return filename;
 
     // priority 3: lookup repository
     formatstring(s)("%s/%s/%s", repositoriesdir, lookuprepository, filename);
