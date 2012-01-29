@@ -8,7 +8,7 @@ import logging
 import sauerbomber
 
 from core.settings import PluginConfig
-# from xsbs.commands import commandHandler
+# from core.commands import commandHandler
 
 import logging
 
@@ -21,7 +21,7 @@ jabber_pass = config.getOption('Jabber', 'password', 'pass')
 jabber_alerts = config.getOption('Jabber', 'alert_accounts', 'admin1@server.com, admin2@otherserver.com')
 del config
 jabber_port = int(jabber_port)
-jabber_id += '/xsbs'
+jabber_id += '/sauerbomber'
 jabber_alerts = jabber_alerts.strip().split(',')
 
 class JabberClient(XmlStream):
@@ -76,9 +76,9 @@ if jabber_enable:
 #		)
 #	for alert in jabber_alerts:
 #		factory.message(alert, message)
-#
 
-def onMapChange(name, mode):
-    for alert in jabber_alerts:
-        factory.message(alert, 'Map changed: %s %d'%(name, mode))
-registerServerEventHandler('map_changed', onMapChange)
+
+#def onMapChange(name, mode):
+#    for alert in jabber_alerts:
+#        factory.message(alert, 'Map changed: %s %d'%(name, mode))
+#registerServerEventHandler('map_changed', onMapChange)
