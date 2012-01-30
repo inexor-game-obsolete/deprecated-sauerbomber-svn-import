@@ -3,7 +3,7 @@ import logging
 import string
 
 config = PluginConfig('logging')
-path = config.getOption('Config', 'path', 'python.log')
+path = config.getOption('Config', 'path', 'repositories/home/data/logs/python.log')
 level = config.getOption('Config', 'level', 'error')
 del config
 
