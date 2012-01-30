@@ -47,6 +47,8 @@ namespace server {
 
 namespace SbPy {
     // python settings (defined in engine/server)
+    extern PyObject *isClient(PyObject *self, PyObject *args);
+    extern PyObject *isServer(PyObject *self, PyObject *args);
     extern PyObject *pyscriptspath(PyObject *self, PyObject *args);
     extern PyObject *configdir(PyObject *self, PyObject *args);
 }

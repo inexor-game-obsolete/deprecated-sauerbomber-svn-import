@@ -17,10 +17,12 @@ class Plugin:
 		self.path = path
 		conf = ConfigParser()
 		conf.read(config_path)
-		self.isenabled = True
+		self.isclientenabled = True
+		self.isserverenabled = True
 		try:
 			self.initmodule = conf.get('Plugin', 'module')
-			self.isenabled = (conf.get('Plugin', 'enable') == 'yes')
+			self.isclientenabled = (conf.get('Plugin', 'client') == 'yes')
+			self.isserverenabled = (conf.get('Plugin', 'server') == 'yes')
 			self.name = conf.get('Plugin', 'name')
 			self.version = conf.get('Plugin', 'version')
 			self.author = conf.get('Plugin', 'author')
@@ -28,13 +30,15 @@ class Plugin:
 			self.isenabled = False
 		del conf
 	def loadModule(self):
-		if self.initmodule and self.isenabled:
+		if self.initmodule and ((self.isclientenabled and sauerbomber.isClient()) or (self.isserverenabled and sauerbomber.isServer())) :
 			self.module = __import__(os.path.basename(self.path) + '.' + self.initmodule)
 	def unloadModule(self):
-		if self.isenabled:
+		if (self.isclientenabled and sauerbomber.isClient()) or (self.isserverenabled and sauerbomber.isServer()):
 			del self.module
-	def enabled(self):
-		return self.isenabled
+	def clientenabled(self):
+		return self.isclientenabled
+	def serverenabled(self):
+		return self.isserverenabled
 
 def plugin(name):
 	return plugins[name]
@@ -49,7 +53,7 @@ def loadPlugins():
 			config_path = dirpath + '/' + config_filename
 			if os.path.isdir(dirpath) and os.path.exists(config_path):
 				p = Plugin(dirpath, config_path)
-				if p.isenabled:
+				if (p.isclientenabled and sauerbomber.isClient()) or (p.isserverenabled and sauerbomber.isServer()):
 					plugins[p.name] = p
 				else:
 					logging.info('Skipping %s plugin' % file)

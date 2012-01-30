@@ -760,6 +760,8 @@ namespace SbPy {
         {"sendDemo", sendDemo, METH_VARARGS, "Send demo to client."},
         {"suicide", suicide, METH_VARARGS, "Force client to commit suicide."},
         /* from sharedmodule.cpp */
+        {"isClient", isClient, METH_VARARGS, "True if client."},
+        {"isServer", isServer, METH_VARARGS, "True if server."},
         {"pyscriptspath", pyscriptspath, METH_VARARGS, "Plugin path."},
         {"configdir", configdir, METH_VARARGS, "Python config dir."},
         {NULL, NULL, 0, NULL}

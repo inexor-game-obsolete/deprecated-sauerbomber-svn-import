@@ -23,6 +23,22 @@ namespace SbPy {
 
     extern PyMethodDef ModuleMethods[];
 
+    PyObject *isClient(PyObject *self, PyObject *args) {
+#ifdef STANDALONE
+        return Py_BuildValue("b", false);
+#else
+        return Py_BuildValue("b", true);
+#endif
+    }
+
+    PyObject *isServer(PyObject *self, PyObject *args) {
+#ifdef STANDALONE
+        return Py_BuildValue("b", true);
+#else
+        return Py_BuildValue("b", false);
+#endif
+    }
+
     PyObject *pyscriptspath(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", server::pyscriptspath);
     }

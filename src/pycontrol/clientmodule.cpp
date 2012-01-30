@@ -468,6 +468,8 @@ namespace SbPy {
         {"guiBar", guiBar, METH_VARARGS, "Switches the name."},
         {"guiTab", guiTab, METH_VARARGS, "Switches the name."},
         /* from sharedmodule.cpp */
+        {"isClient", isClient, METH_VARARGS, "True if client."},
+        {"isServer", isServer, METH_VARARGS, "True if server."},
         {"pyscriptspath", pyscriptspath, METH_VARARGS, "Plugin path."},
         {"configdir", configdir, METH_VARARGS, "Python config dir."},
         {NULL, NULL, 0, NULL}
