@@ -15,8 +15,13 @@
 #include "items.h"
 #include "sounds.h"
 #include "fpsent.h"
+#include "moveable.h"
 #include "priviledges.h"
 #include "nmessages.h"
+#include "hudannounce.h"
+#include "weapon.h"
+#include "teamscore.h"
+#include "clientmode.h"
 
 // network quantization scale
 #define DMF 16.0f                // for world locations
@@ -48,21 +53,6 @@ struct demoheader
 #define MAXNAMELEN 15
 #define MAXTEAMLEN 4
 
-enum hudannounceeffects {
-    E_STATIC_CENTER = 0,
-    E_STATIC_LEFT,
-    E_STATIC_RIGHT,
-    E_STATIC_TOP,
-    E_STATIC_BOTTOM,
-    E_FADE_LEFT_RIGHT,
-    E_FADE_RIGHT_LEFT,
-    E_FADE_TOP_BOTTOM,
-    E_FADE_BOTTOM_TOP,
-    E_ZOOM_IN,
-    E_ZOOM_OUT,
-    E_BLINK_CENTER
-};
-
 #define SGRAYS 20
 #define SGSPREAD 4
 #define RL_DAMRAD 40
@@ -75,29 +65,11 @@ enum hudannounceeffects {
 #define BOMB_COLLGROUND 5
 #define BOMB_COLLBULGE 40
 
-static const struct guninfo { short sound, attackdelay, damage, projspeed, part, kickamount, range; const char *name, *file; } guns[NUMGUNS] =
-{
-    { S_PUNCH1,    250,  50, 0,   0,  0,   14, "fist",            "fist"  },
-    { S_SG,       1400,  10, 0,   0, 20, 1024, "shotgun",         "shotg" },  // *SGRAYS
-    { S_CG,        100,  30, 0,   0,  7, 1024, "chaingun",        "chaing"},
-    { S_RLFIRE,    800, 120, 80,  0, 10, 1024, "rocketlauncher",  "rocket"},
-    { S_RIFLE,    1500, 100, 0,   0, 30, 2048, "rifle",           "rifle" },
-    { S_FLAUNCH,   500,  75, 80,  0, 10, 1024, "grenadelauncher", "gl" },
-    { S_PISTOL,    500,  25, 0,   0,  7, 1024, "pistol",          "pistol" },
-    { S_FEXPLODE,  375,   1, 8,   0,  2,    0, "bomb",            "cannon" }, // TODO: other sound, other hudmodel
-    { S_FLAUNCH,   200,  20, 50,  PART_FIREBALL1,  1, 1024, "fireball",  NULL },
-    { S_ICEBALL,   200,  40, 30,  PART_FIREBALL2,  1, 1024, "iceball",   NULL },
-    { S_SLIMEBALL, 200,  30, 160, PART_FIREBALL3,  1, 1024, "slimeball", NULL },
-    { S_PIGR1,     250,  50, 0,   0,  1,   12, "bite",            NULL },
-    { -1,            0, 120, 0,   0,  0,    0, "barrel",          NULL },
-    { -1,            0,   1, 200, 0,  0,    0, "splinter",        NULL }
-};
-
 #include "ai.h"
 
 
 
-
+/*
 struct teamscore
 {
     const char *team;
@@ -112,6 +84,7 @@ struct teamscore
         return strcmp(x.team, y.team) < 0;
     }
 };
+*/
 
 namespace entities
 {
@@ -143,11 +116,14 @@ namespace entities
 
 namespace game
 {
+    /*
     struct scoregroup : teamscore
     {
         vector<fpsent *> players;
     };
+    */
 
+    /*
     struct clientmode
     {
         virtual ~clientmode() {}
@@ -183,6 +159,7 @@ namespace game
 
     extern clientmode *cmode;
     extern void setclientmode();
+    */
 
     // fps
     extern int gamemode, nextmode;
@@ -309,8 +286,8 @@ namespace game
     extern int getweapon(const char *name);
     extern void shoot(fpsent *d, const vec &targ);
     extern void shoteffects(int gun, const vec &from, const vec &to, fpsent *d, bool local, int id, int prevaction);
-    extern void explodelocal(const vec &v);
-    extern void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int dam, int gun);
+    // extern void explodelocal(const vec &v);
+    // extern void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int dam, int gun);
     extern void explodeeffects(int gun, fpsent *d, bool local, int id = 0);
     extern void damageeffect(int damage, fpsent *d, bool thirdperson = true);
     extern void gibeffect(int damage, const vec &vel, fpsent *d);

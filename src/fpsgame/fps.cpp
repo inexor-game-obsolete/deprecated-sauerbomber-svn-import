@@ -806,25 +806,25 @@ namespace game
         int remaining = hudannounce_timeout - totalmillis;
 
         switch(hudannounce_effect) {
-            case E_STATIC_CENTER:
+            case HUD_STATIC_CENTER:
                 break;
-            case E_STATIC_LEFT:
+            case HUD_STATIC_LEFT:
                 left = 500;
                 break;
-            case E_STATIC_RIGHT:
+            case HUD_STATIC_RIGHT:
                 left = -500;
                 break;
-            case E_STATIC_TOP:
+            case HUD_STATIC_TOP:
                 top = 400;
                 break;
-            case E_STATIC_BOTTOM:
+            case HUD_STATIC_BOTTOM:
                 top = -400;
                 break;
-            case E_ZOOM_IN:
+            case HUD_ZOOM_IN:
                 zoom = 0.5f + ((float) remaining / duration);
                 scale = scale * zoom;
                 break;
-            case E_ZOOM_OUT:
+            case HUD_ZOOM_OUT:
                 zoom = 1.5f - ((float) remaining / duration);
                 scale = scale * zoom;
                 break;

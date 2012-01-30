@@ -1,5 +1,7 @@
 // the interface the game uses to access the engine
 
+#include "particles.h"
+
 extern int curtime;                     // current frame time
 extern int lastmillis;                  // last time
 extern int totalmillis;                 // total elapsed time
@@ -257,6 +259,7 @@ extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();
 
 // renderparticles
+/*
 enum
 {
     PART_BLOOD = 0,
@@ -275,6 +278,7 @@ enum
     PART_METER, PART_METER_VS,
     PART_LENS_FLARE
 };
+*/
 
 extern bool canaddparticles();
 extern void regular_particle_splash(int type, int num, int fade, const vec &p, int color = 0xFFFFFF, float size = 1.0f, int radius = 150, int gravity = 2, int delay = 0);

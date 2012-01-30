@@ -31,8 +31,7 @@ enum {
     M_FREEZE     = 1<<26,
     M_DYNENT     = 1<<27,
     M_WORLDMOD   = 1<<28,
-    M_BASES      = 1<<29 //,
-    // M_SAFARI     = 1<<26
+    M_BUILDANDDESTROY = 1<<29
 };
 
 static struct gamemodeinfo {
@@ -78,7 +77,7 @@ static struct gamemodeinfo {
     // { "hideandseek safari", M_HIDEANDSEEK | M_TEAM | M_SAFARI | M_OBSTACLES, "Hide and Seek: Hiders hides, Seekers seeks. Seekers drugs Hiders, then hunt them down." }
     { "ffa duckandcover", M_LOBBY | M_OBSTACLES, "Free for All: Duck and Cover" },
     { "efficiency duckandcover", M_NOITEMS | M_EFFICIENCY| M_TEAM | M_OBSTACLES, "Efficiency Duck and Cover" },
-    { "gta", M_NOITEMS | M_TEAM | M_OBSTACLES | M_BASES | M_WORLDMOD, "Top Secret." } //,
+    { "build and destroy", M_BUILDANDDESTROY| M_NOITEMS | M_TEAM | M_OBSTACLES | M_WORLDMOD, "Build and protect bases. Destroy the enemy." } //,
 };
 
 #define STARTGAMEMODE (-3)
@@ -108,13 +107,13 @@ static struct gamemodeinfo {
 #define m_bomb         (m_check(gamemode, M_BOMB))
 #define m_race         (m_check(gamemode, M_RACE))
 #define m_hideandseek  (m_check(gamemode, M_HIDEANDSEEK))
+#define m_buildanddestroy (m_check(gamemode, M_BUILDANDDESTROY))
 
 #define m_obstacles    (m_check(gamemode, M_OBSTACLES))
 #define m_timeforward  (m_check(gamemode, M_TIMEFORWARD))
 #define m_freeze       (m_check(gamemode, M_FREEZE))
 #define m_dynent       (m_check(gamemode, M_DYNENT))
 #define m_worldmod     (m_check(gamemode, M_WORLDMOD))
-#define m_bases        (m_check(gamemode, M_BASES))
 
 #define m_demo         (m_check(gamemode, M_DEMO))
 #define m_edit         (m_check(gamemode, M_EDIT))

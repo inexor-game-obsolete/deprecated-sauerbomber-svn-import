@@ -363,7 +363,7 @@ struct raceclientmode : clientmode
       case 0:
         if(totalmillis - timecounter >= 10000) {
             // sendservmsg("Map load complete (grannies left behind).");
-            sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1000, E_STATIC_BOTTOM, "Map load complete (grannies left behind)");
+            sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1000, HUD_STATIC_BOTTOM, "Map load complete (grannies left behind)");
         } else {
           loopv(spawnlocs){
             if(spawnlocs[i]->cn == -1) continue;
@@ -371,7 +371,7 @@ struct raceclientmode : clientmode
             if(!ci || ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || ci->clientmap[0] || ci->mapcrc) continue;
             return;
           }
-          sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1000, E_STATIC_BOTTOM, "Map load complete");
+          sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1000, HUD_STATIC_BOTTOM, "Map load complete");
           // sendservmsg("Map load complete.");
         }
         sequence = 1;
@@ -383,7 +383,7 @@ struct raceclientmode : clientmode
         int remaining = COUNTDOWNSECONDS*1000 - (totalmillis - timecounter);
         if(remaining <= 0){
           sequence = 2;
-          sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 2000, E_ZOOM_IN, "S T A R T");
+          sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 2000, HUD_ZOOM_IN, "S T A R T");
           // sendservmsg("FIGHT!");
           timestarted = totalmillis;
           pausegame(false);
@@ -392,7 +392,7 @@ struct raceclientmode : clientmode
           // defformatstring(msg)("-%d...", countdown--);
           // sendservmsg(msg);
           defformatstring(msg)("- %d -", countdown--);
-          sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1500, E_ZOOM_IN, msg);
+          sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1500, HUD_ZOOM_IN, msg);
         }
         break;
       }
@@ -467,7 +467,7 @@ struct raceclientmode : clientmode
     void sendfinishannounce(clientinfo *ci) {
         int rank = ci->state.racerank;
         defformatstring(msg)("%d%s", rank, (rank==1 ? "st" : (rank==2 ? "nd" : (rank==3 ? "rd": "th"))));
-        sendf(ci->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg);
+        sendf(ci->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg);
     }
 
     void initplayers() {
@@ -582,7 +582,7 @@ case N_RACEFINISH:
               // sendf(-1, 1, "ri4", N_DIED, cq->clientnum, cq->clientnum, cq->state.frags);
           } else {
               defformatstring(msg)("%d %s REMAINING", RACELAPS - cq->state.racelaps, RACELAPS - cq->state.racelaps != 1 ? "LAPS" : "LAP");
-              sendf(cq->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 1500, E_ZOOM_IN, msg);
+              sendf(cq->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 1500, HUD_ZOOM_IN, msg);
           }
       }
   }
@@ -613,7 +613,7 @@ case N_RACECHECKPOINT:
       cq->state.racerank = racemode.getrank(cq->clientnum);
       sendf(-1, 1, "ri7", N_RACEINFO, cq->clientnum, cq->state.racestate, cq->state.racelaps, cq->state.racecheckpoint, racemode.getracetime(cq), cq->state.racerank);
       defformatstring(msg)("CHECKPOINT %d", cq->state.racecheckpoint);
-      sendf(cq->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 400, E_ZOOM_OUT, msg);
+      sendf(cq->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 400, HUD_ZOOM_OUT, msg);
   }
   break;
 }

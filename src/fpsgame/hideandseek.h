@@ -203,9 +203,9 @@ struct hideandseekclientmode : clientmode
                 setfreezedstate(target, false);
                 sendf(target->clientnum, 1, "rii", N_PAUSEGAME, 0);
                 defformatstring(msg)("You got unfreezed by %s", actor->name);
-                sendf(target->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg);
+                sendf(target->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg);
                 defformatstring(msg2)("You unfreezed %s", target->name);
-                sendf(actor->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg2);
+                sendf(actor->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg2);
                 return false;
             }
         }
@@ -220,18 +220,18 @@ struct hideandseekclientmode : clientmode
             if (!actor) {
                 if (remaining > 0) {
                     defformatstring(msg)("%s suicided! %d Hiders remaining!", target->name, remaining);
-                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg);
+                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg);
                 } else {
                     defformatstring(msg)("%s suicided! All Hiders eliminated!", target->name);
-                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg);
+                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg);
                 }
             } else {
                 if (remaining > 0) {
                     defformatstring(msg)("%s killed %s! %d Hiders remaining!", actor->name, target->name, remaining);
-                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg);
+                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg);
                 } else {
                     defformatstring(msg)("%s killed %s! All Hiders eliminated!", actor->name, target->name);
-                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, E_ZOOM_OUT, msg);
+                    sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 3000, HUD_ZOOM_OUT, msg);
                 }
             }
         }
@@ -285,7 +285,7 @@ struct hideandseekclientmode : clientmode
 
     void announceseekers(char* msg) {
         loopv(clients) if (isseeker(clients[i])) {
-            sendf(clients[i]->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 1000, E_STATIC_TOP, msg);
+            sendf(clients[i]->clientnum, 1, "ri3s ", N_HUDANNOUNCE, 1000, HUD_STATIC_TOP, msg);
         }
     }
 

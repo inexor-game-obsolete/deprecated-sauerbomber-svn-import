@@ -1,5 +1,6 @@
 #include "sbpy.h"
 #include "game.h"
+#include "moveable.h"
 
 namespace game
 {
@@ -49,6 +50,7 @@ namespace game
     #include "bomb.h"
     #include "race.h"
     #include "hideandseek.h"
+    #include "buildanddestroy.h"
 
     clientmode *cmode = NULL;
     captureclientmode capturemode;
@@ -57,6 +59,7 @@ namespace game
     bombclientmode bombmode;
     raceclientmode racemode;
     hideandseekclientmode hideandseekmode;
+    buildanddestroyclientmode buildanddestroymode;
 
     void setclientmode()
     {
@@ -66,6 +69,7 @@ namespace game
         else if(m_bomb) cmode = &bombmode;
         else if(m_race) cmode = &racemode;
         else if(m_hideandseek) cmode = &hideandseekmode;
+        else if(m_buildanddestroy) cmode = &buildanddestroymode;
         else cmode = NULL;
     }
 
@@ -1750,6 +1754,7 @@ namespace game
             #include "bomb.h"
             #include "race.h"
             #include "hideandseek.h"
+            #include "buildanddestroy.h"
             #undef PARSEMESSAGES
 
             case N_ANNOUNCE:

@@ -218,6 +218,7 @@ namespace server
     #include "bomb.h"
     #include "race.h"
     #include "hideandseek.h"
+    #include "buildanddestroy.h"
 
     captureservmode capturemode;
     ctfservmode ctfmode;
@@ -225,6 +226,7 @@ namespace server
     bombservmode bombmode;
     raceservmode racemode;
     hideandseekservmode hideandseekmode;
+    buildanddestroyservmode buildanddestroymode;
     servmode *smode = NULL;
 
     bool canspawnitem(int type) {
@@ -1207,6 +1209,7 @@ namespace server
         else if(m_bomb) smode = &bombmode;
         else if(m_race) smode = &racemode;
         else if(m_hideandseek) smode = &hideandseekmode;
+        else if(m_buildanddestroy) smode = &buildanddestroymode;
         else smode = NULL;
 
         if(m_timed && smapname[0]) sendf(-1, 1, "ri2", N_TIMEUP, gamemillis < gamelimit && !interm ? max((gamelimit - gamemillis)/1000, 1) : 0);
@@ -2889,6 +2892,7 @@ namespace server
             #include "bomb.h"
             #include "race.h"
             #include "hideandseek.h"
+            #include "buildanddestroy.h"
             #undef PARSEMESSAGES
 
             case -1:

@@ -1,10 +1,12 @@
 // movable.cpp: implements physics for inanimate models
 #include "game.h"
+#include "moveable.h"
 
 extern int physsteps;
 
 namespace game
 {
+  /*
     enum
     {
         BOXWEIGHT = 25,
@@ -104,7 +106,7 @@ namespace game
             }
         }
     };
-
+*/
     vector<movable *> movables;
    
     void clearmovables()
