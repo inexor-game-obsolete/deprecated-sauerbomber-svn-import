@@ -1,0 +1,90 @@
+Sauerbomber - README - MILESTONE 2
+==================================
+
+ == Warning: It's not like a typically ego shooter gamemode, but please be open minded! ==
+
+
+The Idea: A Bomberman Gamemode
+------------------------------
+
+A small group of sauerbraten players are going to implement a bomberman like gamemode on
+base of the cube engine. Why? Because we loved bomberman and thought it would be a great
+extension to sauerbraten. The cube engine provides most of what's needed: a 3d engine,
+players, items, mapmodels, weapons and so on. So the implementation of a bomberman like
+gamemode shouldn't be that hard.
+
+But also, we thought, we should make it closer to sauerbraten than to the original
+bomberman. Firstly, unlike bomberman it's played in a 3d environment in first person.
+Secondly, it should be possible to do some actions that needs some experience and skills
+like weaponjumps in other gamemodes.
+
+
+Technical View
+--------------
+
+In the bomberman gamemode we implemented a new weapon: the bomb. Unlike other weapons,
+you get the bomb back if it exploded. So you have to wait, before dropping a bomb again.
+Also unlike other weapons players cannot go through bombs. The players are colliding with
+the bomb and have to make a detour. Also, as previously mentioned, players needs some
+skills in throwing a bomb. Firstly they can throw the bomb further or shorter. Secondly,
+using bombs they are able to climb.
+
+Furthermore in the bomberman gamemode there are some items players can collect. The bombs
+item provides players a second, third, ... bomb they can drop concurrently. The bombradius
+item lets the bomb explosion radius get bigger. An the bombdelay item shortens the time
+before the bomb explodes.
+
+There is another thing to mention: there is a new entity type called obstacle. In the
+bomberman gamemode players can damage obstacle like barrels or boxes. If the health is
+lower than the damage, the obstacle explodes. Unlike boxes or barrels obstacles doesn't
+move if hit (no hitpush). Also unlike boxes and barrels, obstacles does not start in
+falling mode. That means that obstacles are flying. The behaviour in this case is like
+normal mapmodels. Unlike barrels but like boxes, obstacles are not cause damage to other
+entities or players.
+
+
+Milestone 2 Artwork
+-------------------
+
+The second milestone of sauerbomber contains some new artwork:
+
+* Some models for use as obstacles
+* The Hudgun
+* 42 maps (see CREDITS)
+
+
+Known Bugs
+----------
+
+* LAG if there are many bombs (caused by many network messages)
+* Some bombs are invisible, if there are many bombs (cause not known)
+* Performance issues (caused by bomb collision with obstacles)
+* Performance issues if there are many obstacles
+
+
+Servers
+-------
+
+We have setup some servers:
+
+ -+----------------+------------------+--------+--------------------------+-
+  . name           . hostname         . port   . purpose                  .
+ -+----------------+------------------+--------+--------------------------+-
+  . sauerbomber 1  . sauerbomber.org  . 10510  . gameserver (no coopedit) .
+  . sauerbomber 2  . sauerbomber.org  . 10520  . gameserver and editing   .
+  . sauerbomber 3  . sauerbomber.org  . 10530  . gameserver and editing   .
+  . sauerbomber 4  . sauerbomber.org  . 10540  . gameserver and editing   .
+  . sauerbomber 5  . sauerbomber.org  . 10550  . gameserver and editing   .
+ -+----------------+------------------+--------+--------------------------+-
+
+Feel free to setup your own server!
+
+
+What happend on the original goal?
+----------------------------------
+
+Our goal was, that the bomberman gamemode become an official gamemode in sauerbraten. Sadly,
+eihrul doesn't accept the bomberman gamemode for sauerbraten. According to eihrul,
+Sauerbomber is a "completely different game". So, what to do? We never wanted to fork
+sauerbraten, but we have to if we want to go on.
+
