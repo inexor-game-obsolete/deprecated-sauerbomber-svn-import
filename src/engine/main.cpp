@@ -99,7 +99,7 @@ VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 void writeinitcfg()
 {
     if(!restoredinits) return;
-    stream *f = openutf8file("init.cfg", "w");
+    stream *f = openutf8file("repositories/home/data/user/init.cfg", "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     extern int fullscreen;
@@ -1091,8 +1091,8 @@ int main(int argc, char **argv)
 
     logoutf("init: console");
     identflags &= ~IDF_PERSIST;
-    if(!execfile("data/stdlib.cfg", false)) fatal("cannot find data files (you are running from the wrong folder, try .bat file in the main folder)");   // this is the first file we load.
-    if(!execfile("data/font.cfg", false)) fatal("cannot find font definitions");
+    if(!execfile("data/cubescript/defaults/stdlib.cfg", false)) fatal("cannot find data files (you are running from the wrong folder, try .bat file in the main folder)");   // this is the first file we load.
+    if(!execfile("data/cubescript/defaults/font.cfg", false)) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
     inbetweenframes = true;
@@ -1113,19 +1113,19 @@ int main(int argc, char **argv)
 
     logoutf("init: cfg");
     logoutf("init: keymap");
-    execfile("data/keymap.cfg");
+    execfile("data/cubescript/defaults/keymap.cfg");
     logoutf("init: music");
     execfile("data/cubescript/music.cfg");
     logoutf("init: guis");
     execfile("data/cubescript/guis.cfg");
     logoutf("init: stdedit");
-    execfile("data/stdedit.cfg");
+    execfile("data/cubescript/defaults/stdedit.cfg");
     logoutf("init: menus");
-    execfile("data/menus.cfg");
+    execfile("data/cubescript/defaults/menus.cfg");
     logoutf("init: brush");
-    execfile("data/brush.cfg");
+    execfile("data/cubescript/defaults/brush.cfg");
     logoutf("init: mybrushes");
-    execfile("mybrushes.cfg", false);
+    execfile("repositories/home/data/user/mybrushes.cfg", false);
     if(game::savedservers()) execfile(game::savedservers(), false);
     
     identflags |= IDF_PERSIST;
@@ -1143,7 +1143,7 @@ int main(int argc, char **argv)
 
     logoutf("init: game cfg");
     string gamecfgname;
-    copystring(gamecfgname, "data/game_");
+    copystring(gamecfgname, "data/cubescript/defaults/game_");
     concatstring(gamecfgname, game::gameident());
     concatstring(gamecfgname, ".cfg");
     execfile(gamecfgname);
@@ -1153,7 +1153,7 @@ int main(int argc, char **argv)
     identflags |= IDF_PERSIST;
 
     logoutf("init: once cfg");
-    if(execfile("once.cfg", false)) remove(findfile("once.cfg", "rb"));
+    if(execfile("repositories/home/data/user/once.cfg", false)) remove(findfile("repositories/home/data/user/once.cfg", "rb"));
 
     if(load)
     {

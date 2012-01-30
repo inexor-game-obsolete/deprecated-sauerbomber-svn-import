@@ -64,7 +64,7 @@ void loadshaders()
 
     initshaders = true;
     standardshader = true;
-    execfile(renderpath==R_GLSLANG ? "data/glsl.cfg" : "data/stdshader.cfg");
+    execfile(renderpath==R_GLSLANG ? "data/cubescript/defaults/glsl.cfg" : "data/cubescript/defaults/stdshader.cfg");
     standardshader = false;
     initshaders = false;
     defaultshader = lookupshaderbyname("default");

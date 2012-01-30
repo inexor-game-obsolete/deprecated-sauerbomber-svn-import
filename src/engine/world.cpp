@@ -1213,7 +1213,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if(usecfg)
     {
         identflags |= IDF_OVERRIDDEN;
-        execfile("data/default_map_settings.cfg", false);
+        execfile("data/cubescript/defaults/default_map_settings.cfg", false);
         identflags &= ~IDF_OVERRIDDEN;
     }
 

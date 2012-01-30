@@ -1226,7 +1226,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     clearmainmenu();
 
     identflags |= IDF_OVERRIDDEN;
-    execfile("data/default_map_settings.cfg", false);
+    execfile("data/cubescript/defaults/default_map_settings.cfg", false);
     execfile(cfgname, false);
     identflags &= ~IDF_OVERRIDDEN;
    

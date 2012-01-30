@@ -1041,11 +1041,11 @@ namespace game
     void writegamedata(vector<char> &extras) {}
     void readgamedata(vector<char> &extras) {}
 
-    const char *savedconfig() { return "config.cfg"; }
-    const char *restoreconfig() { return "restore.cfg"; }
-    const char *defaultconfig() { return "data/defaults.cfg"; }
-    const char *autoexec() { return "autoexec.cfg"; }
-    const char *savedservers() { return "servers.cfg"; }
+    const char *savedconfig() { return "repositories/home/data/user/config.cfg"; }
+    const char *restoreconfig() { return "repositories/home/data/user/restore.cfg"; }
+    const char *defaultconfig() { return "data/cubescript/defaults/defaults.cfg"; }
+    const char *autoexec() { return "repositories/home/data/user/autoexec.cfg"; }
+    const char *savedservers() { return "repositories/home/data/user/servers.cfg"; }
 
     void loadconfigs()
     {
