@@ -73,6 +73,8 @@
 #ifndef DIRENT_H
 #define DIRENT_H
 
+#ifdef WIN32
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <string.h>
@@ -361,4 +363,7 @@ static void rewinddir(DIR* dirp)
 #ifdef __cplusplus
 }
 #endif
+
+#endif
+
 #endif /*DIRENT_H*/
