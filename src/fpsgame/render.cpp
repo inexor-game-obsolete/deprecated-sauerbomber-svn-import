@@ -124,8 +124,8 @@ namespace game
     VAR(testarmour, 0, 0, 1);
     VAR(testteam, 0, 0, 3);
 
-    void renderplayer(fpsent *d, const playermodelinfo &mdl, int team, float fade, bool mainpass)
-    {
+    void renderplayer(fpsent *d, const playermodelinfo &mdl, int team, float fade, bool mainpass) {
+/*
         int lastaction = d->lastaction;
         int holdanim;
         int attack;
@@ -145,6 +145,9 @@ namespace game
         }
         int hold = mdl.vwep || holdanim | ANIM_LOOP;
         int delay = mdl.vwep ? 300 : guns[d->gunselect].attackdelay+50;
+*/
+        int lastaction = d->lastaction, hold = mdl.vwep || d->gunselect==GUN_PISTOL ? 0 : (ANIM_HOLD1+d->gunselect)|ANIM_LOOP, attack = ANIM_ATTACK1+d->gunselect, delay = mdl.vwep ? 300 : guns[d->gunselect].attackdelay+50;
+
         if(intermission && d->state!=CS_DEAD) {
             lastaction = 0;
             hold = attack = ANIM_LOSE|ANIM_LOOP;
