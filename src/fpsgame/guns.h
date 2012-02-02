@@ -51,7 +51,7 @@ static const struct guninfo {
     { S_PIGR1,     250,  50,   0,              0,  1,   12, "bite",               NULL      },
     { -1,            0, 120,   0,              0,  0,    0, "barrel",             NULL      },
     { -1,            0,   1, 200,              0,  0,    0, "splinter",           NULL      },
-    { S_FLAUNCH,  1000,   0,  80,              0,  2,    0, "foggrenadelauncher", "gl"      },
+    { S_FLAUNCH,  1000,   0,  80,              0,  2,    0, "foggrenadelauncher", "fgl"     },
     { S_RIFLE,    1500,   0,  10, PART_FIREBALL1, 40, 2048, "pulsed_thruster",    "rifle"   },
     { S_CG,        150,   0,  10, PART_FIREBALL1, 12, 1024, "continous_thruster", "chaing"  }
 };
