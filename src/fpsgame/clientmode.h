@@ -19,6 +19,7 @@ namespace game {
         virtual void respawned(fpsent *d) {}
         virtual void setup() {}
         virtual void checkitems(fpsent *d) {}
+        virtual bool canrenderentity(int type) { return type >= I_SHELLS && type <= I_QUAD; }
         virtual int respawnwait(fpsent *d) { return 0; }
         virtual void pickspawn(fpsent *d) { findplayerspawn(d); }
         virtual void senditems(packetbuf &p) {}

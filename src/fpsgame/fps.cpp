@@ -709,8 +709,8 @@ namespace game
         }
     }
 
-    int ammohudup[3] = { GUN_CG, GUN_RL, GUN_GL },
-        ammohuddown[3] = { GUN_RIFLE, GUN_SG, GUN_PISTOL },
+    int ammohudup[5] = { GUN_CG, GUN_RL, GUN_GL, GUN_PULSED_THRUSTER, GUN_FGL },
+        ammohuddown[4] = { GUN_RIFLE, GUN_SG, GUN_PISTOL, GUN_CONTINOUS_THRUSTER },
         ammohudcycle[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
 
     ICOMMAND(ammohudup, "V", (tagval *args, int numargs),
@@ -739,7 +739,7 @@ namespace game
         loopi(3)
         {
             int gun = ammohudup[i];
-            if(gun < GUN_FIST || gun > GUN_BOMB || gun == d->gunselect || !d->ammo[gun]) continue;
+            if(!isgun(gun) || gun == d->gunselect || !d->ammo[gun]) continue;
             drawicon(HICON_FIST+gun, xup, yup, sz);
             yup += sz;
         }
@@ -747,7 +747,7 @@ namespace game
         loopi(3)
         {
             int gun = ammohuddown[3-i-1];
-            if(gun < GUN_FIST || gun > GUN_BOMB || gun == d->gunselect || !d->ammo[gun]) continue;
+            if(!isgun(gun) || gun == d->gunselect || !d->ammo[gun]) continue;
             ydown -= sz;
             drawicon(HICON_FIST+gun, xdown, ydown, sz);
         }
@@ -755,7 +755,8 @@ namespace game
         loopi(8)
         {
             int gun = ammohudcycle[i];
-            if(gun < GUN_FIST || gun > GUN_BOMB) continue;
+            // if(gun < GUN_FIST || gun > GUN_BOMB) continue;
+            if(!isgun(gun)) continue;
             if(gun == d->gunselect) offset = i + 1;
             else if(d->ammo[gun]) num++;
         }
@@ -763,7 +764,7 @@ namespace game
         loopi(8)
         {
             int gun = ammohudcycle[(i + offset)%8];
-            if(gun < GUN_FIST || gun > GUN_BOMB || gun == d->gunselect || !d->ammo[gun]) continue;
+            if(!isgun(gun) || gun == d->gunselect || !d->ammo[gun]) continue;
             xcycle -= sz;
             drawicon(HICON_FIST+gun, xcycle, ycycle, sz);
         }

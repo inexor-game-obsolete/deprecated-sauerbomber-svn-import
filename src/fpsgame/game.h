@@ -248,7 +248,7 @@ namespace game
     extern bool isobstaclealive(movable *m);
 
     // weapon
-    enum { BNC_GRENADE, BNC_BOMB, BNC_SPLINTER, BNC_GIBS, BNC_DEBRIS, BNC_BARRELDEBRIS };
+    enum { BNC_GRENADE, BNC_BOMB, BNC_FOG_GRENADE, BNC_SPLINTER, BNC_GIBS, BNC_DEBRIS, BNC_BARRELDEBRIS };
 
     struct projectile
     {

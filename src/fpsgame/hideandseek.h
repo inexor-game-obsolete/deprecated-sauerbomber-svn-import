@@ -109,6 +109,28 @@ struct hideandseekclientmode : clientmode
         return true;
     }
 
+    bool canrenderentity(int type) {
+        if(ishider(player1)) {
+            switch(type) {
+                case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+                case I_QUAD:
+                    return false;
+                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR:
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    return true;
+            }
+        } else {
+            switch(type) {
+                case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD:
+                    return true;
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    return false;
+            }
+        }
+        return true;
+    }
+
 #else
 
 // #define ishider(d) (strcmp(d->team, TEAM_HIDE) == 0 ? true : false)
@@ -174,6 +196,28 @@ struct hideandseekclientmode : clientmode
     }
 
     void spawned(fpsent *d) {
+    }
+
+    bool canpickup(clientinfo *ci, int type) {
+        if(ishider(ci)) {
+            switch(type) {
+                case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+                case I_QUAD:
+                    return false;
+                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR:
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    return true;
+            }
+        } else {
+            switch(type) {
+                case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD:
+                    return true;
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    return false;
+            }
+        }
+        return false;
     }
 
     bool canspawn(clientinfo *ci, bool connecting) {

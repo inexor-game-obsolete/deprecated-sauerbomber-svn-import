@@ -1096,7 +1096,12 @@ namespace game
         else
         {
             int gun = getint(p);
-            d->gunselect = clamp(gun, int(GUN_FIST), int(GUN_BOMB));
+            if(isgun(gun)) {
+                d->gunselect = gun;
+            } else {
+                d->gunselect = 0;
+            }
+            // d->gunselect = clamp(gun, int(GUN_FIST), int(GUN_BOMB));
             loopi(GUN_PISTOL-GUN_SG+1) d->ammo[GUN_SG+i] = getint(p);
         }
     }
@@ -1368,7 +1373,12 @@ namespace game
                 fpsent *s = getclient(scn);
                 if(!s) break;
                 if(gun>GUN_FIST && gun<=GUN_BOMB && s->ammo[gun]) s->ammo[gun]--;
-                s->gunselect = clamp(gun, (int)GUN_FIST, (int)GUN_BOMB);
+                // s->gunselect = clamp(gun, (int)GUN_FIST, (int)GUN_BOMB);
+                if(isgun(gun)) {
+                    s->gunselect = gun;
+                } else {
+                    s->gunselect = 0;
+                }
                 s->gunwait = guns[s->gunselect].attackdelay;
                 int prevaction = s->lastaction;
                 s->lastaction = lastmillis;
@@ -1443,8 +1453,11 @@ namespace game
             {
                 if(!d) return;
                 int gun = getint(p);
-                d->gunselect = clamp(gun, int(GUN_FIST), int(GUN_BOMB));
-                playsound(S_WEAPLOAD, &d->o);
+                // d->gunselect = clamp(gun, int(GUN_FIST), int(GUN_BOMB));
+                if(isgun(gun) && d->gunselect != gun) {
+                    d->gunselect = gun;
+                    playsound(S_WEAPLOAD, &d->o);
+                } else d->gunselect = 0;
                 break;
             }
 

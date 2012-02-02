@@ -1,4 +1,5 @@
 #include "game.h"
+#include "weapon.h"
 
 namespace game
 {      
@@ -125,25 +126,66 @@ namespace game
 
     void renderplayer(fpsent *d, const playermodelinfo &mdl, int team, float fade, bool mainpass)
     {
-        int lastaction = d->lastaction, hold = mdl.vwep || d->gunselect==GUN_PISTOL ? 0 : (ANIM_HOLD1+d->gunselect)|ANIM_LOOP, attack = ANIM_ATTACK1+d->gunselect, delay = mdl.vwep ? 300 : guns[d->gunselect].attackdelay+50;
-        if(intermission && d->state!=CS_DEAD)
-        {
+        int lastaction = d->lastaction;
+        int holdanim;
+        int attack;
+        switch(d->gunselect) {
+            case GUN_PISTOL:
+            case GUN_BOMB:
+            case GUN_FGL:
+            case GUN_PULSED_THRUSTER:
+            case GUN_CONTINOUS_THRUSTER:
+                holdanim = 0;
+                attack = ANIM_ATTACK1;
+                break;
+            default:
+                holdanim = ANIM_HOLD1 + d->gunselect;
+                attack = ANIM_ATTACK1 + d->gunselect;
+                break;
+        }
+        int hold = mdl.vwep || holdanim | ANIM_LOOP;
+        int delay = mdl.vwep ? 300 : guns[d->gunselect].attackdelay+50;
+        if(intermission && d->state!=CS_DEAD) {
             lastaction = 0;
             hold = attack = ANIM_LOSE|ANIM_LOOP;
             delay = 0;
-            if(m_teammode) loopv(bestteams) { if(!strcmp(bestteams[i], d->team)) { hold = attack = ANIM_WIN|ANIM_LOOP; break; } }
-            else if(bestplayers.find(d)>=0) hold = attack = ANIM_WIN|ANIM_LOOP;
-        }
-        else if(d->state==CS_ALIVE && d->lasttaunt && lastmillis-d->lasttaunt<1000 && lastmillis-d->lastaction>delay)
-        {
+            if(m_teammode) loopv(bestteams) {
+                if(!strcmp(bestteams[i], d->team)) {
+                    hold = attack = ANIM_WIN|ANIM_LOOP;
+                    break;
+                }
+            } else if(bestplayers.find(d)>=0) {
+                hold = attack = ANIM_WIN|ANIM_LOOP;
+            }
+        } else if(d->state==CS_ALIVE && d->lasttaunt && lastmillis-d->lasttaunt<1000 && lastmillis-d->lastaction>delay) {
             lastaction = d->lasttaunt;
             hold = attack = ANIM_TAUNT;
             delay = 1000;
         }
         modelattach a[5];
-        static const char *vweps[] = {"vwep/fist", "vwep/shotg", "vwep/chaing", "vwep/rocket", "vwep/rifle", "vwep/gl", "vwep/pistol", "vwep/gl"}; // TODO: cannon
+        // TODO: moved vweps to weapon.h
+        // static const char *vweps[] = {"vwep/fist", "vwep/shotg", "vwep/chaing", "vwep/rocket", "vwep/rifle", "vwep/gl", "vwep/pistol", "vwep/gl"};
+        static const char *vweps[] = {
+            "vwep/fist",
+            "vwep/shotg",
+            "vwep/chaing",
+            "vwep/rocket",
+            "vwep/rifle",
+            "vwep/gl",
+            "vwep/pistol",
+            "vwep/gl", // TODO: cannon vwep
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "vwep/gl", // TODO: foggrenade vwep
+            "vwep/rifle", // TODO: pulsed thruster vwep
+            "vwep/chaing" // TODO: contious thruster vwep
+        };
         int ai = 0;
-        if((!mdl.vwep || d->gunselect!=GUN_FIST) && d->gunselect<=GUN_BOMB)
+        if((!mdl.vwep || d->gunselect!=GUN_FIST) && isgun(d->gunselect))
         {
             int vanim = ANIM_VWEP_IDLE|ANIM_LOOP, vtime = 0;
             if(lastaction && d->lastattackgun==d->gunselect && lastmillis < lastaction + delay)
@@ -291,7 +333,7 @@ namespace game
 
     void drawhudmodel(fpsent *d, int anim, float speed = 0, int base = 0)
     {
-        if(d->gunselect>GUN_BOMB) return;
+        if(!isgun(d->gunselect)) return;
 
         vec sway;
         vecfromyawpitch(d->yaw, 0, 0, 1, sway);

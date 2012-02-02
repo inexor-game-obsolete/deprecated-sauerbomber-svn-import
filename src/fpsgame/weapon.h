@@ -6,8 +6,11 @@
 #include "ents.h"
 
 namespace game {
+
     extern void explodelocal(const vec &v);
     extern void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int dam, int gun);
+    extern bool isgun(int gun);
+
 }
 
 #endif

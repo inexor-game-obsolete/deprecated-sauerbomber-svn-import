@@ -263,6 +263,16 @@ struct bombclientmode : clientmode
     	entinmap(d);
     }
 
+
+    bool canrenderentity(int type) {
+        switch(type) {
+            case I_BOMBS: case I_BOMBRADIUS: case I_BOMBDELAY:
+                return true;
+            default:
+                return false;
+        }
+    }
+
 #else
 
     bool notgotspawnlocations;

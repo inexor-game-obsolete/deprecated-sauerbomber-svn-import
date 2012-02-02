@@ -47,34 +47,70 @@ namespace entities
     bool mayattach(extentity &e) { return false; }
     bool attachent(extentity &e, extentity &a) { return false; }
 
-    const char *itemname(int i)
-    {
-        int t = ents[i]->type;
-        if(t>=I_BOMBS && t<=I_BOMBDELAY) {
-            return itemstats[P_AMMO_BO+t-I_BOMBS].name;
-        } else if (t>=I_SHELLS && t<=I_QUAD) {
-            return itemstats[t-I_SHELLS].name;
-        } else {
-            return NULL;
+    const char *itemname(int i) {
+        switch(ents[i]->type) {
+            case I_SHELLS:
+                return itemstats[P_AMMO_SG].name;
+            case I_BULLETS:
+                return itemstats[P_AMMO_CG].name;
+            case I_ROCKETS:
+                return itemstats[P_AMMO_RL].name;
+            case I_ROUNDS:
+                return itemstats[P_AMMO_RI].name;
+            case I_GRENADES:
+                return itemstats[P_AMMO_GL].name;
+            case I_CARTRIDGES:
+                return itemstats[P_AMMO_PI].name;
+            case I_BOMBS:
+                return itemstats[P_AMMO_BO].name;
+            case I_BOMBRADIUS:
+                return itemstats[P_UP_BR].name;
+            case I_BOMBDELAY:
+                return itemstats[P_UP_BD].name;
+            case I_FOGGRANADES:
+                return itemstats[P_AMMO_FG].name;
+            case I_PULSED_THRUSTER:
+                return itemstats[P_AMMO_PT].name;
+            case I_CONTINOUS_THRUSTER:
+                return itemstats[P_AMMO_CT].name;
+            default:
+                return NULL;
         }
     }
 
-    int itemicon(int i)
-    {
-        int t = ents[i]->type;
-        if(t>=I_BOMBS && t<=I_BOMBDELAY) {
-            return itemstats[P_AMMO_BO+t-I_BOMBS].icon;
-        } else if (t>=I_SHELLS && t<=I_QUAD) {
-            return itemstats[t-I_SHELLS].icon;
-        } else {
-            return -1;
+    int itemicon(int i) {
+        switch(ents[i]->type) {
+            case I_SHELLS:
+                return itemstats[P_AMMO_SG].icon;
+            case I_BULLETS:
+                return itemstats[P_AMMO_CG].icon;
+            case I_ROCKETS:
+                return itemstats[P_AMMO_RL].icon;
+            case I_ROUNDS:
+                return itemstats[P_AMMO_RI].icon;
+            case I_GRENADES:
+                return itemstats[P_AMMO_GL].icon;
+            case I_CARTRIDGES:
+                return itemstats[P_AMMO_PI].icon;
+            case I_BOMBS:
+                return itemstats[P_AMMO_BO].icon;
+            case I_BOMBRADIUS:
+                return itemstats[P_UP_BR].icon;
+            case I_BOMBDELAY:
+                return itemstats[P_UP_BD].icon;
+            case I_FOGGRANADES:
+                return itemstats[P_AMMO_FG].icon;
+            case I_PULSED_THRUSTER:
+                return itemstats[P_AMMO_PT].icon;
+            case I_CONTINOUS_THRUSTER:
+                return itemstats[P_AMMO_CT].icon;
+            default:
+                return -1;
         }
     }
 
-    const char *entmdlname(int type)
-    {
-        static const char *entmdlnames[] =
-        {
+    const char *entmdlname(int type) {
+        static const char *entmdlnames[] = {
             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
             "ammo/shells", "ammo/bullets", "ammo/rockets", "ammo/rrounds", "ammo/grenades", "ammo/cartridges",
             "health", "boost", "armor/green", "armor/yellow", "quad", "teleporter",
@@ -89,27 +125,24 @@ namespace entities
             NULL, //obstacle
             NULL, NULL, NULL, // race
             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // physics
+            // TODO: invisiblity, pulsed thrusters, continous thrusters
+            "quad", "ammo/foggrenades", "ammo/rrounds", "ammo/bullets", // hide and seek
             NULL, NULL // two nulls follows
         };
         return entmdlnames[type];
     }
 
-    const char *entmodel(const entity &e)
-    {
-        if(e.type == TELEPORT)
-        {
+    const char *entmodel(const entity &e) {
+        if(e.type == TELEPORT) {
             if(e.attr2 > 0) return mapmodelname(e.attr2);
             if(e.attr2 < 0) return NULL;
         }
         return e.type < MAXENTTYPES ? entmdlname(e.type) : NULL;
     }
 
-    void preloadentities()
-    {
-        loopi(MAXENTTYPES)
-        {
-            switch(i)
-            {
+    void preloadentities() {
+        loopi(MAXENTTYPES) {
+            switch(i) {
                 case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
                     if(m_noammo) continue;
                     break;
@@ -125,6 +158,9 @@ namespace entities
                 case I_BOMBS: case I_BOMBRADIUS: case I_BOMBDELAY: case I_BOMBRESERVED2: case I_BOMBRESERVED3: case I_BOMBRESERVED4: case I_BOMBRESERVED5: case I_BOMBRESERVED6:
                     if(!m_bomb) continue;
                     break;
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    if(!m_hideandseek) continue;
+                    break;
             }
             const char *mdl = entmdlname(i);
             if(!mdl) continue;
@@ -132,14 +168,11 @@ namespace entities
         }
     }
 
-    void renderentities()
-    {
-        loopv(ents)
-        {
+    void renderentities() {
+        loopv(ents) {
             extentity &e = *ents[i];
             int revs = 10;
-            switch(e.type)
-            {
+            switch(e.type) {
                 case CARROT:
                 case RESPAWNPOINT:
                     if(e.attr2) revs = 1;
@@ -149,15 +182,11 @@ namespace entities
                     break;
                 default:
                     if(!e.spawned) continue;
-                    if(m_bomb) {
-                        if(!e.spawned || e.type < I_BOMBS || e.type > I_BOMBDELAY) continue;
-                    } else {
-                        if(!e.spawned || e.type < I_SHELLS || e.type > I_QUAD) continue;
-                    }
+                    if(cmode && !cmode->canrenderentity(e.type)) continue;
+                    break;
             }
             const char *mdlname = entmodel(e);
-            if(mdlname)
-            {
+            if(mdlname) {
                 vec p = e.o;
                 p.z += 1+sinf(lastmillis/100.0+e.o.x+e.o.y)/20;
                 rendermodel(&e.light, mdlname, ANIM_MAPMODEL|ANIM_LOOP, p, lastmillis/(float)revs, 0, MDL_SHADOW | MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED);
@@ -165,46 +194,92 @@ namespace entities
         }
     }
 
-    void addammo(int type, int &v, bool local)
-    {
-        int tindex = type-I_SHELLS;
-        if(type==I_BOMBS) tindex = 11;
-        itemstat &is = itemstats[tindex];
-        v += is.add;
-        if(v>is.max) v = is.max;
-        if(local) msgsound(is.sound);
+    void addammo(int type, int &v, bool local) {
+        int sound = -1;
+        switch(type) {
+            case I_BOMBS:
+                v = min(v + itemstats[P_AMMO_BO].add, itemstats[P_AMMO_BO].max);
+                sound = itemstats[P_AMMO_BO].sound;
+                break;
+            case I_FOGGRANADES:
+                v = min(v + itemstats[P_AMMO_FG].add, itemstats[P_AMMO_FG].max);
+                sound = itemstats[P_AMMO_FG].sound;
+                break;
+            case I_PULSED_THRUSTER:
+                v = min(v + itemstats[P_AMMO_PT].add, itemstats[P_AMMO_PT].max);
+                sound = itemstats[P_AMMO_PT].sound;
+                break;
+            case I_CONTINOUS_THRUSTER:
+                v = min(v + itemstats[P_AMMO_CT].add, itemstats[P_AMMO_CT].max);
+                sound = itemstats[P_AMMO_CT].sound;
+                break;
+            default:
+                itemstat &is = itemstats[type-I_SHELLS];
+                v = min(v + is.add, is.max);
+                sound = is.sound;
+                break;
+        }
+        if(local && sound > 0) msgsound(sound);
     }
 
-    void repammo(fpsent *d, int type, bool local)
-    {
-    	if(type==I_BOMBS) addammo(type, d->ammo[GUN_BOMB], local);
-    	else addammo(type, d->ammo[type-I_SHELLS+GUN_SG], local);
+    void repammo(fpsent *d, int type, bool local) {
+        switch(type) {
+            case I_BOMBS:
+                addammo(type, d->ammo[GUN_BOMB], local);
+                break;
+            case I_FOGGRANADES:
+                addammo(type, d->ammo[GUN_FGL], local);
+                break;
+            case I_PULSED_THRUSTER:
+                addammo(type, d->ammo[GUN_PULSED_THRUSTER], local);
+                break;
+            case I_CONTINOUS_THRUSTER:
+                addammo(type, d->ammo[GUN_CONTINOUS_THRUSTER], local);
+                break;
+            default:
+                addammo(type, d->ammo[type-I_SHELLS+GUN_SG], local);
+                break;
+        }
     }
 
     // these two functions are called when the server acknowledges that you really
     // picked up the item (in multiplayer someone may grab it before you).
 
-    void pickupeffects(int n, fpsent *d)
-    {
+    void pickupeffects(int n, fpsent *d) {
         if(!ents.inrange(n)) return;
         int type = ents[n]->type;
-        if (m_bomb && (type<I_BOMBS || type>I_BOMBDELAY)) return;
-        else if (!m_bomb && (type<I_SHELLS || type>I_QUAD)) return;
+        int tindex;
+        switch(type) {
+            case I_BOMBS: case I_BOMBRADIUS: case I_BOMBDELAY:
+                if (!m_bomb) return;
+                break;
+            case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                if (!m_hideandseek) return;
+                break;
+            case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+            case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD:
+                break;
+            default:
+                return;
+        }
         ents[n]->spawned = false;
         if(!d) return;
-        int tindex = type-I_SHELLS;
-        if(type>=I_BOMBS) tindex = 11+type-I_BOMBS;
+        if(type >= I_BOMBS && type <= I_BOMBDELAY) {
+            tindex = P_AMMO_BO + type - I_BOMBS;
+        } else if(type >= I_FOGGRANADES && type <= I_CONTINOUS_THRUSTER) {
+            tindex = P_AMMO_FG + type - I_FOGGRANADES;
+        } else {
+            tindex = type - I_SHELLS;
+        }
         itemstat &is = itemstats[tindex];
-        if(d!=player1 || isthirdperson())
-        {
+        if(d!=player1 || isthirdperson()) {
             //particle_text(d->abovehead(), is.name, PART_TEXT, 2000, 0xFFC864, 4.0f, -8);
             // TODO: bomb items switch
             particle_icon(d->abovehead(), is.icon%4, is.icon/4, PART_HUD_ICON_GREY, 2000, 0xFFFFFF, 2.0f, -8);
         }
         playsound(itemstats[tindex].sound, d!=player1 ? &d->o : NULL, NULL, 0, 0, -1, 0, 1500);
         d->pickup(type);
-        if(d==player1) switch(type)
-        {
+        if(d==player1) switch(type) {
             case I_BOOST:
                 conoutf(CON_GAMEINFO, "\f2you have a permanent +10 health bonus! (%d)", d->maxhealth);
                 playsound(S_V_BOOST, NULL, NULL, 0, 0, -1, 0, 3000);
@@ -224,21 +299,24 @@ namespace entities
                 conoutf(CON_GAMEINFO, "\f2your bombs explodes faster!");
                 playsound(S_ITEMHEALTH, NULL, NULL, 0, 0, -1, 0, 3000);
                 break;
+
+            case I_INVISIBLE:
+                conoutf(CON_GAMEINFO, "\f2you are invisible!");
+                playsound(S_V_QUAD, NULL, NULL, 0, 0, -1, 0, 3000);
+                break;
         }
     }
 
     // these functions are called when the client touches the item
 
-    void teleporteffects(fpsent *d, int tp, int td, bool local)
-    {
-        if(d == player1) playsound(S_TELEPORT);
-        else
-        {
+    void teleporteffects(fpsent *d, int tp, int td, bool local) {
+        if(d == player1) {
+            playsound(S_TELEPORT);
+        } else {
             if(ents.inrange(tp)) playsound(S_TELEPORT, &ents[tp]->o);
             if(ents.inrange(td)) playsound(S_TELEPORT, &ents[td]->o);
         }
-        if(local && d->clientnum >= 0)
-        {
+        if(local && d->clientnum >= 0) {
             sendposition(d);
             packetbuf p(32, ENET_PACKET_FLAG_RELIABLE);
             putint(p, N_TELEPORT);
@@ -250,12 +328,13 @@ namespace entities
         }
     }
 
-    void jumppadeffects(fpsent *d, int jp, bool local)
-    {
-        if(d == player1) playsound(S_JUMPPAD);
-        else if(ents.inrange(jp)) playsound(S_JUMPPAD, &ents[jp]->o);
-        if(local && d->clientnum >= 0)
-        {
+    void jumppadeffects(fpsent *d, int jp, bool local) {
+        if(d == player1) {
+            playsound(S_JUMPPAD);
+        } else if(ents.inrange(jp)) {
+            playsound(S_JUMPPAD, &ents[jp]->o);
+        }
+        if(local && d->clientnum >= 0) {
             sendposition(d);
             packetbuf p(16, ENET_PACKET_FLAG_RELIABLE);
             putint(p, N_JUMPPAD);
@@ -266,21 +345,18 @@ namespace entities
         }
     }
 
-    void teleport(int n, fpsent *d)     // also used by monsters
-    {
+    // also used by monsters
+    void teleport(int n, fpsent *d) {
         int e = -1, tag = ents[n]->attr1, beenhere = -1;
-        for(;;)
-        {
+        for(;;) {
             e = findentity(TELEDEST, e+1);
             if(e==beenhere || e<0) { conoutf(CON_WARN, "no teleport destination for tag %d", tag); return; }
             if(beenhere<0) beenhere = e;
-            if(ents[e]->attr2==tag)
-            {
+            if(ents[e]->attr2==tag) {
                 teleporteffects(d, n, e, true);
                 d->o = ents[e]->o;
                 d->yaw = ents[e]->attr1;
-                if(ents[e]->attr3 > 0)
-                {
+                if(ents[e]->attr3 > 0) {
                     vec dir;
                     vecfromyawpitch(d->yaw, 0, 1, 0, dir);
                     float speed = d->vel.magnitude2();
@@ -296,13 +372,10 @@ namespace entities
         }
     }
 
-    void trypickup(int n, fpsent *d)
-    {
-        switch(ents[n]->type)
-        {
+    void trypickup(int n, fpsent *d) {
+        switch(ents[n]->type) {
             default:
-                if(d->canpickup(ents[n]->type))
-                {
+                if(d->canpickup(ents[n]->type)) {
                     addmsg(N_ITEMPICKUP, "rci", d, n);
                     ents[n]->spawned = false; // even if someone else gets it first
                 }
@@ -338,8 +411,7 @@ namespace entities
             case TELEPORT:
             {
                 if(d->lastpickup==ents[n]->type && lastmillis-d->lastpickupmillis<500) break;
-                if(ents[n]->attr3 > 0)
-                {
+                if(ents[n]->attr3 > 0) {
                     defformatstring(hookname)("can_teleport_%d", ents[n]->attr3);
                     if(identexists(hookname) && !execute(hookname)) break;
                 }
@@ -377,12 +449,10 @@ namespace entities
         }
     }
 
-    void checkitems(fpsent *d)
-    {
+    void checkitems(fpsent *d) {
         if(d->state!=CS_ALIVE) return;
         vec o = d->feetpos();
-        loopv(ents)
-        {
+        loopv(ents) {
             extentity &e = *ents[i];
             if(e.type==NOTUSED) continue;
             if(!e.spawned && e.type!=TELEPORT && e.type!=JUMPPAD && e.type!=RESPAWNPOINT && (m_race && e.type!=RACE_START && e.type!=RACE_FINISH && e.type!=RACE_CHECKPOINT) ) continue;
@@ -464,61 +534,84 @@ namespace entities
         // conoutf("physics manipulation: gravity:%1.2f friction:%1.2f jump:%1.2f speed:%1.2f", d->p_gravity, d->p_friction_land, d->p_jumpvel, d->p_playerspeed);
     }
 
-    void checkquad(int time, fpsent *d)
-    {
-        if(d->quadmillis && (d->quadmillis -= time)<=0)
-        {
+    void checkquad(int time, fpsent *d) {
+        if(d->quadmillis && (d->quadmillis -= time)<=0) {
             d->quadmillis = 0;
             playsound(S_PUPOUT, d==player1 ? NULL : &d->o);
             if(d==player1) conoutf(CON_GAMEINFO, "\f2quad damage is over");
         }
     }
 
-    void putitems(packetbuf &p)            // puts items in network stream and also spawns them locally
-    {
+    // puts items in network stream and also spawns them locally
+    void putitems(packetbuf &p) {
         putint(p, N_ITEMLIST);
         loopv(ents) {
-            if((m_bomb && ents[i]->type>=I_BOMBS && ents[i]->type<=I_BOMBDELAY) || (!m_bomb && ents[i]->type>=I_SHELLS && ents[i]->type<=I_QUAD)) {
-                putint(p, i);
-                putint(p, ents[i]->type);
+            switch(ents[i]->type) {
+                case I_BOMBS: case I_BOMBRADIUS: case I_BOMBDELAY:
+                    if(!m_bomb) continue;
+                    break;
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    if(!m_hideandseek) continue;
+                    break;
+                case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+                    if(m_bomb || m_noammo) continue;
+                    break;
+                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD:
+                    if(m_bomb) continue;
+                    break;
             }
-            if(!m_noammo && ents[i]->type>=I_HEALTH && ents[i]->type<=I_QUAD) {
-                putint(p, i);
-                putint(p, ents[i]->type);
-            }
+            putint(p, i);
+            putint(p, ents[i]->type);
         }
         putint(p, -1);
     }
 
-    void resetspawns() { loopv(ents) ents[i]->spawned = false; }
+    void resetspawns() {
+        loopv(ents) ents[i]->spawned = false;
+    }
 
-    void spawnitems(bool force)
-    {
+    void spawnitems(bool force) {
         if(m_noitems) return;
         loopv(ents) {
-            if((m_bomb  && ents[i]->type>=I_BOMBS && ents[i]->type<=I_BOMBDELAY) || (!m_bomb && ents[i]->type>=I_SHELLS && ents[i]->type<=I_QUAD)) {
-                ents[i]->spawned = force || m_sp || !server::delayspawn(ents[i]->type);
+            switch(ents[i]->type) {
+                case I_BOMBS: case I_BOMBRADIUS: case I_BOMBDELAY:
+                    if(!m_bomb) continue;
+                    break;
+                case I_INVISIBLE: case I_FOGGRANADES: case I_PULSED_THRUSTER: case I_CONTINOUS_THRUSTER:
+                    if(!m_hideandseek) continue;
+                    break;
+                case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
+                    if(m_bomb || m_noammo) continue;
+                    break;
+                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD:
+                    if(m_bomb) continue;
+                    break;
             }
-            if(!m_noammo && ents[i]->type>=I_HEALTH && ents[i]->type<=I_QUAD) {
-                ents[i]->spawned = force || m_sp || !server::delayspawn(ents[i]->type);
-            }
+            ents[i]->spawned = force || m_sp || !server::delayspawn(ents[i]->type);
         }
     }
 
-    void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i]->spawned = on; }
+    void setspawn(int i, bool on) {
+        if(ents.inrange(i)) ents[i]->spawned = on;
+    }
 
-    void setsavable(int i, bool on) { if(ents.inrange(i)) ents[i]->savable = on; }
+    void setsavable(int i, bool on) {
+        if(ents.inrange(i)) ents[i]->savable = on;
+    }
 
-    extentity *newentity() { return new fpsentity(); }
-    void deleteentity(extentity *e) { delete (fpsentity *)e; }
+    extentity *newentity() {
+        return new fpsentity();
+    }
 
-    void clearents()
-    {
+    void deleteentity(extentity *e) {
+        delete (fpsentity *)e;
+    }
+
+    void clearents() {
         while(ents.length()) deleteentity(ents.pop());
     }
 
-    enum
-    {
+    enum {
         TRIG_COLLIDE    = 1<<0,
         TRIG_TOGGLE     = 1<<1,
         TRIG_ONCE       = 0<<2,
@@ -870,6 +963,7 @@ namespace entities
             "obstacle",
             "start", "finish", "checkpoint",
             "gravity", "friction", "jump", "speed", "yaw", "pitch", "move", "inertia", "steercontrol",
+            "invisible", "foggrenades", "pulsedthruster", "continousthruster",
             "", "", // two empty strings follows.
         };
         return i>=0 && size_t(i)<sizeof(entnames)/sizeof(entnames[0]) ? entnames[i] : "";

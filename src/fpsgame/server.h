@@ -123,7 +123,7 @@ namespace server {
         int state, editstate;
         int lastdeath, lastspawn, lifesequence;
         int lastshot;
-        projectilestate<8> rockets, grenades, bombs;
+        projectilestate<8> rockets, grenades, bombs, foggrenades;
         int frags, flags, deaths, teamkills, shotdamage, damage, damage_rec, tokens;
         int lasttimeplayed, timeplayed;
         int shots, hits;
@@ -148,6 +148,7 @@ namespace server {
             rockets.reset();
             grenades.reset();
             bombs.reset();
+            foggrenades.reset();
 
             timeplayed = 0;
             effectiveness = 0;
@@ -173,11 +174,11 @@ namespace server {
             rockets.reset();
             grenades.reset();
             bombs.reset();
+            foggrenades.reset();
         }
 
-        void setbackupweapon(int backupweapon)
-        {
-          fpsstate::backupweapon = GUN_BOMB;
+        void setbackupweapon(int backupweapon) {
+            fpsstate::backupweapon = backupweapon;
         }
 
     };

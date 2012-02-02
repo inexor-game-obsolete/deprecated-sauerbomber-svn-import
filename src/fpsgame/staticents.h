@@ -50,7 +50,10 @@ enum static_ents                // static entity types
     P_MOVE,
     P_INERTIA,
     P_STEERCONTROL,
-    // I_INVISIBLE,                // hide and seek
+    I_INVISIBLE,                // hide and seek
+    I_FOGGRANADES,
+    I_PULSED_THRUSTER,
+    I_CONTINOUS_THRUSTER,
     MAXENTTYPES
 };
 

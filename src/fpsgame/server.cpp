@@ -14,6 +14,7 @@ namespace game
     }
 
     const char *gameident() { return "fps"; }
+
 }
 
 extern ENetAddress masteraddress;
@@ -194,6 +195,7 @@ namespace server
             return 1;
         }
         virtual bool canhit(clientinfo *victim, clientinfo *actor) { return true; }
+        virtual bool canpickup(clientinfo *ci, int type) { return true; }
         virtual void died(clientinfo *victim, clientinfo *actor) {}
         virtual bool canchangeteam(clientinfo *ci, const char *oldteam, const char *newteam) { return true; }
         virtual bool canspawnitem(server_entity *se) { return se->maxrespawns != 0; };
@@ -230,18 +232,21 @@ namespace server
     servmode *smode = NULL;
 
     bool canspawnitem(int type) {
-    	if(m_bomb) return (type>=I_BOMBS && type<=I_BOMBDELAY);
-    	else return !m_noitems && (type>=I_SHELLS && type<=I_QUAD && (!m_noammo || type<I_SHELLS || type>I_CARTRIDGES));
+    	  if(m_bomb) {
+    	      return (type>=I_BOMBS && type<=I_BOMBDELAY);
+    	  } else if(m_hideandseek) {
+    	      return !m_noitems && (((type>=I_SHELLS && type<=I_QUAD) || (type>=I_INVISIBLE && type<=I_CONTINOUS_THRUSTER)));
+    	  } else {
+    	      return !m_noitems && (type>=I_SHELLS && type<=I_QUAD && (!m_noammo || type<I_SHELLS || type>I_CARTRIDGES));
+    	  }
     }
 
-    int spawntime(int type)
-    {
+    int spawntime(int type) {
         if(m_classicsp) return INT_MAX;
         int np = numclients(-1, true, false);
         np = np<3 ? 4 : (np>4 ? 2 : 3);         // spawn times are dependent on number of players
         int sec = 0;
-        switch(type)
-        {
+        switch(type) {
             case I_SHELLS:
             case I_BULLETS:
             case I_ROCKETS:
@@ -256,30 +261,34 @@ namespace server
             case I_YELLOWARMOUR: sec = 20; break;
             case I_BOOST:
             case I_QUAD: sec = 40+rnd(40); break;
+            case I_INVISIBLE: sec = 40+rnd(40); break;
+            case I_FOGGRANADES:
+            case I_PULSED_THRUSTER:
+            case I_CONTINOUS_THRUSTER: sec = np*4; break;
         }
         return sec*1000;
     }
 
-    bool delayspawn(int type)
-    {
-        switch(type)
-        {
+    bool delayspawn(int type) {
+        switch(type) {
             case I_GREENARMOUR:
             case I_YELLOWARMOUR:
                 return !m_classicsp;
             case I_BOOST:
             case I_QUAD:
+            case I_INVISIBLE:
                 return true;
             default:
                 return false;
         }
     }
  
-    bool pickup(int i, int sender)         // server side item pickup, acknowledge first client that gets it
-    {
+    // server side item pickup, acknowledge first client that gets it
+    bool pickup(int i, int sender) {
         if((m_timed && gamemillis>=gamelimit) || !sents.inrange(i) || !sents[i].spawned) return false;
         clientinfo *ci = getinfo(sender);
         if(!ci || (!ci->local && !ci->state.canpickup(sents[i].type))) return false;
+        if(smode && !smode->canpickup(ci, sents[i].type)) return false;
         sents[i].spawned = false;
         sents[i].spawntime = spawntime(sents[i].type);
         sendf(-1, 1, "ri3", N_ITEMACC, i, sender);
@@ -1219,6 +1228,7 @@ namespace server
             ci->mapchange();
             ci->state.lasttimeplayed = lastmillis;
             if(m_bomb) ci->state.setbackupweapon(GUN_BOMB);
+            else if(m_hideandseek) ci->state.setbackupweapon(GUN_CONTINOUS_THRUSTER);
         }
 
         aiman::changemap();
@@ -1511,23 +1521,21 @@ namespace server
     void explodeevent::process(clientinfo *ci)
     {
         gamestate &gs = ci->state;
-        switch(gun)
-        {
+        switch(gun) {
             case GUN_RL:
                 if(!gs.rockets.remove(id)) return;
                 break;
-
             case GUN_GL:
                 if(!gs.grenades.remove(id)) return;
                 break;
-
             case GUN_BOMB:
                 if(!gs.bombs.remove(id)) return;
                 break;
-
+            case GUN_FGL:
+                gs.foggrenades.remove(id);
+                return; // no damage
             case GUN_SPLINTER:
                 break;
-
             default:
                 return;
         }
@@ -1580,6 +1588,7 @@ namespace server
             case GUN_RL: gs.rockets.add(id); break;
             case GUN_GL: gs.grenades.add(id); break;
             case GUN_BOMB: gs.bombs.add(id); break;
+            case GUN_FGL: gs.foggrenades.add(id); break;
             default:
             {
                 int totalrays = 0, maxrays = gun==GUN_SG ? SGRAYS : 1;
@@ -2262,6 +2271,7 @@ namespace server
                     ci->state.rockets.reset();
                     ci->state.grenades.reset();
                     ci->state.bombs.reset();
+                    ci->state.foggrenades.reset();
                 }
                 else ci->state.state = ci->state.editstate;
                 QUEUE_MSG;
@@ -2312,7 +2322,7 @@ namespace server
             case N_GUNSELECT:
             {
                 int gunselect = getint(p);
-                if(!cq || cq->state.state!=CS_ALIVE || gunselect<GUN_FIST || gunselect>GUN_BOMB) break;
+                if(!cq || cq->state.state!=CS_ALIVE || gunselect<GUN_FIST || (gunselect>GUN_BOMB && gunselect<GUN_FGL) || gunselect>GUN_CONTINOUS_THRUSTER) break; // gunselect<GUN_FIST || gunselect>GUN_BOMB
                 cq->state.gunselect = gunselect;
                 QUEUE_AI;
                 QUEUE_MSG;
