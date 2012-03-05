@@ -329,6 +329,9 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     getbackgroundres(w, h);
     gettextres(w, h);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -353,9 +356,6 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     glTexCoord2f(fu1, fv2); glVertex2f(fx,    fy+fh);
     glTexCoord2f(fu2, fv2); glVertex2f(fx+fw, fy+fh);
     glEnd();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
           bx = fx + fw*17/511.0f, by = fy + fh*16/52.0f,
