@@ -325,17 +325,15 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     extern int sdl_backingstore_bug;
     if(background || sdl_backingstore_bug > 0) restorebackground();
 
-    int w = screen->w, h = screen->h;
-    getbackgroundres(w, h);
-    gettextres(w, h);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    int width_screen = screen->w,
+	height_screen = screen->h;
+    getbackgroundres(width_screen, height_screen);
+    gettextres(width_screen, height_screen);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    glOrtho(0, w, h, 0, -1, 1);
+    glOrtho(0, width_screen, height_screen, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -344,27 +342,48 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     defaultshader->set();
     glColor3f(1, 1, 1);
 
-    float fh = 0.075f*min(w, h), fw = fh*10,
-          fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
-          fy = renderedframe ? fh/4 : h - fh*1.5f,
-          fu1 = 0/512.0f, fu2 = 511/512.0f,
-          fv1 = 0/64.0f, fv2 = 52/64.0f;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float 
+	height_loadbar = 0.075f*min(width_screen, height_screen), // Height of the loadbar
+	width_frame    = height_loadbar*10,                         // Width of frame
+	width_bar      = width_frame*bar,                         // Width of bar
+        X = renderedframe                                         // X Cord
+	    ? width_screen - width_frame - height_loadbar/4
+	    : 0.5f*(width_screen - width_frame),
+	Y = renderedframe                                         // Y Cord
+	    ? height_loadbar/4
+   	    : height_screen - height_loadbar*1.5f,
+	U1 = 0/512.0f, U2 = 511/512.0f,                           // U Tex Cord
+	V1 = 0/64.0f,  V2 = 52/64.0f;                             // V Tex Cord
     setskinnedtexture("loading_frame.png", 3);
     glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(fu1, fv1); glVertex2f(fx,    fy);
-    glTexCoord2f(fu2, fv1); glVertex2f(fx+fw, fy);
-    glTexCoord2f(fu1, fv2); glVertex2f(fx,    fy+fh);
-    glTexCoord2f(fu2, fv2); glVertex2f(fx+fw, fy+fh);
+    glTexCoord2f(U1, V1); glVertex2f(X,             Y);
+    glTexCoord2f(U2, V1); glVertex2f(X+width_frame, Y);
+    glTexCoord2f(U1, V2); glVertex2f(X,             Y+height_loadbar);
+    glTexCoord2f(U2, V2); glVertex2f(X+width_frame, Y+height_loadbar);
     glEnd();
 
-    float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
-          bx = fx + fw*17/511.0f, by = fy + fh*16/52.0f,
-          bv1 = 0/32.0f, bv2 = 20/32.0f,
-          su1 = 0/32.0f, su2 = 7/32.0f, sw = fw*7/511.0f,
-          eu1 = 23/32.0f, eu2 = 30/32.0f, ew = fw*7/511.0f,
-          mw = bw - sw - ew,
-          ex = bx+sw + max(mw*bar, fw*7/511.0f);
-    if(bar > 0)
+    if (width_bar > 0) {
+	setskinnedtexture("loading_bar.png", 3);
+	glBegin(GL_TRIANGLE_STRIP);
+	glTexCoord2f(U1, V1); glVertex2f(X,           Y);
+	glTexCoord2f(U2, V1); glVertex2f(X+width_bar, Y);
+	glTexCoord2f(U1, V2); glVertex2f(X,           Y+height_loadbar);
+	glTexCoord2f(U2, V2); glVertex2f(X+width_bar, Y+height_loadbar);
+	glEnd();
+    }
+
+  float
+      bw = width_frame*(511 - 2*17)/511.0f, bh = height_loadbar*20/52.0f,
+      bx = X + width_frame*17/511.0f, by = Y + height_loadbar*16/52.0f,
+      bv1 = 0/32.0f, bv2 = 20/32.0f,
+      su1 = 0/32.0f, su2 = 7/32.0f, sw = width_frame*7/511.0f,
+      eu1 = 23/32.0f, eu2 = 30/32.0f, ew = width_frame*7/511.0f,
+      mw = bw - sw - ew,
+      ex = bx+sw + max(mw*bar, width_frame*7/511.0f);
+  /*if(bar > 0)
     {
         setskinnedtexture("loading_bar.png", 3);
         glBegin(GL_QUADS);
@@ -383,7 +402,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
         glTexCoord2f(eu2, bv2); glVertex2f(ex+ew, by+bh);
         glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
         glEnd();
-    }
+    }*/
 
     if(text)
     {
@@ -402,7 +421,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     if(tex)
     {
         glBindTexture(GL_TEXTURE_2D, tex);
-        float sz = 0.35f*min(w, h), x = 0.5f*(w-sz), y = 0.5f*min(w, h) - sz/15;
+        float sz = 0.35f*min(width_screen, height_screen), x = 0.5f*(width_screen-sz), y = 0.5f*min(width_screen, height_screen) - sz/15;
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(x,    y);
         glTexCoord2f(1, 0); glVertex2f(x+sz, y);
