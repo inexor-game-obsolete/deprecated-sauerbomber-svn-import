@@ -378,31 +378,9 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
   float
       bw = width_frame*(511 - 2*17)/511.0f, bh = height_loadbar*20/52.0f,
       bx = X + width_frame*17/511.0f, by = Y + height_loadbar*16/52.0f,
-      bv1 = 0/32.0f, bv2 = 20/32.0f,
-      su1 = 0/32.0f, su2 = 7/32.0f, sw = width_frame*7/511.0f,
-      eu1 = 23/32.0f, eu2 = 30/32.0f, ew = width_frame*7/511.0f,
-      mw = bw - sw - ew,
-      ex = bx+sw + max(mw*bar, width_frame*7/511.0f);
-  /*if(bar > 0)
-    {
-        setskinnedtexture("loading_bar.png", 3);
-        glBegin(GL_QUADS);
-        glTexCoord2f(su1, bv1); glVertex2f(bx,    by);
-        glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
-        glTexCoord2f(su2, bv2); glVertex2f(bx+sw, by+bh);
-        glTexCoord2f(su1, bv2); glVertex2f(bx,    by+bh);
-
-        glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
-        glTexCoord2f(eu1, bv1); glVertex2f(ex,    by);
-        glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
-        glTexCoord2f(su2, bv2); glVertex2f(bx+sw, by+bh);
-
-        glTexCoord2f(eu1, bv1); glVertex2f(ex,    by);
-        glTexCoord2f(eu2, bv1); glVertex2f(ex+ew, by);
-        glTexCoord2f(eu2, bv2); glVertex2f(ex+ew, by+bh);
-        glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
-        glEnd();
-    }*/
+      sw = width_frame*7/511.0f,
+      ew = width_frame*7/511.0f,
+      mw = bw - sw - ew;
 
     if(text)
     {
