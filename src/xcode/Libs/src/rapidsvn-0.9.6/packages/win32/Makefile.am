@@ -1,1 +1,0 @@
-EXTRA_DIST=BUILD.txt FetchFiles.bat rapidsvn.iss msvcp60.dll
