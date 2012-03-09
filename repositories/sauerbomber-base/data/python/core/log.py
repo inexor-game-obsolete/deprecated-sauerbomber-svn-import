@@ -1,6 +1,7 @@
 from core.settings import PluginConfig
 import logging
 import string
+import sbutil
 
 config = PluginConfig('logging')
 path = config.getOption('Config', 'path', 'repositories/home/data/logs/python.log')
@@ -12,6 +13,8 @@ LEVELS = {'debug': logging.DEBUG,
 	'warning': logging.WARNING,
 	'error': logging.ERROR,
 	'critical': logging.CRITICAL}
+
+sbutil.enshure_file(path)
 
 logging.basicConfig(
 	filename = path,
