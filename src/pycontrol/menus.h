@@ -17,8 +17,6 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// #include "sbpy.h"
-
 #ifndef SBPY_MENUS_H
 #define SBPY_MENUS_H
 
