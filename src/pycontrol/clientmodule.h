@@ -17,21 +17,21 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "sbpy.h"
-#include "sharedmodule.h"
-
 #ifndef SBPY_CLIENTMODULE_H
 #define SBPY_CLIENTMODULE_H
+
+#include "sbpy.h"
+#include "sharedmodule.h"
 
 extern int lastmillis;
 
 namespace SbPy {
-    // python setting (defined in engine/server)
+    // python settings (defined in pycontrol/sharedmodule.cpp)
     extern PyObject *isClient(PyObject *self, PyObject *args);
     extern PyObject *isServer(PyObject *self, PyObject *args);
     extern PyObject *pyscriptspath(PyObject *self, PyObject *args);
     extern PyObject *configdir(PyObject *self, PyObject *args);
-
+    extern PyObject *consoleOutput(PyObject *self, PyObject *args);
 }
 
 namespace PythonGui {

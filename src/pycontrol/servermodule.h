@@ -38,19 +38,20 @@ extern ENetPacket *sendf(int cn, int chan, const char *format, ...);
 extern uint getclientip(int n);
 extern void disconnect_client(int n, int reason);
 
+namespace SbPy {
+    // python settings (defined in pycontrol/sharedmodule.cpp)
+    extern PyObject *isClient(PyObject *self, PyObject *args);
+    extern PyObject *isServer(PyObject *self, PyObject *args);
+    extern PyObject *pyscriptspath(PyObject *self, PyObject *args);
+    extern PyObject *configdir(PyObject *self, PyObject *args);
+    extern PyObject *consoleOutput(PyObject *self, PyObject *args);
+}
+
 namespace server {
     // server functions (defined in fpsgame/server.cpp)
     extern const char *modename(int n, const char *unknown = "unknown");
     extern const char *mastermodename(int n, const char *unknown = "unknown");
     extern int numclients(int exclude = -1, bool nospec = true, bool noai = true, bool priv = false);
-}
-
-namespace SbPy {
-    // python settings (defined in engine/server)
-    extern PyObject *isClient(PyObject *self, PyObject *args);
-    extern PyObject *isServer(PyObject *self, PyObject *args);
-    extern PyObject *pyscriptspath(PyObject *self, PyObject *args);
-    extern PyObject *configdir(PyObject *self, PyObject *args);
 }
 
 #endif

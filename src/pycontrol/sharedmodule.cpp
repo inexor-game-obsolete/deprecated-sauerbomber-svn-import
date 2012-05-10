@@ -22,21 +22,15 @@
 namespace SbPy {
 
     extern PyMethodDef ModuleMethods[];
+    bool isserver;
+    bool isclient;
 
     PyObject *isClient(PyObject *self, PyObject *args) {
-#ifdef STANDALONE
-        return Py_BuildValue("b", false);
-#else
-        return Py_BuildValue("b", true);
-#endif
+        return Py_BuildValue("b", SbPy::isclient);
     }
 
     PyObject *isServer(PyObject *self, PyObject *args) {
-#ifdef STANDALONE
-        return Py_BuildValue("b", true);
-#else
-        return Py_BuildValue("b", false);
-#endif
+      return Py_BuildValue("b", SbPy::isserver);
     }
 
     PyObject *pyscriptspath(PyObject *self, PyObject *args) {
@@ -45,6 +39,13 @@ namespace SbPy {
 
     PyObject *configdir(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", server::pyconfigpath);
+    }
+
+    PyObject *consoleOutput(PyObject *self, PyObject *args) {
+        char* text;
+        if(!PyArg_ParseTuple(args, "s", &text)) return 0;
+        // PythonConsole::conoutf(text);
+        return Py_None;
     }
 
     PyMODINIT_FUNC initModule(const char *module_name) {

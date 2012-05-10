@@ -17,14 +17,18 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "sbpy.h"
-
 #ifndef SBPY_SHAREDMODULE_H
 #define SBPY_SHAREDMODULE_H
 
+#include "sbpy.h"
+
 namespace SbPy {
-//    static PyObject *pyscriptspath(PyObject *self, PyObject *args);
-//    static PyObject *configdir(PyObject *self, PyObject *args);
+    extern bool isserver;
+    extern bool isclient;
+}
+
+namespace PythonConsole {
+    extern void conoutf(char *text);
 }
 
 namespace server {

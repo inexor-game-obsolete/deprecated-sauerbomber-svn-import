@@ -45,6 +45,8 @@ namespace SbPy {
     bool triggerPolicyEventIntString(const char *event_name, int cn, const char *text);
     void update();
 
+    extern bool isclient;
+    extern bool isserver;
 }
 
 #endif
