@@ -89,6 +89,7 @@ CLIENT_OBJS= \
 	fpsgame/weapon.o \
 	pycontrol/sbpy.o \
 	pycontrol/menus.o \
+	pycontrol/console.o \
 	pycontrol/sharedmodule.o \
 	pycontrol/clientmodule.o
 
@@ -117,6 +118,7 @@ SERVER_OBJS= \
 	fpsgame/entities-standalone.o \
 	fpsgame/server-standalone.o \
 	pycontrol/sbpy.o \
+	pycontrol/console.o \
 	pycontrol/sharedmodule.o \
 	pycontrol/servermodule.o
 
