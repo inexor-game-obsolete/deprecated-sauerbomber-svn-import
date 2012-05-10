@@ -1111,23 +1111,20 @@ void server_sigint(int signal)
     rundedicated = false;
 }
 
-void rundedicatedserver()
-{
+void rundedicatedserver() {
     logoutf("dedicated server started, waiting for clients...");
     SbPy::triggerEvent("server_start", 0);
 #ifdef WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	for(;;)
-	{
-		MSG msg;
-		while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if(msg.message == WM_QUIT) exit(EXIT_SUCCESS);
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		serverslice(true, 5);
-	}
+    for(;;) {
+        MSG msg;
+        while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            if(msg.message == WM_QUIT) exit(EXIT_SUCCESS);
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        serverslice(true, 5);
+    }
 #else
     for(;rundedicated;) serverslice(true, 5);
 #endif
@@ -1181,8 +1178,7 @@ bool setuplistenserver(bool dedicated)
 
 void initserver(bool listen, bool dedicated)
 {
-    if(dedicated) 
-    {
+    if(dedicated) {
 #ifdef WIN32
         setupwindow("Cube 2: Sauerbomber server");
 #endif
@@ -1193,7 +1189,7 @@ void initserver(bool listen, bool dedicated)
 
     if(listen) setuplistenserver(dedicated);
 
-    if(!server::serverinit())
+    if(!server::serverinit(dedicated))
     {
         conoutf("Server: Python initialization failed. Starting Sauerbomber without Python support.");
         // return;
