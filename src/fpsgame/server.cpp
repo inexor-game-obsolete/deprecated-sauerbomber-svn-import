@@ -138,11 +138,17 @@ namespace server
         return false;
     }
 
-    bool serverinit()
-    {
+    bool serverinit(bool dedicated) {
         smapname[0] = '\0';
         resetitems();
 
+        if(dedicated) {
+            SbPy::isserver = true;
+            SbPy::isclient = false;
+        } else {
+            SbPy::isserver = false;
+            SbPy::isclient = true;
+        }
         // Initialize python modules
         if(!SbPy::init("sauerbomber", pyscriptspath, "sauerbomber"))
             return false;
