@@ -1039,8 +1039,8 @@ int main(int argc, char **argv)
     }
     initing = NOT_INITING;
 
-    if(dedicated <= 1)
-    {
+    if(dedicated <= 1) {
+
         logoutf("init: sdl");
 
         int par = 0;
