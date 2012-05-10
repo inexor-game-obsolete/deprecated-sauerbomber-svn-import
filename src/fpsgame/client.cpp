@@ -1873,7 +1873,7 @@ namespace game
                 string oldname;
                 copystring(oldname, getclientmap());
                 defformatstring(mname)("getmap_%d", lastmillis);
-                defformatstring(fname)("packages/base/%s.ogz", mname);
+                defformatstring(fname)("packages/base/repositories/edit/%s.ogz", mname);
                 stream *map = openrawfile(path(fname), "wb");
                 if(!map) return;
                 conoutf("received map");
