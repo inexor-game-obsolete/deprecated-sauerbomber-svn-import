@@ -110,8 +110,8 @@ static inline void cleancode(ident &id)
 struct nullval : tagval
 {
     nullval() { setnull(); }
-} nullret;
-tagval *commandret = &nullret;
+} nullval;
+tagval noret = nullval, *commandret = &noret;
 
 void clear_command()
 {
@@ -120,7 +120,7 @@ void clear_command()
         if(i.type==ID_ALIAS) 
         { 
             DELETEA(i.name);    
-            i.nullval();
+            i.forcenull();
             DELETEA(i.code);
         }
     });
@@ -262,7 +262,7 @@ void addident(ident *id)
     addident(*id);
 }
 
-static inline void pusharg(ident &id, tagval &v, identstack &stack)
+static inline void pusharg(ident &id, const tagval &v, identstack &stack)
 {
     stack.val = id.val;
     stack.valtype = id.valtype;
@@ -292,6 +292,22 @@ ICOMMAND(push, "rte", (ident *id, tagval *v, uint *code),
     executeret(code, *commandret);
     poparg(*id);
 });
+
+static inline void pushalias(ident &id, identstack &stack)
+{
+    if(id.type == ID_ALIAS && id.index >= MAXARGS) 
+    {
+        pusharg(id, nullval, stack);
+        id.flags &= ~IDF_UNKNOWN;
+    }
+}
+
+static inline void popalias(ident &id)
+{
+    if(id.type == ID_ALIAS && id.index >= MAXARGS) poparg(id);
+}
+
+ICOMMAND(local, "L", (), {});
 
 static inline bool checknumber(const char *s)
 {
@@ -325,7 +341,7 @@ ident *writeident(const char *name, int flags)
     ident *id = newident(name, flags);
     if(id->index < MAXARGS && !(aliasstack->usedargs&(1<<id->index)))
     {
-        pusharg(*id, nullret, aliasstack->argstack[id->index]);
+        pusharg(*id, nullval, aliasstack->argstack[id->index]);
         aliasstack->usedargs |= 1<<id->index;
     }
     return id;
@@ -608,7 +624,7 @@ bool addcommand(const char *name, identfun fun, const char *args)
         case 'i': case 'f': case 't': case 'N': case 'D': if(numargs < MAXARGS) numargs++; break;
         case 's': case 'e': case 'r': if(numargs < MAXARGS) { argmask |= 1<<numargs; numargs++; } break;
         case '1': case '2': case '3': case '4': if(numargs < MAXARGS) fmt -= *fmt-'0'+1; break;
-        case 'C': case 'V': limit = false; break;
+        case 'C': case 'V': case 'L': limit = false; break;
         default: fatal("builtin %s declared with illegal type: %s", name, args); break;
     }
     if(limit && numargs > 8) fatal("builtin %s declared with too many args: %d", name, numargs);
@@ -739,14 +755,13 @@ static inline const char *parseword(const char *p)
     int brakdepth = 0;
     for(;; p++)
     {
-        p += strcspn(p, "\"/;()[]{} \t\r\n\0");
+        p += strcspn(p, "\"/;()[] \t\r\n\0");
         switch(p[0])
         {
             case '"': case ';': case ' ': case '\t': case '\r': case '\n': case '\0': return p;
             case '/': if(p[1] == '/') return p; break;
-            case '[': case '{': case '(': if(brakdepth >= maxbrak) return p; brakstack[brakdepth++] = p[0]; break;
+            case '[': case '(': if(brakdepth >= maxbrak) return p; brakstack[brakdepth++] = p[0]; break;
             case ']': if(brakdepth <= 0 || brakstack[--brakdepth] != '[') return p; break;
-            case '}': if(brakdepth <= 0 || brakstack[--brakdepth] != '{') return p; break;
             case ')': if(brakdepth <= 0 || brakstack[--brakdepth] != '(') return p; break;
         }
         } 
@@ -886,7 +901,6 @@ static bool compilelookup(vector<uint> &code, const char *&p, int ltype)
     {
         case '(':
         case '[':
-        case '{':
             if(!compileword(code, p, VAL_STR, lookup, lookuplen)) return false;
             break;
         case '$':
@@ -920,7 +934,7 @@ done:
     return true;
 }
 
-static bool compileblockstr(vector<uint> &code, const char *str, const char *end, bool macro, int braktype = ']')
+static bool compileblockstr(vector<uint> &code, const char *str, const char *end, bool macro)
 {
     int start = code.length();
     code.add(macro ? CODE_MACRO : CODE_VAL|RET_STR); 
@@ -928,7 +942,7 @@ static bool compileblockstr(vector<uint> &code, const char *str, const char *end
     int len = 0;
     while(str < end)
     {
-        int n = braktype == ']' ? strcspn(str, "\r/\"@]\0") : strcspn(str, "\r/\"}\0");
+        int n = strcspn(str, "\r/\"@]\0");
         memcpy(&buf[len], str, n);
         len += n;
         str += n;
@@ -950,7 +964,6 @@ static bool compileblockstr(vector<uint> &code, const char *str, const char *end
                 break;
             case '@':
             case ']':
-            case '}':
                 if(str < end) { buf[len++] = *str++; break; }
             case '\0': goto done;
         }
@@ -970,7 +983,6 @@ static bool compileblocksub(vector<uint> &code, const char *&p)
             if(!compilearg(code, p, VAL_STR)) return false;
             break;
         case '[':
-        case '{':
             if(!compilearg(code, p, VAL_STR)) return false;
             code.add(CODE_LOOKUPU|RET_STR);
             break;
@@ -998,18 +1010,18 @@ static bool compileblocksub(vector<uint> &code, const char *&p)
     return true;
 }
 
-static bool compileblock(vector<uint> &code, const char *&p, int wordtype, int braktype = ']')
+static bool compileblock(vector<uint> &code, const char *&p, int wordtype)
 {
     const char *line = p, *start = p;
     int concs = 0;
     for(int brak = 1; brak;)
     {
-        p += braktype == ']' ? strcspn(p, "@\"/[]\0") : strcspn(p, "\"/{}\0");
+        p += strcspn(p, "@\"/[]\0");
         int c = *p++;
         switch(c)
         {
             case '\0':
-                debugcode(debugline(line, braktype == ']' ? "missing \"]\"" : "missing \"}\""));
+                debugcode(debugline(line, "missing \"]\""));
                 p--;
                 return false;
             case '\"':
@@ -1019,13 +1031,15 @@ static bool compileblock(vector<uint> &code, const char *&p, int wordtype, int b
             case '/':
                 if(*p=='/') p += strcspn(p, "\n\0");
                 break;
-            case '[': case '{': brak++; break;
-            case ']': case '}': brak--; break;
+            case '[': brak++; break;
+            case ']': brak--; break;
             case '@': 
             {
                 const char *esc = p;
                 while(*p == '@') p++; 
-                if(brak > p - (esc - 1)) continue;
+                int level = p - (esc - 1);
+                if(brak > level) continue;
+                else if(brak < level) debugcode(debugline(line, "too many @s"));
                 if(!concs) code.add(CODE_ENTER);
                 if(concs + 2 > MAXARGS)
                 {
@@ -1050,7 +1064,7 @@ static bool compileblock(vector<uint> &code, const char *&p, int wordtype, int b
                 int inst = code.length();
                 code.add(CODE_BLOCK);
                 code.add(CODE_OFFSET|((inst+2)<<8));
-                compilestatements(code, p, VAL_ANY, braktype);
+                compilestatements(code, p, VAL_ANY, ']');
                 code.add(CODE_EXIT);
                 code[inst] |= uint(code.length() - (inst + 1))<<8;
                 return true;
@@ -1063,7 +1077,7 @@ static bool compileblock(vector<uint> &code, const char *&p, int wordtype, int b
                 return true;
             }
         }
-        compileblockstr(code, start, p-1, concs > 0, braktype);
+        compileblockstr(code, start, p-1, concs > 0);
         if(concs > 1) concs++;
     }        
     if(concs)
@@ -1109,10 +1123,7 @@ static bool compileword(vector<uint> &code, const char *&p, int wordtype, char *
             return true;        
         case '[':
             p++;
-            return compileblock(code, p, wordtype, ']');
-        case '{':
-            p++;
-            return compileblock(code, p, wordtype, '}');
+            return compileblock(code, p, wordtype);
         default: word = cutword(p, wordlen); break;
     }
     return word!=NULL;
@@ -1221,9 +1232,15 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                     case 'C': comtype = CODE_COMC; if(more) while(numargs < MAXARGS && (more = compilearg(code, p, VAL_ANY))) numargs++; numargs = 1; goto endfmt;
                     case 'V': comtype = CODE_COMV; if(more) while(numargs < MAXARGS && (more = compilearg(code, p, VAL_ANY))) numargs++; numargs = 2; goto endfmt;
                     case '1': case '2': case '3': case '4': if(more) { fmt -= *fmt-'0'+1; rep = true; } break;
+                    case 'L': 
+                        if(more) while(numargs < MAXARGS && (more = compilearg(code, p, VAL_IDENT))) numargs++; 
+                        if(more) while((more = compilearg(code, p, VAL_ANY))) code.add(CODE_POP); 
+                        code.add(CODE_LOCAL); 
+                        goto endcmd;
                     }
                 endfmt:
                     code.add(comtype|(rettype < VAL_ANY ? rettype<<CODE_RET : 0)|(id->index<<8));
+                endcmd:
                     break;
                 }
                 case ID_VAR:
@@ -1251,17 +1268,17 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
         }
     endstatement:
         if(more) while(compilearg(code, p, VAL_ANY)) code.add(CODE_POP); 
-        p += strcspn(p, ")}];/\n\0");
+        p += strcspn(p, ")];/\n\0");
         int c = *p++;
         switch(c)
         {
             case '\0':
                 if(c != brak) debugcode(debugline(line, "missing \"%c\""), brak);
+                p--;
                 return;
 
             case ')':
             case ']':
-            case '}':
                 if(c == brak) return;
                 debugcode(debugline(line, "unexpected \"%c\""), c); 
                 break;
@@ -1396,6 +1413,15 @@ static const uint *runcode(const uint *code, tagval &result)
             case CODE_PRINT:
                 printvar(identmap[op>>8]);
                 continue;
+            case CODE_LOCAL:
+            {
+                identstack locals[MAXARGS];
+                freearg(result);
+                loopi(numargs) pushalias(*args[i].id, locals[i]);
+                code = runcode(code, result);
+                loopi(numargs) popalias(*args[i].id);
+                goto exit;
+            }
 
             case CODE_MACRO:
             {
@@ -1414,7 +1440,7 @@ static const uint *runcode(const uint *code, tagval &result)
             }
             case CODE_VALI|RET_STR:
             {
-                char s[4] = { (op>>8)&0xFF, (op>>16)&0xFF, (op>>24)&0xFF, '\0' };
+                char s[4] = { char((op>>8)&0xFF), char((op>>16)&0xFF), char((op>>24)&0xFF), '\0' };
                 args[numargs++].setstr(newstring(s));
                 continue;
             }
@@ -1469,7 +1495,7 @@ static const uint *runcode(const uint *code, tagval &result)
                 ident *id = identmap[op>>8];
                 if(!(aliasstack->usedargs&(1<<id->index)))
                 {
-                    pusharg(*id, nullret, aliasstack->argstack[id->index]);
+                    pusharg(*id, nullval, aliasstack->argstack[id->index]);
                     aliasstack->usedargs |= 1<<id->index;
                 } 
                 args[numargs++].setident(id);
@@ -1481,7 +1507,7 @@ static const uint *runcode(const uint *code, tagval &result)
                 ident *id = newident(arg.type == VAL_STR || arg.type == VAL_MACRO ? arg.s : "//dummy", IDF_UNKNOWN); 
                 if(id->index < MAXARGS && !(aliasstack->usedargs&(1<<id->index)))
                 {
-                    pusharg(*id, nullret, aliasstack->argstack[id->index]);
+                    pusharg(*id, nullval, aliasstack->argstack[id->index]);
                     aliasstack->usedargs |= 1<<id->index;
                 } 
                 freearg(arg);
@@ -1768,6 +1794,25 @@ static const uint *runcode(const uint *code, tagval &result)
                             }
                             case 'V': ((comfunv)id->fun)(args+1, numargs-1); goto forceresult;
                             case '1': case '2': case '3': case '4': if(numargs <= i) { fmt -= *fmt-'0'+1; maxargs = numargs; } break; 
+                            case 'L':
+                            {
+                                identstack locals[MAXARGS];
+                                freearg(args[0]);
+                                loopj(numargs-1) 
+                                { 
+                                    tagval &v = args[j+1]; 
+                                    if(v.type != VAL_IDENT) 
+                                    {
+                                        ident *id = newident(v.type==VAL_STR ? v.s : "//dummy", IDF_UNKNOWN);
+                                        freearg(v);
+                                        v.setident(id);
+                                    }
+                                    pushalias(*v.id, locals[j]);
+                                }
+                                code = runcode(code, result);
+                                loopj(numargs-1) popalias(*args[j+1].id);
+                                goto exit;  
+                        		}
                         }
                         #define ARG(n) (id->argmask&(1<<n) ? (void *)args[n+1].s : (void *)&args[n+1].i)
                         CALLCOM
@@ -1964,7 +2009,7 @@ const char *escapestring(const char *s)
 
 const char *escapeid(const char *s)
 {
-    const char *end = s + strcspn(s, "\"/;()[]{} \f\t\r\n\0");
+    const char *end = s + strcspn(s, "\"/;()[] \f\t\r\n\0");
     return *end ? escapestring(s) : s;
 }
 
@@ -1975,9 +2020,8 @@ bool validateblock(const char *s)
     int brakdepth = 0;
     for(; *s; s++) switch(*s)
     {
-        case '[': case '{': case '(': if(brakdepth >= maxbrak) return false; brakstack[brakdepth++] = *s; break;
+        case '[': case '(': if(brakdepth >= maxbrak) return false; brakstack[brakdepth++] = *s; break;
         case ']': if(brakdepth <= 0 || brakstack[--brakdepth] != '[') return false; break;
-        case '}': if(brakdepth <= 0 || brakstack[--brakdepth] != '{') return false; break;
         case ')': if(brakdepth <= 0 || brakstack[--brakdepth] != '(') return false; break;
         case '"': s = parsestring(s + 1); if(*s != '"') return false; break;
         case '/': if(s[1] == '/') return false; break;
@@ -2207,29 +2251,28 @@ static bool parselist(const char *&s, const char *&start = liststart, const char
     switch(*s)
     {
         case '"': quotestart = s++; start = s; s = parsestring(s); end = s; if(*s == '"') s++; quoteend = s; break;
-        case '(': case '[': case '{':
+        case '(': case '[':
             quotestart = s;
             start = s+1;
             for(int braktype = *s++, brak = 1;;)
 {
-                s += strcspn(s, "\"/;()[]{}\0");
+                s += strcspn(s, "\"/;()[]\0");
                 int c = *s++;
                 switch(c)
     {
                     case '\0': s--; quoteend = end = s; return true;
                     case '"': s = parsestring(s); if(*s == '"') s++; break;
                     case '/': if(*s == '/') s += strcspn(s, "\n\0"); break;
-                    case '(': case '[': case '{': if(c == braktype) brak++; break;
+                    case '(': case '[': if(c == braktype) brak++; break;
                     case ')': if(braktype == '(' && --brak <= 0) goto endblock; break;
                     case ']': if(braktype == '[' && --brak <= 0) goto endblock; break;
-                    case '}': if(braktype == '{' && --brak <= 0) goto endblock; break;
                 } 
             }
         endblock:
             end = s-1;
             quoteend = s;
             break;
-        case '\0': case ')': case ']': case '}': return false;
+        case '\0': case ')': case ']': return false;
         default: quotestart = start = s; s = parseword(s); quoteend = end = s; break;
     }
     skiplist(s);
@@ -2406,7 +2449,7 @@ void listsplice(const char *s, const char *vals, int *skip, int *count, int *num
     skiplist(s);
     switch(*s)
     {
-        case '\0': case ')': case ']': case '}': break;
+        case '\0': case ')': case ']': break;
         default:
             if(!p.empty()) p.add(' ');
             p.put(s, strlen(s));

@@ -1,11 +1,13 @@
 // renderparticles.cpp
 
 #include "engine.h"
-#include "rendertarget.h"
 
 Shader *particleshader = NULL, *particlenotextureshader = NULL;
 
 VARP(particlesize, 20, 100, 500);
+    
+VARP(softparticles, 0, 1, 1);
+VARP(softparticleblend, 1, 8, 64);
     
 // Check emit_particles() to limit the rate that paricles can be emitted for models/sparklies
 // Automatically stops particles being emitted when paused or in reflective drawing
@@ -15,10 +17,14 @@ static bool canemit = false, regenemitters = false, canstep = false;
 
 static bool emit_particles()
 {
-    if(reflecting || refracting) return false;
     return canemit || emitoffset;
 }
 
+VARP(showparticles, 0, 1, 1);
+VAR(cullparticles, 0, 1, 1);
+VAR(replayparticles, 0, 1, 1);
+VARN(seedparticles, seedmillis, 0, 3000, 10000);
+VAR(dbgpcull, 0, 0, 1);
 VAR(dbgpseed, 0, 0, 1);
 
 struct particleemitter
@@ -99,7 +105,6 @@ enum
     PT_RND4  = 1<<9,
     PT_LERP  = 1<<10, // use very sparingly - order of blending issues
     PT_TRACK = 1<<11,
-    PT_GLARE = 1<<12,
     PT_SOFT  = 1<<13,
     PT_HFLIP = 1<<14,
     PT_VFLIP = 1<<15,
@@ -167,7 +172,6 @@ struct partrenderer
     virtual void reset() = 0;
     virtual void resettracked(physent *owner) { }   
     virtual particle *addpart(const vec &o, const vec &d, int fade, int color, float size, int gravity = 0) = 0;    
-    virtual int adddepthfx(vec &bbmin, vec &bbmax) { return 0; }
     virtual void update() { }
     virtual void render() = 0;
     virtual bool haswork() = 0;
@@ -203,16 +207,20 @@ struct partrenderer
             }
             if(collide && o.z < p->val && step)
             {
-                vec surface;
-                float floorz = rayfloor(vec(o.x, o.y, p->val), surface, RAY_CLIPMAT, COLLIDERADIUS);
-                float collidez = floorz<0 ? o.z-COLLIDERADIUS : p->val - rayfloor(vec(o.x, o.y, p->val), surface, RAY_CLIPMAT, COLLIDERADIUS);
-                if(o.z >= collidez+COLLIDEERROR) 
-                    p->val = collidez+COLLIDEERROR;
-                else 
+                if(collide >= 0)
                 {
-                    adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*p->size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
-                    blend = 0;
+                    vec surface;
+                    float floorz = rayfloor(vec(o.x, o.y, p->val), surface, RAY_CLIPMAT, COLLIDERADIUS);
+                    float collidez = floorz<0 ? o.z-COLLIDERADIUS : p->val - floorz;
+                    if(o.z >= collidez+COLLIDEERROR) 
+                        p->val = collidez+COLLIDEERROR;
+                    else
+                    {
+                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*p->size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
+                        blend = 0;
+                    }
                 }
+                else blend = 0;
             }
         }
     }
@@ -457,7 +465,7 @@ struct textrenderer : listrenderer
     {
     }
 
-    void cleanup(listparticle *p)
+    void killpart(listparticle *p)
     {
         if(p->text && p->flags&1) delete[] p->text;
     }
@@ -727,7 +735,7 @@ struct varenderer : partrenderer
 
             #define SETCOLOR(r, g, b, a) \
             do { \
-                uchar col[4] = { r, g, b, a }; \
+                uchar col[4] = { uchar(r), uchar(g), uchar(b), uchar(a) }; \
                 loopi(4) memcpy(vs[i].color.v, col, sizeof(col)); \
             } while(0) 
             #define SETMODCOLOR SETCOLOR((p->color[0]*blend)>>8, (p->color[1]*blend)>>8, (p->color[2]*blend)>>8, 255)
@@ -779,7 +787,6 @@ typedef varenderer<PT_PART> quadrenderer;
 typedef varenderer<PT_TAPE> taperenderer;
 typedef varenderer<PT_TRAIL> trailrenderer;
 
-#include "depthfx.h"
 #include "explosion.h"
 #include "lensflare.h"
 #include "lightning.h"
@@ -790,30 +797,6 @@ struct softquadrenderer : quadrenderer
         : quadrenderer(texname, type|PT_SOFT, collide)
     {
     }
-
-    int adddepthfx(vec &bbmin, vec &bbmax)
-    {
-        if(!depthfxtex.highprecision() && !depthfxtex.emulatehighprecision()) return 0;
-        int numsoft = 0;
-        loopi(numparts)
-        {
-            particle &p = parts[i];
-            float radius = p.size*SQRT2;
-            vec o, d;
-            int blend, ts;
-            calc(&p, blend, ts, o, d, false);
-            if(!isfoggedsphere(radius, p.o) && (depthfxscissor!=2 || depthfxtex.addscissorbox(p.o, radius))) 
-            {
-                numsoft++;
-                loopk(3)
-                {
-                    bbmin[k] = min(bbmin[k], o[k] - radius);
-                    bbmax[k] = max(bbmax[k], o[k] + radius);
-                }
-            }
-        }
-        return numsoft;
-    }
 };
 
 static partrenderer *parts[] = 
@@ -822,19 +805,20 @@ static partrenderer *parts[] =
     new trailrenderer("packages/particles/base.png", PT_TRAIL|PT_LERP),                            // water, entity
     new quadrenderer("<grey>packages/particles/smoke.png", PT_PART|PT_FLIP|PT_LERP),                     // smoke
     new quadrenderer("<grey>packages/particles/steam.png", PT_PART|PT_FLIP),                             // steam
-    new quadrenderer("<grey>packages/particles/flames.png", PT_PART|PT_HFLIP|PT_RND4|PT_GLARE),          // flame on - no flipping please, they have orientation
-    new quadrenderer("packages/particles/ball1.png", PT_PART|PT_FEW|PT_GLARE),                     // fireball1
-    new quadrenderer("packages/particles/ball2.png", PT_PART|PT_FEW|PT_GLARE),                     // fireball2
-    new quadrenderer("packages/particles/ball3.png", PT_PART|PT_FEW|PT_GLARE),                     // fireball3
-    new taperenderer("packages/particles/flare.jpg", PT_TAPE|PT_GLARE),                            // streak
+    new quadrenderer("<grey>packages/particles/flames.png", PT_PART|PT_HFLIP|PT_RND4),             // flame on - no flipping please, they have orientation
+    new quadrenderer("packages/particles/ball1.png", PT_PART|PT_FEW),                              // fireball1
+    new quadrenderer("packages/particles/ball2.png", PT_PART|PT_FEW),                              // fireball2
+    new quadrenderer("packages/particles/ball3.png", PT_PART|PT_FEW),                              // fireball3
+    new taperenderer("packages/particles/flare.jpg", PT_TAPE),                                     // streak
     &lightnings,                                                                                   // lightning
     &fireballs,                                                                                    // explosion fireball
     &bluefireballs,                                                                                // bluish explosion fireball
-    new quadrenderer("packages/particles/spark.png", PT_PART|PT_FLIP|PT_GLARE),                    // sparks
-    new quadrenderer("packages/particles/base.png",  PT_PART|PT_FLIP|PT_GLARE),                    // edit mode entities
-    new quadrenderer("packages/particles/muzzleflash1.jpg", PT_PART|PT_FEW|PT_FLIP|PT_GLARE|PT_TRACK), // muzzle flash
-    new quadrenderer("packages/particles/muzzleflash2.jpg", PT_PART|PT_FEW|PT_FLIP|PT_GLARE|PT_TRACK), // muzzle flash
-    new quadrenderer("packages/particles/muzzleflash3.jpg", PT_PART|PT_FEW|PT_FLIP|PT_GLARE|PT_TRACK), // muzzle flash
+    new quadrenderer("packages/particles/spark.png", PT_PART|PT_FLIP),                             // sparks
+    new quadrenderer("packages/particles/base.png",  PT_PART|PT_FLIP),                             // edit mode entities
+    new quadrenderer("<grey>packages/particles/snow.png", PT_PART|PT_FLIP|PT_RND4, -1),            // colliding snow
+    new quadrenderer("packages/particles/muzzleflash1.jpg", PT_PART|PT_FEW|PT_FLIP|PT_TRACK),      // muzzle flash
+    new quadrenderer("packages/particles/muzzleflash2.jpg", PT_PART|PT_FEW|PT_FLIP|PT_TRACK),      // muzzle flash
+    new quadrenderer("packages/particles/muzzleflash3.jpg", PT_PART|PT_FEW|PT_FLIP|PT_TRACK),      // muzzle flash
     new quadrenderer("packages/hud/items.png", PT_PART|PT_FEW|PT_ICON),                            // hud icon
     new quadrenderer("<colorify:1/1/1>packages/hud/items.png", PT_PART|PT_FEW|PT_ICON),            // grey hud icon
     &texts,                                                                                        // text
@@ -843,36 +827,6 @@ static partrenderer *parts[] =
     &flares                                                                                        // lens flares - must be done last
 };
 
-void finddepthfxranges()
-{
-    depthfxmin = vec(1e16f, 1e16f, 1e16f);
-    depthfxmax = vec(0, 0, 0);
-    numdepthfxranges = fireballs.finddepthfxranges(depthfxowners, depthfxranges, 0, MAXDFXRANGES, depthfxmin, depthfxmax);
-    numdepthfxranges = bluefireballs.finddepthfxranges(depthfxowners, depthfxranges, numdepthfxranges, MAXDFXRANGES, depthfxmin, depthfxmax);
-    loopk(3)
-    {
-        depthfxmin[k] -= depthfxmargin;
-        depthfxmax[k] += depthfxmargin;
-    }
-    if(depthfxparts)
-    {
-        loopi(sizeof(parts)/sizeof(parts[0]))
-        {
-            partrenderer *p = parts[i];
-            if(p->type&PT_SOFT && p->adddepthfx(depthfxmin, depthfxmax))
-            {
-                if(!numdepthfxranges)
-                {
-                    numdepthfxranges = 1;
-                    depthfxowners[0] = NULL;
-                    depthfxranges[0] = 0;
-                }
-            }
-        }
-    }              
-    if(depthfxscissor<2 && numdepthfxranges>0) depthfxtex.addscissorbox(depthfxmin, depthfxmax);
-}
- 
 VARFP(maxparticles, 10, 4000, 40000, particleinit());
 VARFP(fewparticles, 10, 100, 40000, particleinit());
 
@@ -899,21 +853,19 @@ void removetrackedparticles(physent *owner)
     loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->resettracked(owner);
 }
 
-VARP(particleglare, 0, 2, 100);
-
 VAR(debugparticles, 0, 0, 1);
 
 void renderparticles(bool mainpass)
 {
     canstep = mainpass;
     //want to debug BEFORE the lastpass render (that would delete particles)
-    if(debugparticles && !glaring && !reflecting && !refracting) 
+    if(debugparticles)
     {
         int n = sizeof(parts)/sizeof(parts[0]);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        glOrtho(0, FONTH*n*2*screen->w/float(screen->h), FONTH*n*2, 0, -1, 1); //squeeze into top-left corner        
+        glOrtho(0, FONTH*n*2*vieww/float(viewh), FONTH*n*2, 0, -1, 1); //squeeze into top-left corner        
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
@@ -925,7 +877,6 @@ void renderparticles(bool mainpass)
             int type = parts[i]->type;
             const char *title = parts[i]->texname ? strrchr(parts[i]->texname, '/')+1 : NULL;
             string info = "";
-            if(type&PT_GLARE) concatstring(info, "g,");
             if(type&PT_LERP) concatstring(info, "l,");
             if(type&PT_MOD) concatstring(info, "m,");
             if(type&PT_RND4) concatstring(info, "r,");
@@ -944,11 +895,8 @@ void renderparticles(bool mainpass)
         glPopMatrix();
     }
 
-    if(glaring && !particleglare) return;
-    
     loopi(sizeof(parts)/sizeof(parts[0])) 
     {
-        if(glaring && !(parts[i]->type&PT_GLARE)) continue;
         parts[i]->update();
     }
     
@@ -957,12 +905,11 @@ void renderparticles(bool mainpass)
     bool rendered = false;
     uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD;
    
-    if(binddepthfxtex()) flagmask |= PT_SOFT;
+    if(softparticles) flagmask |= PT_SOFT;
 
     loopi(sizeof(parts)/sizeof(parts[0]))
     {
         partrenderer *p = parts[i];
-        if(glaring && !(p->type&PT_GLARE)) continue;
         if(!p->haswork()) continue;
     
         if(!rendered)
@@ -972,8 +919,8 @@ void renderparticles(bool mainpass)
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);             
 
-            if(glaring) setenvparamf("colorscale", SHPARAM_VERTEX, 4, particleglare, particleglare, particleglare, 1);
-            else setenvparamf("colorscale", SHPARAM_VERTEX, 4, 1, 1, 1, 1);
+            float colorscale = hdr ? 0.5f : 1;
+            GLOBALPARAM(colorscale, (colorscale, colorscale, colorscale, 1));
 
             particleshader->set();
             glGetFloatv(GL_FOG_COLOR, oldfogc);
@@ -1010,19 +957,9 @@ void renderparticles(bool mainpass)
             {
                 if(flags&PT_SOFT)
                 {
-                    if(depthfxtex.target==GL_TEXTURE_RECTANGLE_ARB)
-                    {
-                        if(!depthfxtex.highprecision()) SETSHADER(particlesoft8rect);
-                        else SETSHADER(particlesoftrect);
+                    SETSHADER(particlesoft);
+                    LOCALPARAM(softparams, (-1.0f/softparticleblend, 0, 0));
                     }
-                    else
-                    {
-                        if(!depthfxtex.highprecision()) SETSHADER(particlesoft8);
-                        else SETSHADER(particlesoft);
-                    }
-
-                    binddepthfxparams(depthfxpartblend);
-                }
                 else particleshader->set();
             }
             lastflags = flags;        
@@ -1065,7 +1002,7 @@ VARP(maxparticledistance, 256, 1024, 4096);
 static void splash(int type, int color, int radius, int num, int fade, const vec &p, float size, int gravity)
 {
     if(camera1->o.dist(p) > maxparticledistance && !seedemitter) return;
-    float collidez = parts[type]->collide ? p.z - raycube(p, vec(0, 0, -1), COLLIDERADIUS, RAY_CLIPMAT) + COLLIDEERROR : -1; 
+    float collidez = parts[type]->collide ? p.z - raycube(p, vec(0, 0, -1), COLLIDERADIUS, RAY_CLIPMAT) + (parts[type]->collide >= 0 ? COLLIDEERROR : 0) : -1; 
     int fmin = 1;
     int fmax = fade*3;
     loopi(num)
@@ -1092,7 +1029,7 @@ static void regularsplash(int type, int color, int radius, int num, int fade, co
 
 bool canaddparticles()
 {
-    return !renderedgame && !shadowmapping;
+    return true;
 }
 
 void regular_particle_splash(int type, int num, int fade, const vec &p, int color, float size, int radius, int gravity, int delay) 
@@ -1198,12 +1135,13 @@ static inline int colorfromattr(int attr)
  * 12..14 plane volume
  * 15..20 line volume, i.e. wall
  * 21 sphere
+ * 24..26 flat plane
  * +32 to inverse direction
  *
  * Bomberman:
  * Add modfrom and modto to be able to modify the tos and froms
  */
-void regularshape(int type, int radius, int color, int dir, int num, int fade, const vec &p, float size, int gravity, const vec* modfrom, const vec* modto)
+void regularshape(int type, int radius, int color, int dir, int num, int fade, const vec &p, float size, int gravity, const vec* modfrom, const vec* modto, int vel)
 {
 	//conoutf("CALLED: regularshape(int type: %i, int radius: %i, int color: %X, int dir: %i, int num: %i, int fade: %i, vec &p: (x: %f, y: %f, z:%f), float size: %f, int gravity: %i", type, radius, color, dir, num, fade, p.x, p.y, p.z, size, gravity);
     if(!emit_particles()) return;
@@ -1262,24 +1200,36 @@ void regularshape(int type, int radius, int color, int dir, int num, int fade, c
             from = to;
             to[(dir+2)%3] += radius;  
         } 
-        else //sphere
+        else if(dir < 24) //sphere
         {   
             to = vec(PI2*float(rnd(1000))/1000.0, PI*float(rnd(1000)-500)/1000.0).mul(radius); 
             to.add(p);
             from = p;
         }
+        else if(dir < 27) // flat plane
+        {
+            to[dir%3] = float(rndscale(2*radius)-radius);
+            to[(dir+1)%3] = float(rndscale(2*radius)-radius);
+            to[(dir+2)%3] = 0.0;
+            to.add(p);
+            from = to; 
+        }
+        else from = to = p; 
        
         // Bomberman
         if(modfrom && modto){
             from.add(*modfrom);
             to.add(*modto);
         }
-		
+
+        if(inv) swap(from, to);
+
         if(taper)
         {
-            vec o = inv ? to : from;
-            o.sub(camera1->o);
-            float dist = clamp(sqrtf(o.x*o.x + o.y*o.y)/maxparticledistance, 0.0f, 1.0f);
+            // vec o = inv ? to : from;
+            // o.sub(camera1->o);
+            // float dist = clamp(sqrtf(o.x*o.x + o.y*o.y)/maxparticledistance, 0.0f, 1.0f);
+            float dist = clamp(from.dist2(camera1->o)/maxparticledistance, 0.0f, 1.0f);
             if(dist > 0.2f)
             {
                 dist = 1 - (dist - 0.2f)/0.8f;
@@ -1288,13 +1238,13 @@ void regularshape(int type, int radius, int color, int dir, int num, int fade, c
         }
  
         if(flare)
-            newparticle(inv?to:from, inv?from:to, rnd(fade*3)+1, type, color, size, gravity);
+            newparticle(from, to, rnd(fade*3)+1, type, color, size, gravity);
         else 
         {  
-            vec d(to);
-            d.sub(from);
-            d.normalize().mul(inv ? -200.0f : 200.0f); //velocity
-            newparticle(inv?to:from, d, rnd(fade*3)+1, type, color, size, gravity);
+            vec d = vec(to).sub(from).rescale(vel); //velocity
+            particle *n = newparticle(from, d, rnd(fade*3)+1, type, color, size, gravity);
+            if(parts[type]->collide)
+                n->val = from.z - raycube(from, vec(0, 0, -1), parts[type]->collide >= 0 ? COLLIDERADIUS : max(from.z, 0.0f), RAY_CLIPMAT) + (parts[type]->collide >= 0 ? COLLIDEERROR : 0);
         }
     }
 }
@@ -1351,14 +1301,15 @@ static void makeparticles(entity &e)
         case 7:  //lightning 
         case 9:  //steam
         case 10: //water
+        case 13: //snow
         {
-            static const int typemap[]   = { PART_STREAK, -1, -1, PART_LIGHTNING, -1, PART_STEAM, PART_WATER };
-            static const float sizemap[] = { 0.28f, 0.0f, 0.0f, 1.0f, 0.0f, 2.4f, 0.60f };
-            static const int gravmap[] = { 0, 0, 0, 0, 0, -20, 2 };
+            static const int typemap[]   = { PART_STREAK, -1, -1, PART_LIGHTNING, -1, PART_STEAM, PART_WATER, -1, -1, PART_SNOW };
+            static const float sizemap[] = { 0.28f, 0.0f, 0.0f, 1.0f, 0.0f, 2.4f, 0.60f, 0.0f, 0.0f, 0.5f };
+            static const int gravmap[] = { 0, 0, 0, 0, 0, -20, 2, 0, 0, 20 };
             int type = typemap[e.attr1-4];
             float size = sizemap[e.attr1-4];
             int gravity = gravmap[e.attr1-4];
-            if(e.attr2 >= 256) regularshape(type, max(1+e.attr3, 1), colorfromattr(e.attr4), e.attr2-256, 5, 200, e.o, size, gravity);
+            if(e.attr2 >= 256) regularshape(type, max(1+e.attr3, 1), colorfromattr(e.attr4), e.attr2-256, 5, e.attr5 > 0 ? min(int(e.attr5), 10000) : 200, e.o, size, gravity);
             else newparticle(e.o, offsetvec(e.o, e.attr2, max(1+e.attr3, 0)), 1, type, colorfromattr(e.attr4), size, gravity);
             break;
         }
@@ -1411,12 +1362,6 @@ bool printparticles(extentity &e, char *buf)
     }
     return false;
 }
-
-VARP(showparticles, 0, 1, 1);
-VAR(cullparticles, 0, 1, 1);
-VAR(replayparticles, 0, 1, 1);
-VARN(seedparticles, seedmillis, 0, 3000, 10000);
-VAR(dbgpcull, 0, 0, 1);
 
 void seedparticles()
 {

@@ -232,7 +232,8 @@ def onPlayerActive(cn):
 
 @eventHandler('player_name_changed')
 def onPlayerNameChanged(cn, old_name, new_name):
-	onPlayerActive(cn)
+	# onPlayerActive(cn)
+	pass
 
 Base.metadata.create_all(dbmanager.engine)
 

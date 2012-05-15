@@ -30,7 +30,6 @@ struct ctfclientmode : clientmode
 #else
         fpsent *owner;
         float dropangle, spawnangle;
-        entitylight light;
         vec interploc;
         float interpangle;
         int interptime, vistime;
@@ -72,9 +71,6 @@ struct ctfclientmode : clientmode
     struct holdspawn
     {
         vec o;
-#ifndef SERVMODE
-        entitylight light;
-#endif
     };
     vector<holdspawn> holdspawns;
     vector<flag> flags;
@@ -595,14 +591,16 @@ struct ctfclientmode : clientmode
             const char *flagname = m_hold && (!f.owner || lastmillis%1000 < 500) ? "flags/neutral" : (m_hold ? ctfteamflag(f.owner->team) : f.team)==ctfteamflag(player1->team) ? "flags/blue" : "flags/red";
             float angle;
             vec pos = interpflagpos(f, angle);
+#if 0
             if(m_hold)
-                rendermodel(!f.droptime && !f.owner ? &f.light : NULL, flagname, ANIM_MAPMODEL|ANIM_LOOP,
+                rendermodel(flagname, ANIM_MAPMODEL|ANIM_LOOP,
                         pos, angle, 0,
-                        MDL_GHOST | MDL_CULL_VFC | (f.droptime || f.owner ? MDL_LIGHT : 0),
+                        MDL_GHOST | MDL_CULL_VFC,
                         NULL, NULL, 0, 0, 0.5f + 0.5f*(2*fabs(fmod(lastmillis/1000.0f, 1.0f) - 0.5f)));
-            rendermodel(!f.droptime && !f.owner ? &f.light : NULL, flagname, ANIM_MAPMODEL|ANIM_LOOP,
+#endif
+            rendermodel(flagname, ANIM_MAPMODEL|ANIM_LOOP,
                         pos, angle, 0,
-                        MDL_DYNSHADOW | MDL_CULL_VFC | MDL_CULL_OCCLUDED | (f.droptime || f.owner ? MDL_LIGHT : 0),
+                        MDL_CULL_VFC | MDL_CULL_OCCLUDED,
                         NULL, NULL, 0, 0, 0.3f + (f.vistime ? 0.7f*min((lastmillis - f.vistime)/1000.0f, 1.0f) : 0.0f));
 
             if(m_protect && canaddparticles() && f.owner && insidebase(f, f.owner->feetpos()))
@@ -640,7 +638,6 @@ struct ctfclientmode : clientmode
                 extentity *e = entities::ents[i];
                 if(e->type!=BASE) continue;
                 if(!addholdspawn(e->o)) continue;
-                holdspawns.last().light = e->light;
             }
             if(holdspawns.length()) while(flags.length() < HOLDFLAGS) addflag(flags.length(), vec(0, 0, 0), 0, -1000);
         }
@@ -654,7 +651,6 @@ struct ctfclientmode : clientmode
                 int index = flags.length();
                 if(!addflag(index, e->o, e->attr2, m_protect ? 0 : -1000)) continue;
                 flags[index].spawnangle = e->attr1;
-                flags[index].light = e->light;
             }
         }
     }
@@ -799,7 +795,6 @@ struct ctfclientmode : clientmode
         if(!holdspawns.inrange(f.spawnindex)) return;
         holdspawn &h = holdspawns[f.spawnindex];
         f.spawnloc = h.o;
-        f.light = h.light;
     }
 
     void resetflag(int i, int version, int spawnindex, int team, int score)

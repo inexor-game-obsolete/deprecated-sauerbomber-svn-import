@@ -172,6 +172,7 @@ namespace game
         d->o = d->newpos;
         d->yaw = d->newyaw;
         d->pitch = d->newpitch;
+        d->roll = d->newroll;
         if(move)
         {
             moveplayer(d, 1, false);
@@ -185,6 +186,7 @@ namespace game
             if(d->yaw<0) d->yaw += 360;
             else if(d->yaw>=360) d->yaw -= 360;
             d->pitch += d->deltapitch*k;
+            d->roll += d->deltaroll*k;
         }
     }
 
@@ -195,12 +197,12 @@ namespace game
             fpsent *d = players[i];
             if(d == player1 || d->ai) continue;
 
-            if(d->state==CS_ALIVE)
+            if(d->state==CS_DEAD && d->ragdoll) moveragdoll(d);
+            else if(!intermission)
             {
                 if(lastmillis - d->lastaction >= d->gunwait) d->gunwait = 0;
                 if(d->quadmillis) entities::checkquad(curtime, d);
             }
-            else if(d->state==CS_DEAD && d->ragdoll) moveragdoll(d);
 
             const int lagtime = totalmillis-d->lastupdate;
             if(!lagtime || intermission) continue;
@@ -241,7 +243,10 @@ namespace game
 
         physicsframe();
         ai::navigate();
-        entities::checkquad(curtime, player1);
+        if(player1->state != CS_DEAD && !intermission)
+        {
+            if(player1->quadmillis) entities::checkquad(curtime, player1);
+        }
         updateweapons(curtime);
         otherplayers(curtime);
         ai::update();

@@ -259,7 +259,6 @@ namespace game
         bool local;
         int offsetmillis;
         int id;
-        entitylight light;
     };
     extern vector<projectile> projs;
 
@@ -273,7 +272,6 @@ namespace game
         vec offset;
         int offsetmillis;
         int id;
-        entitylight light;
         int generation;
 
         bouncer() : bounces(0), roll(0), variant(0)

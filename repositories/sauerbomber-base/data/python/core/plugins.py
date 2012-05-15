@@ -30,8 +30,11 @@ class Plugin:
 			self.isenabled = False
 		del conf
 	def loadModule(self):
-		if self.initmodule and ((self.isclientenabled and sauerbomber.isClient()) or (self.isserverenabled and sauerbomber.isServer())) :
-			self.module = __import__(os.path.basename(self.path) + '.' + self.initmodule)
+		if self.initmodule and ((self.isclientenabled and sauerbomber.isClient()) or (self.isserverenabled and sauerbomber.isServer())):
+			try:
+				self.module = __import__(os.path.basename(self.path) + '.' + self.initmodule)
+			except Exception, e:
+				logging.error("Error: %s"%(e))
 	def unloadModule(self):
 		if (self.isclientenabled and sauerbomber.isClient()) or (self.isserverenabled and sauerbomber.isServer()):
 			del self.module
@@ -39,6 +42,9 @@ class Plugin:
 		return self.isclientenabled
 	def serverenabled(self):
 		return self.isserverenabled
+	def list(self):
+		for p_name in plugins.values():
+			sauerbomber.consoleOutput(p_name);
 
 def plugin(name):
 	return plugins[name]
@@ -46,6 +52,10 @@ def plugin(name):
 def loadPlugins():
 	plugins.clear()
 	logging.info('Loading plugins...')
+	if sauerbomber.isClient():
+	    logging.info('isClient')
+	if sauerbomber.isServer():
+	    logging.info('isServer')
 	for path in paths:
 		files = os.listdir(path)
 		for file in files:
@@ -69,5 +79,4 @@ def reloadPlugins():
 	for p in plugins.values():
 		p.loadModule()
 
-loadPlugins()
 

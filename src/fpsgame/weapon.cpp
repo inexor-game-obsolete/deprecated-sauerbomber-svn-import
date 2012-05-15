@@ -170,7 +170,7 @@ namespace game
 
     vec hudgunorigin(int gun, const vec &from, const vec &to, fpsent *d);
 
-    void newbouncer(const vec &from, const vec &to, bool local, int id, fpsent *owner, int type, int lifetime, int speed, entitylight *light = NULL, int generation = 0)
+    void newbouncer(const vec &from, const vec &to, bool local, int id, fpsent *owner, int type, int lifetime, int speed, int generation = 0)
     {
         bouncer &bnc = *bouncers.add(new bouncer);
         bnc.o = from;
@@ -195,7 +195,6 @@ namespace game
         bnc.bouncetype = type;
         bnc.generation = generation;
         bnc.id = local ? lastmillis : id;
-        if(light) bnc.light = *light;
 
         switch(type) {
             case BNC_DEBRIS:
@@ -260,7 +259,7 @@ namespace game
         to.y = (to.y * fac) + (((float)rnd(120))-60.0f);
         to.z+=5.0f;
         to.add(p);
-        newbouncer(p, to, true, 0, d, BNC_SPLINTER, 210, 140, NULL, generation); // lifetime, speed
+        newbouncer(p, to, true, 0, d, BNC_SPLINTER, 210, 140, generation); // lifetime, speed
     }
 
     void spawnsplinters(const vec &p, fpsent *d)
@@ -272,7 +271,7 @@ namespace game
             to.x*=fac;
             to.y*=fac;
             to.add(p);
-            newbouncer(p, to, true, 0, d, BNC_SPLINTER, 210, 140, NULL, d->bombradius); // 1+((d->bombradius-1)*2)); // 1, 3, 5, 7, ... generations
+            newbouncer(p, to, true, 0, d, BNC_SPLINTER, 210, 140, d->bombradius); // 1+((d->bombradius-1)*2)); // 1, 3, 5, 7, ... generations
         }
     }
 
@@ -411,12 +410,12 @@ namespace game
         }
     }
 
-    void spawnbouncer(const vec &p, const vec &vel, fpsent *d, int type, entitylight *light = NULL) {
+    void spawnbouncer(const vec &p, const vec &vel, fpsent *d, int type) {
         vec to(rnd(100)-50, rnd(100)-50, rnd(100)-50);
         if(to.iszero()) to.z += 1;
         to.normalize();
         to.add(p);
-        newbouncer(p, to, true, 0, d, type, rnd(1000)+1000, rnd(100)+20, light);
+        newbouncer(p, to, true, 0, d, type, rnd(1000)+1000, rnd(100)+20);
     }
 
     void gibeffect(int damage, const vec &vel, fpsent *d) {
@@ -546,11 +545,11 @@ namespace game
 
         switch(gun) {
             case GUN_RL:
-                adddynlight(v, 1.15f*RL_DAMRAD, vec(2, 1.5f, 1), 900, 100, 0, RL_DAMRAD/2, vec(1, 0.75f, 0.5f));
+                adddynlight(v, 1.15f*RL_DAMRAD, vec(4.0f, 3.0f, 2.0f), 900, 100, 0, RL_DAMRAD/2, vec(1, 0.75f, 0.5f));
                 debrisorigin.add(vec(debrisvel).mul(8));
                 break;
             case GUN_GL:
-                adddynlight(v, 1.15f*RL_DAMRAD, vec(0.5f, 1.5f, 2), 900, 100, 0, 8, vec(0.25f, 1, 1));
+                adddynlight(v, 1.15f*RL_DAMRAD, vec(1.0f, 3.0f, 4.0f), 900, 100, 0, 8, vec(0.25f, 1, 1));
                 break;
             case GUN_BOMB:
                 // TODO: COMMENT IN: adddynlight(v, owner->bombradius*BOMB_DAMRAD, vec(0.5f, 1.5f, 2), 900, 100, 0, 8, vec(1, 1, 0.25f));
@@ -565,10 +564,8 @@ namespace game
         }
 
         if(numdebris && gun!=GUN_SPLINTER) {
-            entitylight light;
-            lightreaching(debrisorigin, light.color, light.dir);
             loopi(numdebris)
-                spawnbouncer(debrisorigin, debrisvel, owner, gun==GUN_BARREL ? BNC_BARRELDEBRIS : BNC_DEBRIS, &light);
+                spawnbouncer(debrisorigin, debrisvel, owner, gun==GUN_BARREL ? BNC_BARRELDEBRIS : BNC_DEBRIS);
         }
 
         // only continue, if local game or if multiplayer obstacles
@@ -758,7 +755,7 @@ namespace game
                     particle_flare(hudgunorigin(gun, from, sg[i], d), sg[i], 300, PART_STREAK, 0xFFC864, 0.28f);
                     if(!local) adddecal(DECAL_BULLET, sg[i], vec(from).sub(sg[i]).normalize(), 2.0f);
                 }
-                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 30, vec(0.5f, 0.375f, 0.25f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
+                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 30, vec(1.0f, 0.75f, 0.5f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
                 break;
             }
 
@@ -771,7 +768,7 @@ namespace game
                 if(muzzleflash && d->muzzle.x >= 0)
                     particle_flare(d->muzzle, d->muzzle, gun==GUN_CG ? 100 : 200, PART_MUZZLE_FLASH1, 0xFFFFFF, gun==GUN_CG ? 2.25f : 1.25f, d);
                 if(!local) adddecal(DECAL_BULLET, to, vec(from).sub(to).normalize(), 2.0f);
-                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), gun==GUN_CG ? 30 : 15, vec(0.5f, 0.375f, 0.25f), gun==GUN_CG ? 50 : 100, gun==GUN_CG ? 50 : 100, DL_FLASH, 0, vec(0, 0, 0), d);
+                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), gun==GUN_CG ? 30 : 15, vec(1.0f, 0.75f, 0.5f), gun==GUN_CG ? 50 : 100, gun==GUN_CG ? 50 : 100, DL_FLASH, 0, vec(0, 0, 0), d);
                 break;
             }
 
@@ -793,7 +790,7 @@ namespace game
                 up.z += dist/8;
                 if(muzzleflash && d->muzzle.x >= 0)
                     particle_flare(d->muzzle, d->muzzle, 200, PART_MUZZLE_FLASH2, 0xFFFFFF, 1.5f, d);
-                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 20, vec(0.5f, 0.375f, 0.25f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
+                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 20, vec(1.0f, 0.75f, 0.5f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
                 newbouncer(from, up, local, id, d, BNC_GRENADE, 2000, 200);
                 break;
             }
@@ -808,7 +805,7 @@ namespace game
                 up.add(vec(0, dyy, -dzz*f));
                 if(muzzleflash && d->muzzle.x >= 0)
                     particle_flare(d->muzzle, d->muzzle, 500, PART_MUZZLE_FLASH2, 0xFFFFFF, 2.3f, d);
-                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 40, vec(0.5f, 0.375f, 0.25f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
+                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 40, vec(1.0f, 0.75f, 0.5f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
                 newbouncer(src, up, local, id, d, BNC_BOMB, 5500-(d->bombdelay*500), 20);
                 break;
             }
@@ -820,7 +817,7 @@ namespace game
                 up.z += dist/8;
                 if(muzzleflash && d->muzzle.x >= 0)
                     particle_flare(d->muzzle, d->muzzle, 200, PART_MUZZLE_FLASH2, 0xFFFFFF, 1.5f, d);
-                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 20, vec(0.5f, 0.375f, 0.25f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
+                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 20, vec(1.0f, 0.75f, 0.5f), 100, 100, DL_FLASH, 0, vec(0, 0, 0), d);
                 newbouncer(from, up, local, id, d, BNC_FOG_GRENADE, 20000, 250);
                 break;
             }
@@ -832,7 +829,7 @@ namespace game
                 if(muzzleflash && d->muzzle.x >= 0)
                     particle_flare(d->muzzle, d->muzzle, 150, PART_MUZZLE_FLASH3, 0xFFFFFF, 1.25f, d);
                 if(!local) adddecal(DECAL_BULLET, to, vec(from).sub(to).normalize(), 3.0f);
-                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 25, vec(0.5f, 0.375f, 0.25f), 75, 75, DL_FLASH, 0, vec(0, 0, 0), d);
+                if(muzzlelight) adddynlight(hudgunorigin(gun, d->o, to, d), 25, vec(1.0f, 0.75f, 0.5f), 75, 75, DL_FLASH, 0, vec(0, 0, 0), d);
                 break;
         }
 
@@ -1089,7 +1086,7 @@ namespace game
             switch(bnc.bouncetype) {
                 case BNC_GRENADE: {
                     // Render grenade projectile
-                    rendermodel(&bnc.light, "projectiles/grenade", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED|MDL_LIGHT|MDL_DYNSHADOW);
+                    rendermodel("projectiles/grenade", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED);
                     break;
                 }
                 case BNC_BOMB: {
@@ -1100,18 +1097,18 @@ namespace game
                     int tremble = (rnd(bbarr_tremblepeak*2)) - bbarr_tremblepeak;                                    // Compute random tremble
 
                     if(bombbarrier)
-                        regularshape(bbarr_type, bombcolliderad + tremble, bbarr_color, bbarr_dir, bbarr_num, bbarr_fade, floor, bbarr_size, bbarr_gravity, &mov_from, &mov_to);
-                    rendermodel(&bnc.light, "projectiles/bomb", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED|MDL_LIGHT|MDL_DYNSHADOW);
+                        regularshape(bbarr_type, bombcolliderad + tremble, bbarr_color, bbarr_dir, bbarr_num, bbarr_fade, floor, bbarr_size, bbarr_gravity, &mov_from, &mov_to, 200);
+                    rendermodel("projectiles/bomb", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED);
                     break;
                 }
                 case BNC_FOG_GRENADE: {
                     // Render fog grenade projectile
-                    rendermodel(&bnc.light, "projectiles/foggrenade", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED|MDL_LIGHT|MDL_DYNSHADOW);
+                    rendermodel("projectiles/foggrenade", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED);
                     break;
                 }
                 case BNC_SPLINTER: {
                     // comment in for visible splinters
-                    // rendermodel(&bnc.light, "projectiles/grenade", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED|MDL_LIGHT|MDL_DYNSHADOW);
+                    // rendermodel("projectiles/grenade", ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED);
                     break;
                 }
                 default: {
@@ -1122,7 +1119,6 @@ namespace game
                     switch(bnc.bouncetype) {
                         case BNC_GIBS:
                             mdl = gibnames[bnc.variant];
-                            cull |= MDL_LIGHT|MDL_LIGHT_FAST|MDL_DYNSHADOW;
                             break;
                         case BNC_DEBRIS:
                             mdl = debrisnames[bnc.variant];
@@ -1133,7 +1129,7 @@ namespace game
                         default:
                             continue;
                     }
-                    rendermodel(&bnc.light, mdl, ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, cull, NULL, NULL, 0, 0, fade);
+                    rendermodel(mdl, ANIM_MAPMODEL|ANIM_LOOP, pos, yaw, pitch, cull, NULL, NULL, 0, 0, fade);
                     break;
                 }
             }
@@ -1156,7 +1152,7 @@ namespace game
             yaw += 90;
             v.mul(3);
             v.add(pos);
-            rendermodel(&p.light, "projectiles/rocket", ANIM_MAPMODEL|ANIM_LOOP, v, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED|MDL_LIGHT);
+            rendermodel("projectiles/rocket", ANIM_MAPMODEL|ANIM_LOOP, v, yaw, pitch, MDL_CULL_VFC|MDL_CULL_OCCLUDED);
         }
     }
 

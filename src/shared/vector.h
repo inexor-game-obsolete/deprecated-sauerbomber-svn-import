@@ -3,7 +3,7 @@
 
 #include "databuf.h"
 #include "loops.h"
-#include "assert.h"
+#include "assert2.h"
 #include "sort.h"
 
 template<class T> struct isclass

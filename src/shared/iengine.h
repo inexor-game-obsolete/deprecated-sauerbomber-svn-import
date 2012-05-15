@@ -69,6 +69,19 @@ struct selinfo
     int size() const    { return s.x*s.y*s.z; }
     int us(int d) const { return s[d]*grid; }
     bool operator==(const selinfo &sel) const { return o==sel.o && s==sel.s && grid==sel.grid && orient==sel.orient; }
+    bool validate()
+    {
+        extern int worldsize;
+        if(grid <= 0 || grid >= worldsize) return false;
+        if(o.x >= worldsize || o.y >= worldsize || o.z >= worldsize) return false;
+        if(o.x < 0) { s.x -= (grid - 1 - o.x)/grid; o.x = 0; } 
+        if(o.y < 0) { s.y -= (grid - 1 - o.y)/grid; o.y = 0; } 
+        if(o.z < 0) { s.z -= (grid - 1 - o.z)/grid; o.z = 0; } 
+        s.x = clamp(s.x, 0, (worldsize - o.x)/grid);
+        s.y = clamp(s.y, 0, (worldsize - o.y)/grid);
+        s.z = clamp(s.z, 0, (worldsize - o.z)/grid);
+        return s.x > 0 && s.y > 0 && s.z > 0;
+    }
 };
 
 struct editinfo;
@@ -191,7 +204,7 @@ extern void renderentsphere(const extentity &e, float radius);
 extern void renderentring(const extentity &e, float radius, int axis = 0);
 
 // bomberman
-extern extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3, int v4, int v5);
+extern extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3, int v4, int v5, int &idx);
 extern void attachentity(extentity &e);
 extern bool modifyoctaent(int flags, int id);
 
@@ -271,6 +284,7 @@ enum
     PART_STREAK, PART_LIGHTNING,
     PART_EXPLOSION, PART_EXPLOSION_BLUE,
     PART_SPARK, PART_EDIT,
+    PART_SNOW,
     PART_MUZZLE_FLASH1, PART_MUZZLE_FLASH2, PART_MUZZLE_FLASH3,
     PART_HUD_ICON,
     PART_HUD_ICON_GREY,
@@ -344,7 +358,7 @@ extern void stopsounds();
 extern void initsound();
 
 // rendermodel
-enum { MDL_CULL_VFC = 1<<0, MDL_CULL_DIST = 1<<1, MDL_CULL_OCCLUDED = 1<<2, MDL_CULL_QUERY = 1<<3, MDL_SHADOW = 1<<4, MDL_DYNSHADOW = 1<<5, MDL_LIGHT = 1<<6, MDL_DYNLIGHT = 1<<7, MDL_FULLBRIGHT = 1<<8, MDL_NORENDER = 1<<9, MDL_LIGHT_FAST = 1<<10, MDL_HUD = 1<<11, MDL_GHOST = 1<<12 };
+enum { MDL_CULL_VFC = 1<<0, MDL_CULL_DIST = 1<<1, MDL_CULL_OCCLUDED = 1<<2, MDL_CULL_QUERY = 1<<3, MDL_FULLBRIGHT = 1<<4, MDL_NORENDER = 1<<5, MDL_MAPMODEL = 1<<6, MDL_NOBATCH = 1<<7 };
 
 struct model;
 struct modelattach
@@ -359,11 +373,8 @@ struct modelattach
     modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), anim(-1), basetime(0), pos(pos), m(NULL) {}
 };
 
-extern void startmodelbatches();
-extern void endmodelbatches();
-extern void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, float yaw = 0, float pitch = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED | MDL_LIGHT, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float trans = 1);
+extern void rendermodel(const char *mdl, int anim, const vec &o, float yaw = 0, float pitch = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1);
 extern void abovemodel(vec &o, const char *mdl);
-extern void rendershadow(dynent *d);
 extern void renderclient(dynent *d, const char *mdlname, modelattach *attachments, int hold, int attack, int attackdelay, int lastaction, int lastpain, float fade = 1, bool ragdoll = false);
 extern void interpolateorientation(dynent *d, float &interpyaw, float &interppitch);
 extern void setbbfrommodel(dynent *d, const char *mdl);

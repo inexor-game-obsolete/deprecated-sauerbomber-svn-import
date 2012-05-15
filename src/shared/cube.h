@@ -26,12 +26,15 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <float.h>
 #include <assert.h>
 #include <time.h>
 
 #ifdef WIN32
   #define WIN32_LEAN_AND_MEAN
-  #define _WIN32_WINNT 0x0500
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0500
+  #endif
   #ifndef NOMINMAX
     #define NOMINMAX /* Don't defined min() and max() */
   #endif

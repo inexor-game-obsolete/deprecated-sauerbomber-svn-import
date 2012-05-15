@@ -1,5 +1,5 @@
-#ifndef _ASSERT_H
-#define _ASSERT_H
+#ifndef __ASSERT_H
+#define __ASSERT_H
 
 #ifdef _DEBUG
 #ifdef __GNUC__

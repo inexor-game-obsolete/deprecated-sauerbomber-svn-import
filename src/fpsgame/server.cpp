@@ -22,10 +22,8 @@ extern ENetAddress masteraddress;
 namespace server
 {
 
-    int gamemode = 0;
-
     bool notgotitems = true;        // true when map has changed and waiting for clients to send item
-//Hanack    int gamemode = 0; // moved to top
+    int gamemode = 0;
     int gamemillis = 0, gamelimit = 0, nextexceeded = 0;
     bool gamepaused = false;
 
@@ -44,13 +42,15 @@ namespace server
     vector<worldstate *> worldstates;
     bool reliablemessages = false;
 
-    #define MAXDEMOS 5
-    #define MAXDEMOSIZE (16*1024*1024)
     vector<demofile> demos;
 
     bool demonextmatch = false;
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
+
+    VAR(maxdemos, 0, 5, 25);
+    VAR(maxdemosize, 0, 16, 64);
+    VAR(restrictdemos, 0, 1, 1);
 
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
@@ -252,7 +252,8 @@ namespace server
         int np = numclients(-1, true, false);
         np = np<3 ? 4 : (np>4 ? 2 : 3);         // spawn times are dependent on number of players
         int sec = 0;
-        switch(type) {
+        switch(type)
+        {
             case I_SHELLS:
             case I_BULLETS:
             case I_ROCKETS:
@@ -433,20 +434,18 @@ namespace server
         return worst->name;
     }
 
-    void enddemorecord()
+    void prunedemos(int extra = 0)
     {
-        if(!demorecord) return;
+        int n = clamp(demos.length() + extra - maxdemos, 0, demos.length());
+        if(n <= 0) return;
+        loopi(n) delete[] demos[n].data;
+        demos.remove(0, n);
+    }
 
-        DELETEP(demorecord);
-
+    void adddemo()
+    {
         if(!demotmp) return;
-
-        int len = (int)min(demotmp->size(), stream::offset(MAXDEMOSIZE + 0x10000));
-        if(demos.length()>=MAXDEMOS)
-        {
-            delete[] demos[0].data;
-            demos.remove(0);
-        }
+        int len = (int)min(demotmp->size(), stream::offset((maxdemosize<<20) + 0x10000));
         demofile &d = demos.add();
         time_t t = time(NULL);
         char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
@@ -459,9 +458,22 @@ namespace server
         demotmp->seek(0, SEEK_SET);
         demotmp->read(d.data, len);
         DELETEP(demotmp);
-        SbPy::triggerEventInt("demo_recorded", demos.ulen - 1);
     }
+        
+    void enddemorecord()
+    {
+        if(!demorecord) return;
 
+        DELETEP(demorecord);
+
+        if(!demotmp) return;
+        if(!maxdemos || !maxdemosize) { DELETEP(demotmp); return; }
+
+        prunedemos(1);
+        adddemo();
+     	  SbPy::triggerEventInt("demo_recorded", demos.ulen - 1);
+    }
+ 
     void writedemo(int chan, void *data, int len)
     {
         if(!demorecord) return;
@@ -469,7 +481,7 @@ namespace server
         lilswap(stamp, 3);
         demorecord->write(stamp, sizeof(stamp));
         demorecord->write(data, len);
-        if(demorecord->rawtell() >= MAXDEMOSIZE) enddemorecord();
+        if(demorecord->rawtell() >= (maxdemosize<<20)) enddemorecord();
     }
 
     void recordpacket(int chan, void *data, int len)
@@ -825,7 +837,7 @@ namespace server
         // only allow edit messages in coop-edit mode
         if(type>=N_EDITENT && type<=N_EDITVAR && !m_edit && !m_dynent) return -1;
         // server only messages
-        static const int servtypes[] = { N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPRELOAD, N_SERVMSG, N_DAMAGE, N_HITPUSH, N_SHOTFX, N_EXPLODEFX, N_DIED, N_SPAWNSTATE, N_FORCEDEATH, N_ITEMACC, N_ITEMSPAWN, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_BASESCORE, N_BASEINFO, N_BASEREGEN, N_ANNOUNCE, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_DROPFLAG, N_SCOREFLAG, N_RETURNFLAG, N_RESETFLAG, N_INVISFLAG, N_CLIENT, N_AUTHCHAL, N_INITAI, N_ITEMPUSH, N_RACEINFO, N_HUDANNOUNCE };
+        static const int servtypes[] = { N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPRELOAD, N_SERVMSG, N_DAMAGE, N_HITPUSH, N_SHOTFX, N_EXPLODEFX, N_DIED, N_SPAWNSTATE, N_FORCEDEATH, N_ITEMACC, N_ITEMSPAWN, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_BASESCORE, N_BASEINFO, N_BASEREGEN, N_ANNOUNCE, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_DROPFLAG, N_SCOREFLAG, N_RETURNFLAG, N_RESETFLAG, N_INVISFLAG, N_CLIENT, N_AUTHCHAL, N_INITAI, N_EXPIRETOKENS, N_DROPTOKENS, N_ITEMPUSH, N_RACEINFO, N_HUDANNOUNCE };
         if(ci) 
         {
             loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
@@ -2734,7 +2746,12 @@ namespace server
             case N_RECORDDEMO:
             {
                 int val = getint(p);
-                if(ci->privilege<PRIV_ADMIN && !ci->local) break;
+                if(ci->privilege < (restrictdemos ? PRIV_ADMIN : PRIV_MASTER) && !ci->local) break;
+                if(!maxdemos || !maxdemosize) 
+                {
+                    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "the server has disabled demo recording");
+                    break;
+                }
                 SbPy::triggerEventIntBool("player_record_demo", ci->clientnum, val != 0);
                 demonextmatch = val!=0;
                 defformatstring(msg)("demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
@@ -2744,7 +2761,7 @@ namespace server
 
             case N_STOPDEMO:
             {
-                if(ci->privilege<PRIV_ADMIN && !ci->local) break;
+                if(ci->privilege < (restrictdemos ? PRIV_ADMIN : PRIV_MASTER) && !ci->local) break;
                 stopdemo();
                 break;
             }
@@ -2752,7 +2769,7 @@ namespace server
             case N_CLEARDEMOS:
             {
                 int demo = getint(p);
-                if(ci->privilege<PRIV_ADMIN && !ci->local) break;
+                if(ci->privilege < (restrictdemos ? PRIV_ADMIN : PRIV_MASTER) && !ci->local) break;
                 cleardemos(demo);
                 break;
             }
@@ -2900,6 +2917,10 @@ namespace server
                 ci->clipboard->referenceCount++;
                 break;
             } 
+                     
+            case N_SERVCMD:
+                getstring(text, p);
+                break;
                      
             #define PARSEMESSAGES 1
             #include "capture.h"

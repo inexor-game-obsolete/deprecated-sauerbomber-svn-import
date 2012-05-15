@@ -183,10 +183,9 @@ struct bombclientmode : clientmode
             const char *modelname = m_teammode ? (strcmp(p->team, player1->team) == 0 ? "bomb/posindicator/blue" : "bomb/posindicator/red") : "bomb/posindicator/green";
             float angle = 360*lastmillis/1000.0f;
             float alpha = 0.3f + 0.5f*(2*fabs(fmod(lastmillis/1000.0f, 1.0f) - 0.5f));
-            entitylight light;
-            rendermodel(&light, modelname, ANIM_MAPMODEL|ANIM_LOOP,
+            rendermodel(modelname, ANIM_MAPMODEL|ANIM_LOOP,
                     p->feetpos(), angle, pitch,
-                    MDL_GHOST | MDL_CULL_VFC | MDL_LIGHT | MDL_CULL_OCCLUDED,
+                    MDL_CULL_VFC | MDL_CULL_OCCLUDED,
                     NULL, NULL, 0, 0, alpha);
         }
     }

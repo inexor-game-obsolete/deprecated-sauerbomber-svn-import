@@ -137,8 +137,6 @@ void toggleedit(bool force)
     stoppaintblendmap();
     keyrepeat(editmode);
     editing = entediting = editmode;
-    extern int fullbright;
-    if(fullbright) initlights();
     if(!force) game::edittoggled(editmode);
 }
 
@@ -420,7 +418,7 @@ void rendereditcursor()
     
     // cursors    
 
-    lineshader->set();
+    notextureshader->set();
 
     renderentselection(player->o, camdir, entmoving!=0);
 
@@ -459,8 +457,6 @@ void rendereditcursor()
     }
    
     disablepolygonoffset(GL_POLYGON_OFFSET_LINE);
-
-    notextureshader->set();
 
     glDisable(GL_BLEND);
 }
@@ -521,8 +517,8 @@ void commitchanges(bool force)
     inbetweenframes = true;
     setupmaterials(oldlen);
     invalidatepostfx();
+    clearshadowcache();
     updatevabbs();
-    resetblobs();
 }
 
 void changed(const block3 &sel, bool commit = true)
@@ -926,7 +922,7 @@ void mppaste(editinfo *&e, selinfo &sel, bool local)
         int o = sel.orient;
         sel.orient = e->copy->orient;
         cube *s = e->copy->c();
-        loopselxyz(if (!isempty(*s) || s->children) pastecube(*s, c); s++); // 'transparent'. old opaque by 'delcube; paste'
+        loopselxyz(if(!isempty(*s) || s->children || s->material != MAT_AIR) pastecube(*s, c); s++); // 'transparent'. old opaque by 'delcube; paste'
         sel.orient = o;
     }
 }
@@ -1705,6 +1701,21 @@ void vcolor(float *r, float *g, float *b)
 }
 COMMAND(vcolor, "fff");
 
+void vrefract(float *k, float *r, float *g, float *b)
+{
+    if(noedit() || (nompedit && multiplayer())) return;
+    VSlot ds;
+    ds.changed = 1<<VSLOT_REFRACT;
+    ds.refractscale = clamp(*k, 0.0f, 1.0f);
+    if(ds.refractscale > 0 && (*r > 0 || *g > 0 || *b > 0))
+        ds.refractcolor = vec(clamp(*r, 0.0f, 1.0f), clamp(*g, 0.0f, 1.0f), clamp(*b, 0.0f, 1.0f));
+    else
+        ds.refractcolor = vec(1, 1, 1);
+    mpeditvslot(ds, allfaces, sel, true);
+
+}
+COMMAND(vrefract, "ffff");
+
 void vreset()
 {
     if(noedit() || (nompedit && multiplayer())) return;
@@ -1720,7 +1731,7 @@ void vshaderparam(const char *name, float *x, float *y, float *z, float *w)
     ds.changed = 1<<VSLOT_SHPARAM;
     if(name[0])
     {
-        ShaderParam p = { getshaderparamname(name), SHPARAM_LOOKUP, -1, -1, {*x, *y, *z, *w} };
+        SlotShaderParam p = { getshaderparamname(name), -1, {*x, *y, *z, *w} };
         ds.params.add(p);
     }
     mpeditvslot(ds, allfaces, sel, true);

@@ -27,7 +27,7 @@ namespace game
         loopi(16)
         {
             vec tc = vec(dir).rotate_around_z(i/16.0f*2*M_PI);
-            glTexCoord2f(pos.x + tc.x*scale*minimapscale.x, pos.y + tc.y*scale*minimapscale.y);
+            glTexCoord2f(1.0f - (pos.x + tc.x*scale*minimapscale.x), pos.y + tc.y*scale*minimapscale.y);
             vec v = vec(0, -1, 0).rotate_around_z(i/16.0f*2*M_PI);
             glVertex2f(x + 0.5f*s*(1.0f + v.x), y + 0.5f*s*(1.0f + v.y));
         }
@@ -801,6 +801,8 @@ namespace game
     }
     COMMAND(sayteam, "C");
 
+    ICOMMAND(servcmd, "C", (char *cmd), addmsg(N_SERVCMD, "rs", cmd));
+
     static void sendposition(fpsent *d, packetbuf &q)
     {
         putint(q, N_POS);
@@ -1010,7 +1012,7 @@ namespace game
                 int seqcolor = (physstate>>3)&1;
                 fpsent *d = getclient(cn);
                 if(!d || d->lifesequence < 0 || seqcolor!=(d->lifesequence&1) || d->state==CS_DEAD) continue;
-                float oldyaw = d->yaw, oldpitch = d->pitch;
+                float oldyaw = d->yaw, oldpitch = d->pitch, oldroll = d->roll;
                 d->yaw = yaw;
                 d->pitch = pitch;
                 d->roll = roll;
@@ -1032,14 +1034,17 @@ namespace game
                     d->newpos = d->o;
                     d->newyaw = d->yaw;
                     d->newpitch = d->pitch;
+                    d->newroll = d->roll;
                     d->o = oldpos;
                     d->yaw = oldyaw;
                     d->pitch = oldpitch;
+                    d->roll = oldroll;
                     (d->deltapos = oldpos).sub(d->newpos);
                     d->deltayaw = oldyaw - d->newyaw;
                     if(d->deltayaw > 180) d->deltayaw -= 360;
                     else if(d->deltayaw < -180) d->deltayaw += 360;
                     d->deltapitch = oldpitch - d->newpitch;
+                    d->deltaroll = oldroll - d->newroll;
                     d->smoothmillis = lastmillis;
                 }
                 else d->smoothmillis = 0;
@@ -1505,7 +1510,8 @@ namespace game
                 loopk(3) itemloc[k] = getint(p)/DMF;
                 if(entities::getents().length()<=id) {
                     while(entities::getents().length()<id) entities::getents().add(entities::newentity())->type = ET_EMPTY;
-                    extentity *e = newentity(false, itemloc, type, 0, 0, 0, 0, 0);
+                    int idx; // MAYBE TODO
+                    extentity *e = newentity(false, itemloc, type, 0, 0, 0, 0, 0, idx);
                     entities::getents().add(e);
                     modifyoctaent(1<<0|1<<1, id); // MODOE_ADD | MODOE_UPDATEBB
                     attachentity(*e);
@@ -1556,15 +1562,15 @@ namespace game
                 ivec moveo;
                 switch(type)
                 {
-                    case N_EDITF: dir = getint(p); mode = getint(p); mpeditface(dir, mode, sel, false); break;
-                    case N_EDITT: tex = getint(p); allfaces = getint(p); mpedittex(tex, allfaces, sel, false); break;
-                    case N_EDITM: mat = getint(p); filter = getint(p); mpeditmat(mat, filter, sel, false); break;
-                    case N_FLIP: mpflip(sel, false); break;
-                    case N_COPY: if(d) mpcopy(d->edit, sel, false); break;
-                    case N_PASTE: if(d) mppaste(d->edit, sel, false); break;
-                    case N_ROTATE: dir = getint(p); mprotate(dir, sel, false); break;
-                    case N_REPLACE: tex = getint(p); newtex = getint(p); insel = getint(p); mpreplacetex(tex, newtex, insel>0, sel, false); break;
-                    case N_DELCUBE: mpdelcube(sel, false); break;
+                    case N_EDITF: dir = getint(p); mode = getint(p); if(sel.validate()) mpeditface(dir, mode, sel, false); break;
+                    case N_EDITT: tex = getint(p); allfaces = getint(p); if(sel.validate()) mpedittex(tex, allfaces, sel, false); break;
+                    case N_EDITM: mat = getint(p); filter = getint(p); if(sel.validate()) mpeditmat(mat, filter, sel, false); break;
+                    case N_FLIP: if(sel.validate()) mpflip(sel, false); break;
+                    case N_COPY: if(d && sel.validate()) mpcopy(d->edit, sel, false); break;
+                    case N_PASTE: if(d && sel.validate()) mppaste(d->edit, sel, false); break;
+                    case N_ROTATE: dir = getint(p); if(sel.validate()) mprotate(dir, sel, false); break;
+                    case N_REPLACE: tex = getint(p); newtex = getint(p); insel = getint(p); if(sel.validate()) mpreplacetex(tex, newtex, insel>0, sel, false); break;
+                    case N_DELCUBE: if(sel.validate()) mpdelcube(sel, false); break;
                 }
                 break;
             }
@@ -1829,6 +1835,10 @@ namespace game
                 ai::init(b, at, on, sk, bn, pm, name, team);
                 break;
             }
+
+            case N_SERVCMD:
+                getstring(text, p);
+                break;
 
             default:
                 neterr("type", cn < 0);

@@ -83,6 +83,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#if 0
 /* File type and permission flags for stat() */
 #if defined(_MSC_VER)  &&  !defined(S_IREAD)
 # define S_IFMT   _S_IFMT                      /* file type mask */
@@ -110,6 +111,8 @@
 # define S_IXOTH  0                            /* execute, others */
 #endif
 
+#endif
+
 /* Indicates that d_type field is available in dirent structure */
 #define _DIRENT_HAVE_D_TYPE
 
@@ -132,6 +135,7 @@
  * only defined for compatibility.  These macros should always return false
  * on Windows.
  */
+#if 0
 #define	S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFFIFO)
 #define	S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #define	S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
@@ -139,6 +143,7 @@
 #define	S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
 #define	S_ISCHR(mode)  (((mode) & S_IFMT) == S_IFCHR)
 #define	S_ISBLK(mode)  (((mode) & S_IFMT) == S_IFBLK)
+#endif /* 0 */
 
 #ifdef __cplusplus
 extern "C" {

@@ -13,7 +13,6 @@ struct buildanddestroyclientmode : clientmode {
         int ammotype;
 #ifndef SERVMODE
         vec ammopos;
-        entitylight light;
 #endif
 
         baseinfo() { reset(); }
@@ -43,7 +42,6 @@ struct buildanddestroyclientmode : clientmode {
             b.ammopos = b.o;
             abovemodel(b.ammopos, "base/neutral");
             b.ammotype = e->attr1;
-            b.light = e->light;
             e->type = MOV_OBSTACLE;
             movable *m = new movable(*e);
             movables.add(m);
@@ -81,7 +79,7 @@ struct buildanddestroyclientmode : clientmode {
         loopv(bases) {
             baseinfo &b = bases[i];
             const char *basename = b.owner[0] ? (strcmp(b.owner, player1->team) ? "base/red" : "base/blue") : "base/neutral";
-            rendermodel(&b.light, basename, ANIM_MAPMODEL|ANIM_LOOP, b.o, 0, 0, MDL_SHADOW | MDL_CULL_VFC | MDL_CULL_OCCLUDED);
+            rendermodel(basename, ANIM_MAPMODEL|ANIM_LOOP, b.o, 0, 0, MDL_CULL_VFC | MDL_CULL_OCCLUDED);
             float fradius = 1.0f, fheight = 0.5f;
             regular_particle_flame(PART_FLAME, vec(b.ammopos.x, b.ammopos.y, b.ammopos.z - 4.5f), fradius, fheight, b.owner[0] ? (strcmp(b.owner, player1->team) ? 0x802020 : 0x2020FF) : 0x208020, 3, 2.0f);
         }

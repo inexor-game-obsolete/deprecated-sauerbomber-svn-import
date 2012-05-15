@@ -121,7 +121,8 @@ struct gui : g3d_gui
                 y1 = cury - ((skiny[6]-skiny[1])-(skiny[3]-skiny[2]))*SKIN_SCALE-h,
                 y2 = cury;
             bool hit = tcurrent && windowhit==this && hitx>=x1 && hity>=y1 && hitx<x2 && hity<y2;
-            if(hit && (!guiclicktab || mousebuttons&G3D_DOWN)) *tcurrent = tpos; //roll-over to switch tab
+            if(hit && (!guiclicktab || mousebuttons&G3D_DOWN)) 
+                *tcurrent = tpos; //roll-over to switch tab
             
             drawskin(x1-skinx[visible()?2:6]*SKIN_SCALE, y1-skiny[1]*SKIN_SCALE, w, h, visible()?10:19, 9, gui2d ? 1 : 2, light, alpha);
             text_(name, x1 + (skinx[3]-skinx[2])*SKIN_SCALE - (w ? INSERT : INSERT/2), y1 + (skiny[2]-skiny[1])*SKIN_SCALE - INSERT, tcolor, visible());
@@ -150,6 +151,13 @@ struct gui : g3d_gui
         else
         {
             curlist = nextlist++;
+            if(curlist >= lists.length()) // should never get here unless script code doesn't use same amount of lists in layout and render passes
+            {
+                list &l = lists.add();
+                l.parent = curlist;
+                l.springs = 0;
+                l.w = l.h = 0;
+            }
             list &l = lists[curlist];
             l.curspring = 0;
             if(l.springs > 0)
@@ -167,6 +175,7 @@ struct gui : g3d_gui
 
     void poplist()
     {
+        if(!lists.inrange(curlist)) return;
         list &l = lists[curlist];
         if(layoutpass)
         {
@@ -175,7 +184,7 @@ struct gui : g3d_gui
         }
         curlist = l.parent;
         curdepth--;
-        if(curlist>=0)
+        if(lists.inrange(curlist))
         {   
             int w = xsize, h = ysize;
             if(ishorizontal()) cury -= h; else curx -= w;
@@ -381,7 +390,7 @@ struct gui : g3d_gui
             
             e->draw(curx+FONTW/2, cury, color, hit && editing);
             
-            lineshader->set();
+            notextureshader->set();
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
             if(editing) glColor3f(1, 0, 0);
