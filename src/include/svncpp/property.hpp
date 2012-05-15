@@ -1,6 +1,6 @@
 /*
  * ====================================================================
- * Copyright (c) 2002-2009 The RapidSvn Group.  All rights reserved.
+ * Copyright (c) 2002-2012 The RapidSVN Group.  All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (in the file GPL.txt.  
+ * along with this program (in the file GPL.txt.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  * This software consists of voluntary contributions made by many
@@ -25,11 +25,6 @@
 #ifndef _SVNCPP_PROPERTY_H_
 #define _SVNCPP_PROPERTY_H_
 
-
-// Ignore MSVC 6 compiler warning: debug symbol truncated
-#if defined (_MSC_VER) && _MSC_VER <= 1200
-#pragma warning (disable: 4786)
-#endif
 
 // Ignore MSVC 7 compiler warning: C++ exception specification
 #if defined (_MSC_VER) && _MSCVER > 1200 && _MSCVER <= 1310

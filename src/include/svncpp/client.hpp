@@ -1,6 +1,6 @@
 /*
  * ====================================================================
- * Copyright (c) 2002-2009 The RapidSvn Group.  All rights reserved.
+ * Copyright (c) 2002-2012 The RapidSVN Group.  All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (in the file GPL.txt.  
+ * along with this program (in the file GPL.txt.
  * If not, see <http://www.gnu.org/licenses/>.
  *
  * This software consists of voluntary contributions made by many
@@ -25,14 +25,6 @@
 #ifndef _SVNCPP_CLIENT_H_
 #define _SVNCPP_CLIENT_H_
 
-// Ignore MSVC 6 compiler warning
-#if defined (_MSC_VER) && _MSC_VER <= 1200
-// debug symbol truncated
-#pragma warning (disable: 4786)
-// C++ exception specification
-#pragma warning (disable: 4290)
-#endif
-
 // Ignore MSVC 7,8,9 compiler warnings
 #if defined (_MSC_VER) && _MSC_VER > 1200 && _MSC_VER <= 1500
 // C++ exception specification
@@ -41,6 +33,7 @@
 
 
 // stl
+#include <assert.h>
 #include "svncpp/vector_wrapper.hpp"
 #include "svncpp/utility_wrapper.hpp"
 #include "svncpp/map_wrapper.hpp"
@@ -86,7 +79,7 @@ namespace svn
    */
   struct StatusFilter
   {
-public:
+  public:
     bool showUnversioned;
     bool showUnmodified;
     bool showModified;    ///< this includes @a showConflicted as well
@@ -103,6 +96,37 @@ public:
   };
 
 
+  struct CommitInfo
+  {
+    svn_revnum_t revision;
+
+    /** server-side date of the commit. */
+    std::string date;
+
+    /** author of the commit. */
+    std::string author;
+
+    /** error message from post-commit hook */
+    std::string postCommitErr;
+
+    CommitInfo() :
+      revision(SVN_INVALID_REVNUM)
+    {
+    }
+
+    CommitInfo(const svn_commit_info_t *info)
+    {
+      assert(0 != info);
+      
+      revision = info->revision;
+      date = info->date;
+      author = info->author;
+      if (0 != info->post_commit_err)
+	postCommitErr = info->post_commit_err;
+    }
+  };
+
+
   /**
    * Subversion client API.
    */
@@ -115,6 +139,14 @@ public:
     Client(Context * context = 0);
 
     virtual ~Client();
+
+    /** 
+     * @since 0.14
+     */
+    const CommitInfo& commitInfo() const
+    {
+      return m_commitInfo;
+    }
 
     /**
      * @return returns the Client context
@@ -345,6 +377,10 @@ public:
     /**
      * Commits changes to the repository. This usually requires
      * authentication, see Auth.
+     *
+     * @since 0.14 see additional information about the commit
+     *        in @ref commitInfo
+     *
      * @return Returns a long representing the revision. It returns a
      *         -1 if the revision number is invalid.
      * @param targets files to commit.
@@ -770,6 +806,7 @@ public:
     ignore(const Targets & targets) throw(ClientException);
   private:
     Context * m_context;
+    CommitInfo m_commitInfo;
 
     /**
      * disallow assignment operator
