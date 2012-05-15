@@ -1,0 +1,7 @@
+#!/bin/sh
+
+dist/clean
+dist/compile-win32
+cd bin
+svn --non-interactive --message "win32 binaries" commit sauerbomber.exe sauerbomber_server.exe
+cd ..

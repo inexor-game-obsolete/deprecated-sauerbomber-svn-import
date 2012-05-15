@@ -1,3 +1,6 @@
+#!/bin/sh
+
+dist/clean
 dist/compile
 cd bin_unix
 cp -a native_client linux_32_client

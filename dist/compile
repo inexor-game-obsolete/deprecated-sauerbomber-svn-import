@@ -1,8 +1,7 @@
-cd src
+#!/bin/sh
 
+cd src
 make -j `grep "processor" < /proc/cpuinfo | wc -l` && make install
 RET=$?
-
 cd ..
-
 exit $RET
