@@ -82,7 +82,6 @@ CLIENT_OBJS= \
 	fpsgame/weapon.o \
 	pycontrol/sbpy.o \
 	pycontrol/menus.o \
-	pycontrol/console.o \
 	pycontrol/sharedmodule.o \
 	pycontrol/clientmodule.o \
 	svncpp/apr.o \

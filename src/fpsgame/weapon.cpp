@@ -531,9 +531,9 @@ namespace game
         int size = 4.0f * rfactor;
         int fade = gun!=GUN_BOMB && gun!=GUN_SPLINTER ? -1 : int((maxsize-size)*BOMB_FADE); // explosion speed, lower=faster
         int numdebris = gun==GUN_BARREL ? rnd(max(maxbarreldebris-5, 1))+5 : rnd(maxdebris-5)+5;
+        vec debrisvel = owner->o==v ? vec(0, 0, 0) : vec(owner->o).sub(v).normalize(), debrisorigin(v);
         int particle = gun!=GUN_GL ? PART_EXPLOSION : PART_EXPLOSION_BLUE;
 
-        vec debrisvel = owner->o==v ? vec(0, 0, 0) : vec(owner->o).sub(v).normalize(), debrisorigin(v);
 
         if(gun!=GUN_SPLINTER) {
             particle_splash(PART_SPARK, 200, 300, v, 0xB49B4B, 0.24f*rfactor);
@@ -545,14 +545,13 @@ namespace game
 
         switch(gun) {
             case GUN_RL:
-                adddynlight(v, 1.15f*RL_DAMRAD, vec(4.0f, 3.0f, 2.0f), 900, 100, 0, RL_DAMRAD/2, vec(1, 0.75f, 0.5f));
                 debrisorigin.add(vec(debrisvel).mul(8));
+                adddynlight(safe ? v : debrisorigin, 1.15f*RL_DAMRAD, vec(4.0f, 3.0f, 2.0f), 900, 100, 0, RL_DAMRAD/2, vec(2.0f, 1.5f, 1.0f));
                 break;
             case GUN_GL:
-                adddynlight(v, 1.15f*RL_DAMRAD, vec(1.0f, 3.0f, 4.0f), 900, 100, 0, 8, vec(0.25f, 1, 1));
+                adddynlight(v, 1.15f*RL_DAMRAD, vec(1.0f, 3.0f, 4.0f), 900, 100, 0, 8, vec(0.5f, 2, 2));
                 break;
             case GUN_BOMB:
-                // TODO: COMMENT IN: adddynlight(v, owner->bombradius*BOMB_DAMRAD, vec(0.5f, 1.5f, 2), 900, 100, 0, 8, vec(1, 1, 0.25f));
                 if(owner->ammo[GUN_BOMB] < itemstats[P_AMMO_BO].max) owner->ammo[GUN_BOMB]++; // add a bomb if the bomb explodes
                 break;
             case GUN_SPLINTER:
