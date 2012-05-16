@@ -1188,7 +1188,7 @@ void initserver(bool listen, bool dedicated)
 #ifdef WIN32
         setupwindow("Cube 2: Sauerbomber server");
 #endif
-        execfile("server-init.cfg", false);
+        execfile("data/user/server-init.cfg", false);
         signal(SIGINT, server_sigint);
         signal(SIGTERM, server_sigint);
     }
