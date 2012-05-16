@@ -369,6 +369,7 @@ void addrepositories() {
     defformatstring(defaultrepositorydir)("%s/%s", repositoriesdir, defaultrepository);
     addpackagedir(defaultrepositorydir);
 #ifdef WIN32
+    CreateDirectory(repositoriesdir, NULL);
     DIR *dirp;
     dirent *dp;
     dirp = opendir(repositoriesdir);
@@ -380,6 +381,7 @@ void addrepositories() {
     }
     closedir(dirp);
 #else
+    mkdir(repositoriesdir, S_IREAD | S_IWRITE | S_IEXEC);
     DIR *dirp;
     dirent *dp;
     dirp = opendir(repositoriesdir);

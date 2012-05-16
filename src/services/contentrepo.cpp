@@ -32,9 +32,11 @@ namespace engine {
         defformatstring(datapath)("%s/data", localpath);
         defformatstring(packagespath)("%s/packages", localpath);
         #ifdef WIN32
-            CreateDirectory(localpath, NULL);
+        CreateDirectory(repositoriesdir, NULL);
+        CreateDirectory(localpath, NULL);
         #else
-            mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
+        mkdir(repositoriesdir, S_IREAD | S_IWRITE | S_IEXEC);
+        mkdir(localpath, S_IREAD | S_IWRITE | S_IEXEC);
         #endif
         if (svn_checkout(datapath, dataurl, revision) && svn_checkout(packagespath, packagesurl, revision)) {
             addpackagedir(localpath);
