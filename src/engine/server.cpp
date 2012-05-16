@@ -459,6 +459,12 @@ vector<masterserver> masterservers;
 
 void addmasterserver(const char *hostname, int port)
 {
+    if(port <= 0) port = server::masterserverport(port);
+    loopv(masterservers) {
+        masterserver &ma = masterservers[i];
+        if(strcmp(ma.hostname, hostname) || ma.port != port) continue;
+        return;
+    }
     masterserver &m = masterservers.add();
     m.hostname = newstring(hostname);
     m.port = port;

@@ -27,6 +27,7 @@ void quit()                     // normal exit
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
+    writemasterservercfg();
     abortconnect();
     disconnect();
     localdisconnect();
@@ -1020,7 +1021,7 @@ int main(int argc, char **argv)
     execfile("data/cubescript/repositories.cfg");
 
     logoutf("init: master servers");
-    execfile("data/cubescript/masterservers.cfg");
+    execfile("repositories/home/data/user/masterservers.cfg");
 
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
@@ -1160,6 +1161,7 @@ int main(int argc, char **argv)
     logoutf("init: mybrushes");
     execfile("repositories/home/data/user/mybrushes.cfg", false);
     if(game::savedservers()) execfile(game::savedservers(), false);
+    if(game::savedmasterservers()) execfile(game::savedmasterservers(), false);
     
     identflags |= IDF_PERSIST;
     

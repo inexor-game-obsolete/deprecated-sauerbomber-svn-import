@@ -2954,6 +2954,7 @@ namespace server
     int laninfoport() { return SAUERBRATEN_LANINFO_PORT; }
     int serverinfoport(int servport) { return servport < 0 ? SAUERBRATEN_SERVINFO_PORT : servport+1; }
     int serverport(int infoport) { return infoport < 0 ? SAUERBRATEN_SERVER_PORT : infoport-1; }
+    int masterserverport(int masterport) { return masterport < 0 ? SAUERBRATEN_MASTER_PORT : masterport; }
     const char *defaultmaster() { return "sauerbomber.org"; }
     int masterport() { return SAUERBRATEN_MASTER_PORT; }
     int numchannels() { return 3; }

@@ -797,6 +797,15 @@ void writeservercfg()
             else f->printf("addserver %s %d\n", escapeid(s->name), s->port);
         }
     }
+    delete f;
+}
+
+void writemasterservercfg()
+{
+    if(!game::savedmasterservers()) return;
+    stream *f = openutf8file(path(game::savedmasterservers(), true), "w");
+    if(!f) return;
+    f->printf("// masterservers connected to are added here automatically\n\n");
     loopv(masterservers)
     {
         masterserver &m = masterservers[i];

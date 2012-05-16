@@ -46,6 +46,7 @@ namespace game
     extern const char *defaultconfig();
     extern const char *autoexec();
     extern const char *savedservers();
+    extern const char *savedmasterservers();
     extern void loadconfigs();
 
     extern void updateworld();
@@ -114,6 +115,7 @@ namespace server
     extern int laninfoport();
     extern int serverinfoport(int servport = -1);
     extern int serverport(int infoport = -1);
+    extern int masterserverport(int masterserverport);
     extern const char *defaultmaster();
     extern int masterport();
     extern void processmasterinput(const char *cmd, int cmdlen, const char *args);

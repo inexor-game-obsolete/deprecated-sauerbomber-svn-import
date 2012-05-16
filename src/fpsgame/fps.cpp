@@ -1052,6 +1052,7 @@ namespace game
     const char *defaultconfig() { return "data/cubescript/defaults/defaults.cfg"; }
     const char *autoexec() { return "repositories/home/data/user/autoexec.cfg"; }
     const char *savedservers() { return "repositories/home/data/user/servers.cfg"; }
+    const char *savedmasterservers() { return "repositories/home/data/user/masterservers.cfg"; }
 
     void loadconfigs()
     {
