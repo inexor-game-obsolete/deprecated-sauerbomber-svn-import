@@ -327,8 +327,8 @@ cube2font: shared/cube2font.o
 	$(CXX) $(CXXFLAGS) -o cube2font shared/cube2font.o `freetype-config --libs` -lz -lpng
 
 install: all
-	cp sauerbomber_client	../bin_unix/$(PLATFORM_PREFIX)_client
-	cp sauerbomber_server	../bin_unix/$(PLATFORM_PREFIX)_server
+	cp -f sauerbomber_client	../bin_unix/$(PLATFORM_PREFIX)_client
+	cp -f sauerbomber_server	../bin_unix/$(PLATFORM_PREFIX)_server
 ifneq (,$(STRIP))
 	$(STRIP) ../bin_unix/$(PLATFORM_PREFIX)_client
 	$(STRIP) ../bin_unix/$(PLATFORM_PREFIX)_server

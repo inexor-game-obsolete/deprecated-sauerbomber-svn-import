@@ -2,7 +2,7 @@
 
 #include "engine.h"
 
-Shader *particleshader = NULL, *particlenotextureshader = NULL;
+Shader *particleshader = NULL, *particlenotextureshader = NULL, *particlesoftshader = NULL;
 
 FVARP(particlebright, 0, 2, 100);
 VARP(particlesize, 20, 100, 500);
@@ -114,6 +114,8 @@ enum
     PT_CULL  = 1<<17,
     PT_FEW   = 1<<18,
     PT_ICON  = 1<<19,
+    PT_NOTEX  = 1<<20,
+    PT_SHADER = 1<<21,
     PT_FLIP  = PT_HFLIP | PT_VFLIP | PT_ROT
 };
 
@@ -369,21 +371,17 @@ listparticle *listrenderer::parempty = NULL;
 struct meterrenderer : listrenderer
 {
     meterrenderer(int type)
-        : listrenderer(type)
+        : listrenderer(type|PT_NOTEX)
     {}
 
     void startrender()
     {
          glDisable(GL_BLEND);
-         glDisable(GL_TEXTURE_2D);
-         particlenotextureshader->set();
     }
 
     void endrender()
     {
          glEnable(GL_BLEND);
-         glEnable(GL_TEXTURE_2D);
-         particleshader->set();
     }
 
     void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, uchar *color)
@@ -391,12 +389,15 @@ struct meterrenderer : listrenderer
         int basetype = type&0xFF;
 
         glPushMatrix();
-        glTranslatef(o.x, o.y, o.z);
-        glRotatef(camera1->yaw, 0, 0, 1);
-        glRotatef(camera1->pitch-90, 1, 0, 0);
-
         float scale = p->size/80.0f;
-        glScalef(-scale, scale, -scale);
+        GLfloat billboardmatrix[16] =
+        {
+            scale*camright.x, scale*camright.y, scale*camright.z, 0,
+            -scale*camup.x, -scale*camup.y, -scale*camup.z, 0,
+            -scale*camdir.x, -scale*camdir.y, -scale*camdir.z, 0,
+            o.x, o.y, o.z, 1
+        };
+        glMultMatrixf(billboardmatrix);
 
         float right = 8*FONTH, left = p->progress/100.0f*right;
         glTranslatef(-right/2.0f, 0, 0);
@@ -407,7 +408,8 @@ struct meterrenderer : listrenderer
             glBegin(GL_TRIANGLE_STRIP);
             loopk(10)
             {
-                float c = (0.5f + 0.1f)*sinf(k/9.0f*M_PI), s = 0.5f - (0.5f + 0.1f)*cosf(k/9.0f*M_PI);
+                const vec2 &sc = sincos360[k*(180/(10-1))];
+                float c = (0.5f + 0.1f)*sc.y, s = 0.5f - (0.5f + 0.1f)*sc.x;
                 glVertex2f(-c*FONTH, s*FONTH);
                 glVertex2f(right + c*FONTH, s*FONTH);
             }
@@ -419,7 +421,8 @@ struct meterrenderer : listrenderer
         glBegin(GL_TRIANGLE_STRIP);
         loopk(10)
         {
-            float c = 0.5f*sinf(k/9.0f*M_PI), s = 0.5f - 0.5f*cosf(k/9.0f*M_PI);
+            const vec2 &sc = sincos360[k*(180/(10-1))];
+            float c = 0.5f*sc.y, s = 0.5f - 0.5f*sc.x;
             glVertex2f(left + c*FONTH, s*FONTH);
             glVertex2f(right + c*FONTH, s*FONTH);
         }
@@ -431,7 +434,8 @@ struct meterrenderer : listrenderer
             glBegin(GL_TRIANGLE_FAN);
             loopk(10)
             {
-                float c = (0.5f + 0.1f)*sinf(k/9.0f*M_PI), s = 0.5f - (0.5f + 0.1f)*cosf(k/9.0f*M_PI);
+                const vec2 &sc = sincos360[k*(180/(10-1))];
+                float c = (0.5f + 0.1f)*sc.y, s = 0.5f - (0.5f + 0.1f)*sc.x;
                 glVertex2f(left + c*FONTH, s*FONTH);
             }
             glEnd();
@@ -441,7 +445,8 @@ struct meterrenderer : listrenderer
         glBegin(GL_TRIANGLE_STRIP);
         loopk(10)
         {
-            float c = 0.5f*sinf(k/9.0f*M_PI), s = 0.5f - 0.5f*cosf(k/9.0f*M_PI);
+            const vec2 &sc = sincos360[k*(180/(10-1))];
+            float c = 0.5f*sc.y, s = 0.5f - 0.5f*sc.x;
             glVertex2f(-c*FONTH, s*FONTH);
             glVertex2f(left + c*FONTH, s*FONTH);
         }
@@ -475,13 +480,15 @@ struct textrenderer : listrenderer
     void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, uchar *color)
     {
         glPushMatrix();
-        glTranslatef(o.x, o.y, o.z);
-
-        glRotatef(camera1->yaw, 0, 0, 1);
-        glRotatef(camera1->pitch-90, 1, 0, 0);
-
         float scale = p->size/80.0f;
-        glScalef(-scale, scale, -scale);
+        GLfloat billboardmatrix[16] =
+        {
+            scale*camright.x, scale*camright.y, scale*camright.z, 0,
+            -scale*camup.x, -scale*camup.y, -scale*camup.z, 0,
+            -scale*camdir.x, -scale*camdir.y, -scale*camdir.z, 0,
+            o.x, o.y, o.z, 1
+        };
+        glMultMatrixf(billboardmatrix);
 
         float xoff = -text_width(p->text)/2;
         float yoff = 0;
@@ -836,6 +843,7 @@ void particleinit()
 {
     if(!particleshader) particleshader = lookupshaderbyname("particle");
     if(!particlenotextureshader) particlenotextureshader = lookupshaderbyname("particlenotexture");
+    if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
     loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
 }
 
@@ -905,10 +913,8 @@ void renderparticles(bool mainpass)
     static float zerofog[4] = { 0, 0, 0, 1 };
     float oldfogc[4];
     bool rendered = false;
-    uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD|PT_BRIGHT;
+    uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
    
-    if(softparticles) flagmask |= PT_SOFT;
-
     loopi(sizeof(parts)/sizeof(parts[0]))
     {
         partrenderer *p = parts[i];
@@ -953,20 +959,23 @@ void renderparticles(bool mainpass)
                 else if(flags&PT_MOD) glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
                 else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             }
-            if(changedbits&PT_SOFT)
+            if(!(flags&PT_SHADER))
             {
-                if(flags&PT_SOFT)
+                if(changedbits&(PT_SOFT|PT_NOTEX|PT_SHADER))
                 {
-                    SETSHADER(particlesoft);
-                    LOCALPARAM(softparams, (-1.0f/softparticleblend, 0, 0));
+                    if(flags&PT_SOFT && softparticles)
+                    {
+                        particlesoftshader->set();
+                        LOCALPARAM(softparams, (-1.0f/softparticleblend, 0, 0));
                     }
-                else particleshader->set();
-            }
-            if(changedbits&(PT_BRIGHT|PT_SOFT))
-            {
-                float colorscale = ldrscale;
-                if(flags&PT_BRIGHT) colorscale *= particlebright;
-                LOCALPARAM(colorscale, (colorscale, colorscale, colorscale, 1));
+                    else (flags&PT_NOTEX ? particlenotextureshader : particleshader)->set();
+                }
+                if(changedbits&(PT_BRIGHT|PT_SOFT|PT_NOTEX|PT_SHADER))
+                {
+                    float colorscale = ldrscale;
+                    if(flags&PT_BRIGHT) colorscale *= particlebright;
+                    LOCALPARAM(colorscale, (colorscale, colorscale, colorscale, 1));
+                }
             }
             lastflags = flags;        
         }
@@ -1149,7 +1158,6 @@ static inline int colorfromattr(int attr)
  */
 void regularshape(int type, int radius, int color, int dir, int num, int fade, const vec &p, float size, int gravity, const vec* modfrom, const vec* modto, int vel)
 {
-	//conoutf("CALLED: regularshape(int type: %i, int radius: %i, int color: %X, int dir: %i, int num: %i, int fade: %i, vec &p: (x: %f, y: %f, z:%f), float size: %f, int gravity: %i", type, radius, color, dir, num, fade, p.x, p.y, p.z, size, gravity);
     if(!emit_particles()) return;
     
     int basetype = parts[type]->type&0xFF;
@@ -1161,9 +1169,9 @@ void regularshape(int type, int radius, int color, int dir, int num, int fade, c
         vec to, from;
         if(dir < 12) 
         { 
-            float a = PI2*float(rnd(1000))/1000.0;
-            to[dir%3] = sinf(a)*radius;
-            to[(dir+1)%3] = cosf(a)*radius;
+            const vec2 &sc = sincos360[rnd(360)];
+            to[dir%3] = sc.y*radius;
+            to[(dir+1)%3] = sc.x*radius;
             to[(dir+2)%3] = 0.0;
             to.add(p);
             if(dir < 3) //circle
