@@ -1044,7 +1044,7 @@ int main(int argc, char **argv)
                 break;
             }
             case 'g': logoutf("Setting log file", &argv[i][2]); setlogfile(&argv[i][2]); break;
-            case 'r': execfile(argv[i][2] ? &argv[i][2] : "init.cfg", false); restoredinits = true; break;
+            case 'r': execfile(argv[i][2] ? &argv[i][2] : "repositories/home/data/user/init.cfg", false); restoredinits = true; break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
             case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
