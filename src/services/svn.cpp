@@ -22,7 +22,7 @@ namespace engine {
      * Checkout of a new repository.
      */
     bool svn_checkout(char *folder, char *url, int revision) {
-        svn::Context* context = new svn::Context(std::string("repositories/home/data/svnconfig"));
+        svn::Context* context = new svn::Context(std::string("repositories/home/svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
         callbacklistener* listener = new callbacklistener(&set_lastmessage);
         context->setListener(listener);
@@ -57,7 +57,7 @@ namespace engine {
     int svn_update(void *folderPtr) {
         char *folder = (char*)folderPtr;
         // cout << "svn_update: \"" << folder << "\"" << endl;
-        svn::Context* context = new svn::Context(std::string("repositories/home/data/svnconfig"));
+        svn::Context* context = new svn::Context(std::string("repositories/home/svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
         callbacklistener* listener = new callbacklistener(&set_lastmessage);
         context->setListener(listener);
@@ -85,7 +85,7 @@ namespace engine {
      * Unlocking a repository
      */
     int svn_unlock(char *folder) {
-        svn::Context* context = new svn::Context(std::string("repositories/home/data/svnconfig"));
+        svn::Context* context = new svn::Context(std::string("repositories/home/svnconfig"));
         svn::Client* svnClient = new svn::Client(context);
         callbacklistener* listener = new callbacklistener(&set_lastmessage);
         context->setListener(listener);
