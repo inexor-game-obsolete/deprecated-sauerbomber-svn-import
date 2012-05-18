@@ -56,7 +56,7 @@ namespace server
     SVAR(serverpass, "");
     SVAR(adminpass, "");
     SVAR(pyscriptspath, "repositories/sauerbomber-base/data/python");
-    SVAR(pyconfigpath, "repositories/sauerbomber-base/config");
+    SVAR(pyconfigpath, "repositories/home/config");
     VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
