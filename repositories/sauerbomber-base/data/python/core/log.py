@@ -4,7 +4,7 @@ import string
 import sbutil
 
 config = PluginConfig('logging')
-path = config.getOption('Config', 'path', 'repositories/home/data/logs/python.log')
+path = config.getOption('Config', 'path', 'repositories/home/logs/python.log')
 level = config.getOption('Config', 'level', 'error')
 del config
 
