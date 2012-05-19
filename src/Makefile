@@ -111,7 +111,7 @@ CLIENT_OBJS= \
 	svncpp/url.o \
 	svncpp/wc.o \
 	services/clientservervars.o \
-	services/contentrepo.o \
+	services/repository.o \
 	services/svn.o \
 	services/callbacklistener.o
 else
@@ -157,7 +157,7 @@ CLIENT_OBJS= \
 	engine/world.o \
 	engine/worldio.o \
 	services/clientservervars.o \
-	services/contentrepo.o \
+	services/repository.o \
 	services/svn.o \
 	services/callbacklistener.o \
 	fpsgame/ai.o \
@@ -230,7 +230,7 @@ SERVER_OBJS= \
 	svncpp/targets.o \
 	svncpp/url.o \
 	svncpp/wc.o \
-	services/contentrepo.o \
+	services/repository.o \
 	services/svn.o \
 	services/callbacklistener.o
 
@@ -243,7 +243,7 @@ SERVER_OBJS= \
 	engine/server-standalone.o \
 	engine/worldio-standalone.o \
 	services/clientservervars.o \
-	services/contentrepo.o \
+	services/repository.o \
 	services/svn.o \
 	services/callbacklistener.o \
 	fpsgame/entities-standalone.o \

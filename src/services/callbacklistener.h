@@ -1,5 +1,5 @@
-#ifndef CALLBACKLISTENER_H_
-#define CALLBACKLISTENER_H_
+#ifndef _SERVICES_CALLBACKLISTENER_H_
+#define _SERVICES_CALLBACKLISTENER_H_
 
 #include <svncpp/context.hpp>
 #include <svncpp/context_listener.hpp>
@@ -7,15 +7,19 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "worker.h"
 
 using namespace std;
 
 namespace engine {
 
+    extern int svn_workers;
+    extern svn_worker_info svn_worker[20];
+
     class callbacklistener: public svn::ContextListener {
 
         public:
-            callbacklistener(void (*callback)(const char*));
+            callbacklistener(int worker_id);
             bool contextCancel() { return false; };
             bool contextGetLogin(
                 const std::string& realm,
@@ -23,7 +27,7 @@ namespace engine {
                 std::string& password,
                 bool& maySave
             ) { return true; };
-            bool contextGetLogMessage(std::string& msg) { callback(msg.c_str()); return true; };
+            bool contextGetLogMessage(std::string& msg) { /* callback(msg.c_str()); */ return true; };
             void contextNotify(
                 const char* path,
                 svn_wc_notify_action_t action,
@@ -45,9 +49,10 @@ namespace engine {
             ) { return ACCEPT_TEMPORARILY; };
         private:
             std::string actionToStr(svn_wc_notify_action_t action);
-            void (*callback)(const char*);
+            void (*callback)(const svn_worker_info worker_info);
+            int worker_id;
     };
 
 }
 
-#endif /* CALLBACKLISTENER_H_ */
+#endif /* _SERVICES_CALLBACKLISTENER_H_ */

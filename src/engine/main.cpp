@@ -1017,8 +1017,8 @@ int main(int argc, char **argv)
     setlogfile(NULL);
 
     logoutf("init: repositories");
+    engine::initrepositoryworkers();
     addrepositories();
-    execfile("data/cubescript/repositories.cfg");
 
     logoutf("init: master servers");
     execfile("repositories/home/data/user/masterservers.cfg");
@@ -1208,6 +1208,7 @@ int main(int argc, char **argv)
     ignoremousemotion();
 
     // startup
+    execfile("data/cubescript/repositories.cfg"); // must be executed after loading config.cfg
     execfile("data/cubescript/startup_client.cfg");
 
     signal(SIGINT, client_sigint);

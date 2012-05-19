@@ -8,8 +8,10 @@ using namespace std;
 
 namespace engine {
 
-    callbacklistener::callbacklistener(void (*callback)(const char*)) {
+    callbacklistener::callbacklistener(int worker_id) {
+        this->worker_id = worker_id;
         this->callback = callback;
+
     }
 
     void callbacklistener::contextNotify(
@@ -21,15 +23,10 @@ namespace engine {
         svn_wc_notify_state_t prop_state,
         svn_revnum_t revnum
     ) {
-        std::stringstream message;
-        // TODO: reduce path to the last 60 chars
-        message << actionToStr(action) << ": '" << path << "', Revision ";
-        if (revnum == -1) {
-            message << "HEAD";
-        } else {
-            message << revnum;
-        }
-        callback(message.str().c_str());
+        // cout << "cb1:" << this->worker_id << " rev: " << revnum << " path: " << path << endl;
+        strcpy(svn_worker[this->worker_id].action, actionToStr(action).c_str());
+        svn_worker[this->worker_id].revision = revnum;
+        strcpy(svn_worker[this->worker_id].path, path);
     }
 
     std::string callbacklistener::actionToStr(svn_wc_notify_action_t action) {

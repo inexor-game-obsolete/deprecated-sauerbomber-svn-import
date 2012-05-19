@@ -726,6 +726,14 @@ namespace recorder
     extern void cleanup();
 }
 
+// services
+namespace engine
+{
+    extern void initrepositoryworkers();
+}
+
+
+
 #endif
 
 #endif
