@@ -2,6 +2,7 @@
 #define _SERVICES_WORKER_H
 
 #define MAX_SVN_WORKERS 20
+#define ERROR_NO_SVN_WORKERS_FREE -1
 
 namespace engine {
 
