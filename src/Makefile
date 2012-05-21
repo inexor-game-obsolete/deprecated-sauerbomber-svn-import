@@ -173,7 +173,6 @@ CLIENT_OBJS= \
 	fpsgame/weapon.o \
 	pycontrol/sbpy.o \
 	pycontrol/menus.o \
-	pycontrol/console.o \
 	pycontrol/sharedmodule.o \
 	pycontrol/clientmodule.o
 endif
@@ -201,7 +200,6 @@ SERVER_OBJS= \
 	fpsgame/entities-standalone.o \
 	fpsgame/server-standalone.o \
 	pycontrol/sbpy.o \
-	pycontrol/console.o \
 	pycontrol/sharedmodule.o \
 	pycontrol/servermodule.o \
 	svncpp/apr.o \
@@ -249,7 +247,6 @@ SERVER_OBJS= \
 	fpsgame/entities-standalone.o \
 	fpsgame/server-standalone.o \
 	pycontrol/sbpy.o \
-	pycontrol/console.o \
 	pycontrol/sharedmodule.o \
 	pycontrol/servermodule.o
 endif
