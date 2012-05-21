@@ -39,5 +39,9 @@ struct stringformatter
 #define defformatstring(d) string d; formatstring(d)
 #define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
 
+inline char *newstring(size_t l)                { return new char[l+1]; }
+inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
+inline char *newstring(const char *s)           { return newstring(s, strlen(s));          }
+inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1);       }
 
 #endif
