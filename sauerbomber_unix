@@ -9,7 +9,7 @@ SAUER_BIN=${SAUER_DATA}/bin_unix
 
 # SAUER_OPTIONS contains any command line options you would like to start Sauerbomber with.
 #SAUER_OPTIONS="-f"
-SAUER_OPTIONS="-q${HOME}/.sauerbomber -r"
+SAUER_OPTIONS="-r -t"
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
