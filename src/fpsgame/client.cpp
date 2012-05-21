@@ -1884,15 +1884,16 @@ namespace game
                 string oldname;
                 copystring(oldname, getclientmap());
                 defformatstring(mname)("getmap_%d", lastmillis);
-                defformatstring(fname)("packages/base/repositories/edit/%s.ogz", mname);
-                stream *map = openrawfile(path(fname), "wb");
+                defformatstring(fname)("packages/base/%s.ogz", mname);
+                defformatstring(rname)("repositories/edit/%s", fname);
+                stream *map = openrawfile(path(rname), "wb");
                 if(!map) return;
                 conoutf("received map");
                 map->write(data, len);
                 delete map;
                 if(load_world(mname, oldname[0] ? oldname : NULL))
                     entities::spawnitems(true);
-                remove(findfile(fname, "rb"));
+                // remove(findfile(rname, "rb"));
                 SbPy::triggerEventStr("map_received", fname);
                 break;
             }
