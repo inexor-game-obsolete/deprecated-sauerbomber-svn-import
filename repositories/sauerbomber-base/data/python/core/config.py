@@ -1,19 +1,26 @@
 import json
-encoded = json.dumps(obj)
-obj = json.loads(encoded)
-
+import sauerbomber
 
 class Config:
 
 	path = 'repositories/home/config'
+	extension = 'json'
+	data = {}
 	
-	def save(self, name, data):
-		f = open((%s/%s.json" % (self.path, name), "w")
+	def __init__(self, name, path):
+		self.name = name
+		if path != None:
+			self.path = path
+		else:
+			self.path = sauerbomber.configdir()
+
+	def save(self, data):
+		f = open((%s/%s.%s" % (self.path, self.name, self.extension), "w")
 		json.dump(data, f)
 		f.close()
 		
-	def load(self, name):
-		f = open("%s/%s.json" % (self.path, name), "r")
+	def load(self):
+		f = open("%s/%s.%s" % (self.path, self.name, self.extension), "r")
 		data = json.load(f)
 		f.close()
 		return data
