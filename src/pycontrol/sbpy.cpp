@@ -35,6 +35,7 @@
 #endif
 
 extern int totalmillis;
+extern void logoutf(const char *fmt, ...);
 
 namespace SbPy {
 
@@ -104,10 +105,10 @@ namespace SbPy {
         }
         pluginsModule = PyImport_ImportModule("core.plugins");
         SBPY_ERR(pluginsModule)
-        pFunc = PyObject_GetAttrString(pluginsModule, "loadPlugins");
+        pFunc = PyObject_GetAttrString(pluginsModule, "load_plugins");
         SBPY_ERR(pFunc)
         if(!PyCallable_Check(pFunc)) {
-            fprintf(stderr, "Error: loadPlugins function could not be loaded.\n");
+            fprintf(stderr, "Error: load_plugins function could not be loaded.\n");
             return false;
         }
         pArgs = PyTuple_New(0);
@@ -153,7 +154,9 @@ namespace SbPy {
         Py_SetProgramName(pn);
 
         // Initialize
+        logoutf("Before Py_Initialize");
         Py_Initialize();
+        logoutf("After Py_Initialize");
         initModule(module_name);
         if(!initPy()) {
             fprintf(stderr, "Error initializing python modules.\n");
