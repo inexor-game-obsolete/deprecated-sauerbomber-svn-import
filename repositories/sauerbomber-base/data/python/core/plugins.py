@@ -6,8 +6,12 @@ import inspect
 import glob
 import string
 import sauerbomber
+
+ # Initialize these before loading plugins
 import core.events
-import core.log # Initialize these before loading plugins
+import core.db
+import core.log
+
 from core.config import Config
 
 
@@ -18,10 +22,12 @@ class SauerbomberPlugin(object):
 
 	name = None
 	config = None
+	context = None
 
-	def __init__(self, name, config):
+	def __init__(self, name, config, context):
 		self.name = name
 		self.config = config
+		self.context = context
 		logging.info("Initialized plugin %s" %(name))
 
 	def __del__(self):
@@ -32,14 +38,16 @@ class Plugin(object):
 
 	name = "unnamed"
 	config = None
+	context = None
 	package = None
 	module = None
 	plugin = None
 	version = 0
 
-	def __init__(self, name, config):
+	def __init__(self, name, config, context):
 		self.name = name
 		self.config = config
+		self.context = context
 
 	def info(self):
 		pass
@@ -54,7 +62,7 @@ class Plugin(object):
 				logging.info("Checking for %s in %s..." %(name, self.module))
 				if inspect.isclass(obj):
 					if issubclass(obj, SauerbomberPlugin):
-						self.plugin = obj(self.name, self.config)
+						self.plugin = obj(self.name, self.config, self.context)
 						logging.info("Found plugin class for %s" %(name))
 						break
 		except Exception, e:
@@ -107,7 +115,7 @@ class PluginManager(object):
 		logging.info("Added plugin %s" %(name))
 		config = PluginConfig(name)
 		config.load()
-		self.plugins[name] = Plugin(name, config)
+		self.plugins[name] = Plugin(name, config, self)
 		
 	def remove(self, name):
 		del self.plugins[name]
@@ -145,20 +153,19 @@ class PluginManager(object):
 plugin_manager = PluginManager()
 
 def load_plugins():
-	# try:
+	try:
 		plugin_manager.clear()
 		plugin_manager.auto_detect()
 		plugin_manager.start_all()
-	# except Exception, e:
-	#	logging.error("Error: %s"%(e))
-	#	logging.exception(e)
+	except Exception, e:
+		logging.error("Error: %s"%(e))
+		logging.exception(e)
 	
 def reload_plugins():
-	#try:
+	try:
 		plugin_manager.stop_all()
 		plugin_manager.clear()
 		plugin_manager.auto_detect()
-	#except Exception, e:
-	#	logging.error("Error: %s"%(e))
-	#	logging.exception(e)
-	
+	except Exception, e:
+		logging.error("Error: %s"%(e))
+		logging.exception(e)
