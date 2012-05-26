@@ -1,4 +1,4 @@
-import timers
+import scheduler
 import asyncore
 import logging
 import sys
