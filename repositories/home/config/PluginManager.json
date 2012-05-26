@@ -1,0 +1,8 @@
+{
+	"paths": [
+		"repositories/sauerbomber-python/data/python"
+	],
+	"plugins": [
+		"envinfo"
+	]
+}
