@@ -10,7 +10,6 @@ import sauerbomber
  # Initialize these before loading plugins
 import core.events
 import core.db
-import core.log
 
 from core.config import Config
 
@@ -124,14 +123,19 @@ class PluginManager(object):
 		if self.ready and self.config.data.has_key('paths'):
 			for path in self.config.data['paths']:
 				logging.info("Autodetecting plugin modules in %s" %(path))
-				for client_module_path in glob.glob("%s/client/*" %(path)):
-					if os.path.isdir(client_module_path):
-						client_module = client_module_path.replace(path, "")[1:].replace("/", ".")
-						self.add(client_module)
-				for server_module_path in glob.glob("%s/server/*" %(path)):
-					if os.path.isdir(server_module_path):
-						server_module = server_module_path.replace(path, "")[1:].replace("/", ".")
-						self.add(server_module)
+				for plugin_type in [ 'core', 'client', 'server' ]:
+					for module_path in glob.glob("%s/%s/*" %(path, plugin_type)):
+						if os.path.isdir(module_path):
+							module = module_path.replace(path, "")[1:].replace("/", ".")
+							self.add(module)
+#				for client_module_path in glob.glob("%s/client/*" %(path)):
+#					if os.path.isdir(client_module_path):
+#						client_module = client_module_path.replace(path, "")[1:].replace("/", ".")
+#						self.add(client_module)
+#				for server_module_path in glob.glob("%s/server/*" %(path)):
+#					if os.path.isdir(server_module_path):
+#						server_module = server_module_path.replace(path, "")[1:].replace("/", ".")
+#						self.add(server_module)
 		else:
 			logging.error("auto detect error")
 
@@ -150,9 +154,16 @@ class PluginManager(object):
 			plugin.stop()
 		
 
+logging.basicConfig(
+	filename = 'repositories/home/logs/python.log',
+	format = '%(levelname)-10s %(asctime)s %(module)s: %(message)s',
+	level = logging.INFO
+)
+
 plugin_manager = PluginManager()
 
 def load_plugins():
+	'''Loading python plugins. Called by SauerBomber at startup'''
 	try:
 		plugin_manager.clear()
 		plugin_manager.auto_detect()
