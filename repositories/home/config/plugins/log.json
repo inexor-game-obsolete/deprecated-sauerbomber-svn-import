@@ -1,0 +1,5 @@
+{
+	"path": "repositories/home/logs/python.log",
+	"level": "error",
+	"format": "%(levelname)-10s %(asctime)s %(module)s: %(message)s"
+}
