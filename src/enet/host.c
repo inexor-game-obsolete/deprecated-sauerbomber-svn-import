@@ -102,6 +102,8 @@ enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelL
     host -> compressor.decompress = NULL;
     host -> compressor.destroy = NULL;
 
+    host -> intercept = NULL;
+
     enet_list_clear (& host -> dispatchQueue);
 
     for (currentPeer = host -> peers;
@@ -133,6 +135,9 @@ void
 enet_host_destroy (ENetHost * host)
 {
     ENetPeer * currentPeer;
+
+    if (host == NULL)
+      return;
 
     enet_socket_destroy (host -> socket);
 
