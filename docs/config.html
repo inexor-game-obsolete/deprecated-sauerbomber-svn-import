@@ -1320,6 +1320,7 @@ that they may contain linefeeds (useful for larger scripts). () is different
 from [] in that it evaluates the commands contained in it _before_ it evaluates
 the surrounding command, and substitutes the results. () bracketed strings are
 called expressions, and [] bracketed strings may be thought of as blocks.
+called expressions, while [] bracketed strings may be thought of as blocks.
 </p>
 
 <p>
@@ -1336,6 +1337,10 @@ The form @(body) is similar to @x, except that body contains commands executed a
 The result value after body executes is substituted in for @(body). 
 You may use multiple @ prefixes as with the @x form.
 Example: @(result "Hello, World!") will substitute itself with Hello, World!
+</p>
+
+<p>
+@[body] is also similar to @(body), except that it does not execute its contents and instead expands macros to use as the alias name for the final macro substitution.
 </p>
 
 <p>
