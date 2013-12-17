@@ -483,6 +483,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         chdir([dataPath fileSystemRepresentation]);
         setenv("SDL_SINGLEDISPLAY", "1", 1);
         setenv("SDL_ENABLEAPPEVENTS", "1", 1); // makes Command-H, Command-M and Command-Q work at least when not in fullscreen
+        extern int SDL_main(int, char*[]);
         SDL_main(argc, (char**)argv);
         
         // unlikely to reach here as the C/C++ code calls fatal/exit
@@ -505,9 +506,9 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [args addObject:[NSString stringWithFormat:@"-w%@", [res objectAtIndex:0]]];
     [args addObject:[NSString stringWithFormat:@"-h%@", [res objectAtIndex:1]]];
     [args addObject:@"-z24"]; // otherwise seems to have a fondness to use -z16
-    [args addObject:[NSString stringWithFormat:@"-t%d", [defs integerForKey:dkFULLSCREEN]]];
-    [args addObject:[NSString stringWithFormat:@"-a%d", [defs integerForKey:dkFSAA]]];
-    [args addObject:[NSString stringWithFormat:@"-f%d", [defs integerForKey:dkSHADER]]];
+    [args addObject:[NSString stringWithFormat:@"-t%ld", (long)[defs integerForKey:dkFULLSCREEN]]];
+    [args addObject:[NSString stringWithFormat:@"-a%ld", (long)[defs integerForKey:dkFSAA]]];
+    [args addObject:[NSString stringWithFormat:@"-f%ld", (long)[defs integerForKey:dkSHADER]]];
     
     [args addObject:[NSString stringWithFormat:@"-q%@", userPath]];
 
@@ -644,7 +645,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         NSBeginCriticalAlertSheet(
             [NSLocalizedString(@"InitAlertTitle", @"") expand], nil, nil, nil,
             window, self, nil, nil, nil,
-            [NSLocalizedString(@"InitAlertMesg", @"") expand]);
+            @"%@", [NSLocalizedString(@"InitAlertMesg", @"") expand]);
         NSLog(@"dataPath = '%@'", dataPath);
     }
 }
@@ -686,7 +687,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSBeginCriticalAlertSheet(
         [NSLocalizedString(@"FileAlertMesg", @"") expand], NSLocalizedString(@"Ok", @""), NSLocalizedString(@"Cancel", @""), nil,
         window, self, @selector(openPackageFolder:returnCode:contextInfo:), nil, nil,
-        [NSLocalizedString(@"FileAlertMesg", @"") expand]);
+        @"%@", [NSLocalizedString(@"FileAlertMesg", @"") expand]);
     return NO;
 }
 
