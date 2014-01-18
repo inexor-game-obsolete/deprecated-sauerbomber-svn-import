@@ -409,7 +409,7 @@ extern void initserver(bool listen, bool dedicated);
 extern void cleanupserver();
 extern void serverslice(bool dedicated, uint timeout);
 
-extern ENetSocket connectmaster();
+extern ENetSocket connectmaster(masterserver &m);
 extern void localclienttoserver(int chan, ENetPacket *);
 extern void localconnect();
 extern bool serveroption(char *opt);

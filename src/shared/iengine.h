@@ -380,6 +380,17 @@ extern int maxclients;
 
 enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_KICK, DISC_TAGT, DISC_IPBAN, DISC_PRIVATE, DISC_MAXCLIENTS, DISC_TIMEOUT, DISC_OVERFLOW, DISC_NUM };
 
+struct masterserver {
+  char *hostname;
+  int port;
+  int lastupdatemaster;
+  vector<char> masterout, masterin;
+  int masteroutpos, masterinpos;
+  ENetSocket mastersock;
+  ENetAddress masteraddress;
+};
+extern vector<masterserver> masterservers;
+
 extern void *getclientinfo(int i);
 extern ENetPeer *getclientpeer(int i);
 extern ENetPacket *sendf(int cn, int chan, const char *format, ...);
@@ -411,8 +422,8 @@ extern void kicknonlocalclients(int reason = DISC_NONE);
 extern bool hasnonlocalclients();
 extern bool haslocalclients();
 extern void sendserverinforeply(ucharbuf &p);
-extern bool requestmaster(const char *req);
-extern bool requestmasterf(const char *fmt, ...);
+extern bool requestmasters(const char *req);
+extern bool requestmastersf(const char *fmt, ...);
 
 // client
 extern void sendclientpacket(ENetPacket *packet, int chan);

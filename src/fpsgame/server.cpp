@@ -2188,7 +2188,7 @@ namespace server
         if(!nextauthreq) nextauthreq = 1;
         ci->authreq = nextauthreq++;
         filtertext(ci->authname, user, false, 100);
-        if(!requestmasterf("reqauth %u %s\n", ci->authreq, ci->authname))
+        if(!requestmastersf("reqauth %u %s\n", ci->authreq, ci->authname))
         {
             ci->authreq = 0;
             sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
@@ -2202,7 +2202,7 @@ namespace server
         {
             if(!isxdigit(*s)) { *s = '\0'; break; }
         }
-        if(!requestmasterf("confauth %u %s\n", id, val))
+        if(!requestmastersf("confauth %u %s\n", id, val))
         {
             ci->authreq = 0;
             sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");

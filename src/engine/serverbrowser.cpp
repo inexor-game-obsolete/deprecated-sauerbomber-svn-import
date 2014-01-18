@@ -599,56 +599,59 @@ void clearservers(bool full = false)
 
 void retrieveservers(vector<char> &data)
 {
-    ENetSocket sock = connectmaster();
-    if(sock == ENET_SOCKET_NULL) return;
+    loopv(masterservers) {
+        masterserver &m = masterservers[i];
+        ENetSocket sock = connectmaster(m);
+        if(sock == ENET_SOCKET_NULL) conoutf("sock == ENET_SOCKET_NULL");
+        if(sock == ENET_SOCKET_NULL) return;
 
-    extern char *mastername;
-    defformatstring(text)("retrieving servers from %s... (esc to abort)", mastername);
-    renderprogress(0, text);
+        defformatstring(text)("retrieving servers from %s... (esc to abort)", m.hostname);
+        renderprogress(0, text);
 
-    int starttime = SDL_GetTicks(), timeout = 0;
-    const char *req = "list\n";
-    int reqlen = strlen(req);
-    ENetBuffer buf;
-    while(reqlen > 0)
-    {
-        enet_uint32 events = ENET_SOCKET_WAIT_SEND;
-        if(enet_socket_wait(sock, &events, 250) >= 0 && events) 
+        int starttime = SDL_GetTicks(), timeout = 0;
+        const char *req = "list\n";
+        int reqlen = strlen(req);
+        ENetBuffer buf;
+        while(reqlen > 0)
         {
-            buf.data = (void *)req;
-            buf.dataLength = reqlen;
-            int sent = enet_socket_send(sock, NULL, &buf, 1);
-            if(sent < 0) break;
-            req += sent;
-            reqlen -= sent;
-            if(reqlen <= 0) break;
+            enet_uint32 events = ENET_SOCKET_WAIT_SEND;
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                buf.data = (void *)req;
+                buf.dataLength = reqlen;
+                int sent = enet_socket_send(sock, NULL, &buf, 1);
+                if(sent < 0) break;
+                req += sent;
+                reqlen -= sent;
+                if(reqlen <= 0) break;
+            }
+            timeout = SDL_GetTicks() - starttime;
+            renderprogress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+            if(timeout > RETRIEVELIMIT) break;
         }
-        timeout = SDL_GetTicks() - starttime;
-        renderprogress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-        if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
-        if(timeout > RETRIEVELIMIT) break;
-    }
 
-    if(reqlen <= 0) for(;;)
-    {
-        enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
-        if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+        if(reqlen <= 0) for(;;)
         {
-            if(data.length() >= data.capacity()) data.reserve(4096);
-            buf.data = data.getbuf() + data.length();
-            buf.dataLength = data.capacity() - data.length();
-            int recv = enet_socket_receive(sock, NULL, &buf, 1);
-            if(recv <= 0) break;
-            data.advance(recv);
+            enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                if(data.length() >= data.capacity()) data.reserve(4096);
+                buf.data = data.getbuf() + data.length();
+                buf.dataLength = data.capacity() - data.length();
+                int recv = enet_socket_receive(sock, NULL, &buf, 1);
+                if(recv <= 0) break;
+                data.advance(recv);
+            }
+            timeout = SDL_GetTicks() - starttime;
+            renderprogress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+            if(timeout > RETRIEVELIMIT) break;
         }
-        timeout = SDL_GetTicks() - starttime;
-        renderprogress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-        if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
-        if(timeout > RETRIEVELIMIT) break;
-    }
 
-    if(data.length()) data.add('\0');
-    enet_socket_destroy(sock);
+        if(data.length()) data.add('\0');
+        enet_socket_destroy(sock);
+    }
 }
 
 bool updatedservers = false;
@@ -706,6 +709,11 @@ void writeservercfg()
             if(s->password) f->printf("addserver %s %d %s\n", escapeid(s->name), s->port, escapestring(s->password));
             else f->printf("addserver %s %d\n", escapeid(s->name), s->port);
         }
+    }
+    loopv(masterservers)
+    {
+        masterserver &m = masterservers[i];
+        f->printf("addmasterserver %s %d\n", escapeid(m.hostname), m.port);
     }
     delete f;
 }
