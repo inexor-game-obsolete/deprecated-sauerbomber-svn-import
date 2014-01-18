@@ -1173,7 +1173,7 @@ void initserver(bool listen, bool dedicated)
     if(dedicated) 
     {
 #ifdef WIN32
-        setupwindow("Cube 2: Sauerbraten server");
+        setupwindow("Cube 2: Sauerbomber server");
 #endif
         execfile("server-init.cfg", false);
     }

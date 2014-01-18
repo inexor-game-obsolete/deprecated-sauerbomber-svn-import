@@ -1,1 +1,1 @@
-start bin\sauerbraten.exe "-q$HOME\My Games\Sauerbraten" -gserver-log.txt -d %*
+start bin\sauerbomber.exe "-q$HOME\My Games\Sauerbomber" -gserver-log.txt -d %*
