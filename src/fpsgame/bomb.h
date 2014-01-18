@@ -371,42 +371,47 @@ struct bombclientmode : clientmode
     }
 
     bool gamerunning() {
-      for (int cn = 0; cn < clients.length(); cn++)
-          if(clients[cn]->state.deaths > 0) return true;
-      return false;
+        for (int cn = 0; cn < clients.length(); cn++)
+            if(clients[cn]->state.deaths > 0) return true;
+        return false;
     }
 
     bool canspawn(clientinfo *ci, bool connecting) {
-    	if(!m_lms) return true;
-    	if(gamerunning()) {conoutf("game is running"); return false; }
-    	if(notgotspawnlocations) {conoutf("not got spawn locations yet"); return false; }
-    	int i = 0;
-    	for(; i < spawnlocs.length(); i++) if(spawnlocs[i]->cn == ci->clientnum) break;
-    	if(i == spawnlocs.length()) {conoutf("player has got no spawn location"); return false; }
-    	if(ci->state.deaths==0) {conoutf("player has no deaths"); return true; } // ci->state.aitype!=AI_NONE &&
-    	sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1250, E_ZOOM_IN, "You cannot respawn this round");
-    	return false;
+        if(!m_lms) return true;
+        if(gamerunning()) {conoutf("game is running"); return false; }
+        if(notgotspawnlocations) {conoutf("not got spawn locations yet"); return false; }
+        int i = 0;
+        for(; i < spawnlocs.length(); i++) if(spawnlocs[i]->cn == ci->clientnum) break;
+        if(i == spawnlocs.length()) {conoutf("player has got no spawn location"); return false; }
+        if(ci->state.deaths==0) {conoutf("player has no deaths"); return true; } // ci->state.aitype!=AI_NONE &&
+        sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1250, E_ZOOM_IN, "You cannot respawn this round");
+        return false;
     }
 
-    void pushentity(int type, vec o) {
-    	entity &e = ments.add();
-    	e.o = o;
-    	e.type = type;
+    void pushentity(vec &o, int type) {
+        entity &e = ments.add();
+        e.o = o;
+        e.type = type;
         server_entity se = { NOTUSED, 0, false };
         while(sents.length()<=ments.length()+1) sents.add(se);
         int id = sents.length()-1;
-        sents[id].type = ments[id].type;
+        sents[id].type = type;
         sents[id].spawned = true;
-        ivec io(o.mul(DMF));
-        sendf(-1, 1, "ri6", N_ITEMPUSH, id, type, io.x-120+rnd(240), io.y-120+rnd(240), io.z + rnd(2)*180);
+        sents[id].spawntime = rnd(2000);
+        ivec io(o);
+        io.mul(DMF);
+        io.x -= 120+rnd(240);
+        io.y -= 120+rnd(240);
+        io.z += rnd(2)*180;
+        sendf(-1, 1, "rii3ii5", N_EDITENT, id, io.x, io.y, io.z, type, 0, 0, 0, 0, 0);
     }
 
     void died(clientinfo *target, clientinfo *actor)
     {
         int leftitems = 0;
-        for(int i=0; i<target->state.ammo[GUN_BOMB]/2; i++) { pushentity(I_BOMBS, target->state.o); leftitems++; }
-        for(int i=0; i<target->state.bombradius/2; i++) { pushentity(I_BOMBRADIUS, target->state.o); leftitems++; }
-        for(int i=0; i<target->state.bombdelay/3; i++) { pushentity(I_BOMBDELAY, target->state.o); leftitems++; }
+        for(int i=0; i<target->state.ammo[GUN_BOMB]/2; i++) { pushentity(target->state.o, I_BOMBS); leftitems++; }
+        for(int i=0; i<target->state.bombradius/2; i++) { pushentity(target->state.o, I_BOMBRADIUS); leftitems++; }
+        for(int i=0; i<target->state.bombdelay/3; i++) { pushentity(target->state.o, I_BOMBDELAY); leftitems++; }
         if (leftitems > 0) {
             defformatstring(msg)("%s died and left %d %s!", target->name, leftitems, leftitems > 1 ? "items" : "item");
             sendf(-1, 1, "ri3s ", N_HUDANNOUNCE, 1250, E_ZOOM_OUT, msg);
