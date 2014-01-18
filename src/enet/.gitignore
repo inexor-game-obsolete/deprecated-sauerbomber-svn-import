@@ -1,0 +1,15 @@
+/aclocal.m4
+/configure
+/Makefile.in
+/autom4te.cache
+/*.lo
+/*.o
+/Makefile
+/config.log
+/config.status
+/libenet.pc
+/libtool
+/libenet.la
+/.deps
+/.libs
+
