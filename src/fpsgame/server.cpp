@@ -569,7 +569,7 @@ namespace server
         virtual bool canhit(clientinfo *victim, clientinfo *actor) { return true; }
         virtual void died(clientinfo *victim, clientinfo *actor) {}
         virtual bool canchangeteam(clientinfo *ci, const char *oldteam, const char *newteam) { return true; }
-        virtual bool canspawnitem(server_entity *se) { return se->maxrespawns != -1 && se->maxrespawns > 0; };
+        virtual bool canspawnitem(server_entity *se) { return se->maxrespawns != 0; };
         virtual void changeteam(clientinfo *ci, const char *oldteam, const char *newteam) {}
         virtual void initclient(clientinfo *ci, packetbuf &p, bool connecting) {}
         virtual void update() {}

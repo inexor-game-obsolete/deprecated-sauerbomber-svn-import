@@ -811,6 +811,7 @@ namespace entities
     extern void spawnitems(bool force = false);
     extern void putitems(packetbuf &p);
     extern void setspawn(int i, bool on);
+    extern void setsavable(int i, bool on);
     extern void teleport(int n, fpsent *d);
     extern void pickupeffects(int n, fpsent *d);
     extern void teleporteffects(fpsent *d, int tp, int td, bool local = true);
